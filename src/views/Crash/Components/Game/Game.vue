@@ -29,7 +29,7 @@ onMounted(() => {
   gsap.to(state, {
     p: 1,
     duration: 2.5,
-    ease: "none",          // время линейное — форма в самом пути
+    ease: "none",          // время линейное — форма в самом пути 
     onUpdate: () => {
       const l = len * state.p;
       pathRef.value!.style.strokeDashoffset = `${len - l}`;
