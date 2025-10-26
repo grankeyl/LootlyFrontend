@@ -1,0 +1,47 @@
+.m-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 999;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+  will-change: opacity;
+}
+
+.m-panel {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  z-index: 1000;
+  width: 100%;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  // overflow: hidden;
+  color: #fff;
+  transition: transform .4s cubic-bezier(.25,1,.5,1);
+  will-change: transform;
+}
+
+@media (min-width:640px) {
+  .m-overlay{ place-items:center; }
+  .m-panel{ border-radius:16px; }
+}
+
+/* активное состояние */
+.m-overlay.active {
+  opacity:1; 
+  pointer-events:auto;
+}
+
+.m-panel.active {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* уважение системных настроек */
+@media (prefers-reduced-motion: reduce) {
+  .m-overlay, .m-panel { transition: none !important; }
+}

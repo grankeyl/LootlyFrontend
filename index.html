@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0">
+    <title>Lootly</title>
+    <link rel="stylesheet" href="src/assets/fonts/SFProRounded/stylesheet.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJMFXZXVHZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-CJMFXZXVHZ');
+    </script>
+
+    <script>
+      // Set up a mutation observer to wait for WebApp to be available
+      const initWebApp = () => {
+        const FULLSCREEN_ALLOWED_PLATFORMS = ['ios', 'android']
+        const webApp = window?.Telegram?.WebApp
+
+        if (webApp) {
+          webApp.expand()
+
+          const withFullScreen =
+            Number(webApp.version) >= 8 &&
+            webApp.requestFullscreen &&
+            FULLSCREEN_ALLOWED_PLATFORMS.includes(webApp.platform)
+
+          if (withFullScreen) {
+            webApp.requestFullscreen()
+          }
+
+          webApp.disableVerticalSwipes()
+
+          return true
+        }
+        return false
+      }
+
+      // Try to initialize immediately
+      if (!initWebApp()) {
+        // If not available, set up an observer to check when it becomes available
+        const observer = new MutationObserver(() => {
+          if (initWebApp()) {
+            observer.disconnect()
+          }
+        })
+
+        // Start observing the document for changes
+        observer.observe(document, {
+          childList: true,
+          subtree: true
+        })
+
+        setTimeout(() => {
+          initWebApp()
+          observer.disconnect()
+        }, 1000)
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

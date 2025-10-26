@@ -1,0 +1,133 @@
+.user {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: fit-content;
+  text-align: center;
+  gap: 6px;
+  
+  .photo {
+    width: 9.6rem;
+    height: 9.6rem;
+    border-radius: 5.8rem;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-secondary);
+
+    img {
+      width: 9.6rem;
+      height: 9.6rem;
+      object-fit: cover;
+      border-radius: 5.8rem;
+    }
+  }
+
+  .photo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0) 60%),
+                linear-gradient(135deg, #7A5AF8, #E837BB);
+    overflow: hidden;
+  }
+
+  .photo-fallback .initials {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #fff;
+    font-size: clamp(21px, 40%, 28px);
+  }
+
+  .name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: fit-content;
+
+    h4 {
+      font-weight: 700;
+      font-size: 2.8rem;
+      color: var(--color-white);
+    }
+  }
+
+  .leader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    height: fit-content;
+    gap: 0.4rem;
+
+    &.skeleton {
+      .sk-load {
+        opacity: .4;
+        width: 130px;
+        height: 25px;
+        position: relative;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      .position {
+        display: none;
+      }
+
+      .mark {
+        display: none;
+      }
+    }
+
+    .position {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: fit-content;
+
+      img {
+        width: 2.4rem;
+        height: 2.4rem;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+
+      p {
+        font-weight: 500;
+        font-size: 1.6rem;
+        color: var(--color-white);
+      }
+    }
+
+    .mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 24px;
+      background: rgba(239, 189, 80, 0.10);
+      border-radius: 3.1rem;
+      padding: 0 0.5rem 0 0.9rem;
+
+      h4 {
+        font-weight: 500;
+        font-size: 1.2rem;
+        color: var(--color-gold);
+      }
+
+      img {
+        width: 13px;
+        height: 13px;
+        object-fit: cover;
+      }
+    }
+  }
+}

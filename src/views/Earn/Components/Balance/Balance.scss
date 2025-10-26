@@ -1,0 +1,46 @@
+.balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--padding-left);
+  position: relative;
+  width: fit-content;
+  margin: auto;
+  margin-top: 10px;
+
+  .about {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    height: fit-content;
+    padding: 0 0.5rem;
+    position: absolute;
+    top: -7px;
+    right: -6px;
+
+    img {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .context {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    height: fit-content;
+
+    h1 {
+      font-weight: 700;
+      font-size: 4rem;
+      color: var(--color-white);
+    }
+
+    img {
+      width: 36px;
+      height: 36px;
+    }
+  }
+}

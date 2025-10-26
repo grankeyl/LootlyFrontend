@@ -1,0 +1,95 @@
+.roulette {
+  width: 100%;
+  height: fit-content !important;
+  z-index: 2;
+
+  .window {
+    position: relative;
+    padding: 24px 0;
+    perspective: 1000px;
+  }
+
+  .track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100px; /* = ITEM_WIDTH */
+    gap: 16px;                /* = GAP */
+    will-change: transform;
+    margin-left: 6px;
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100px;      /* строго = ITEM_WIDTH */
+    min-width: 100px;
+    height: 117px;     /* задай явно, без aspect-ratio */
+    border-radius: 16px;
+    position: relative;
+    background: radial-gradient(99.63% 106.36% at 50% -6.36%,
+                var(--bg-start-color) 0%,
+                var(--bg-center-color) 50%,
+                var(--bg-end-color) 100%);
+    transform-origin: center center;
+    will-change: transform, filter, opacity;
+    transform: translateZ(0) scale(0.9);
+    transition: transform 0.2s ease-in-out;
+
+    img {
+      margin-top: 6px;
+      width: 70%;
+      user-select: none;
+      pointer-events: none;
+    }
+  }
+
+  .price {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    position: absolute;
+    bottom: 8%;
+    padding: 0.4em 0.8em;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(17px);
+    border-radius: 0.8em;
+    z-index: 1;
+
+    p {
+      font-weight: 700;
+      font-size: 0.9em;
+      color: var(--color-white);
+    }
+
+    img {
+      width: 1em;
+      height: 1em;
+      margin-top: 1px;
+      transform: scale(1.1);
+    }
+  }
+
+  .indicator {
+    pointer-events: none;
+    margin-top: 14px;
+
+    &.done {
+      svg {
+        path {
+          fill: var(--color-white);
+        }
+      }
+    }
+
+    svg {
+      width: 19px;  
+      height: 14px;
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}

@@ -1,0 +1,35 @@
+.tabs {
+  display: block;
+  margin-top: 20px;
+
+  .items {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: start;
+
+    .item {
+      display: flex;
+      align-items: center;
+      width: fit-content;
+      height: fit-content;
+      opacity: 0.2;
+      transition: opacity 0.2s ease-in-out;
+
+      &.active {
+        opacity: 1;
+      }
+
+      h4 {
+        font-weight: 700;
+        font-size: 24px;
+        color: var(--color-white);
+      }
+
+      img {
+        width: 26px;
+        height: 26px;
+      }
+    }
+  }
+}
