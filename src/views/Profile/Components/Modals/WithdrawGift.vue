@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // Icons
 import CloseIcon from "@/assets/icons/close.svg";
-import WithdrawIcon from "@/assets/icons/withdraw.svg";
 </script>
 
 <template>

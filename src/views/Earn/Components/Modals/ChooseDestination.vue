@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { ModalExpose } from '../../../../components/common/Modal/modal.types'
 
 // Icons
 import CloseIcon from "@/assets/icons/close.svg";
@@ -11,27 +10,14 @@ import TonLineIcon from "@/assets/icons/ton-line.svg";
 // Images
 import LootlyBalanceBlur from "@/assets/images/earn-pg/bg-blured-lootly-balance.png";
 
-type Result =
-  | { type: 'lootly-balance' }
-  | { type: 'wallet'; address: string }
-
-const props = defineProps<{ modalId: number } & ModalExpose<Result>>()
-
 const emit = defineEmits<{
   (e: "open-modal-withdraw-balance"): void;
 }>();
 
-const { modalId, close, dismiss } = props
-
-const connected = false
 const address = ref('UQx...2Rq1')
 
-function chooseLootly() {
-  close({ type: 'lootly-balance' })
-}
 function chooseWallet() {
   emit('open-modal-withdraw-balance');
-  // close({ type: 'wallet', address: address.value })
 }
 </script>
 

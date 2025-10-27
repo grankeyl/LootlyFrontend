@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { useCacheStore } from "../../../../stores/pinia-store";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { Icon } from "../../../../components/Icon";
 
@@ -26,9 +25,7 @@ function handleClick() {
 let io: IntersectionObserver | null = null;
 
 const skeleton = ref(true);
-const useCache = useCacheStore() as any;
 
-const inventoryAllCount = ref(0);
 const inventorySentinel = ref<HTMLDivElement|null>(null);
 const inventoryLoadingMore = ref(false);
 const inventoryHasMore = ref(true);

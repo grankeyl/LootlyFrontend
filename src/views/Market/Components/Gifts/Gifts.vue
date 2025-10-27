@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { useCacheStore } from "../../../../stores/pinia-store";
 import { cutNumberNano } from "../../../../utils/useTon";
 
 import * as APIMarket from "../../../../api/market";
@@ -20,9 +19,7 @@ const props = defineProps<{
 let io: IntersectionObserver | null = null;
 
 const skeleton = ref(true);
-const useCache = useCacheStore() as any;
 
-const giftsAllCount = ref(0);
 const giftsSentinel = ref<HTMLDivElement|null>(null);
 const giftsLoadingMore = ref(false);
 const giftsHasMore = ref(true);

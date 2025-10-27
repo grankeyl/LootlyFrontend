@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // Icons
 import TelegramIcon from "@/assets/icons/telegram.svg";
-import MemgiftIcon from "@/assets/icons/memgift.svg";
 
 const props = defineProps<{
   ActiveTab: string

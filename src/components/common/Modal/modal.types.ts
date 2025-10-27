@@ -13,7 +13,7 @@ export type ModalExpose<TResult = any> = {
   dismiss: (reason?: any) => void;
 };
 
-export type ModalAny<TProps = any, TResult = any> = Component<
+export type ModalAny<TProps = any> = Component<
   TProps & { modalId: number }
 >;
 

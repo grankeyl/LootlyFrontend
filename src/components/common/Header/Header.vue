@@ -26,7 +26,7 @@ const OpenBalance = () => {
 </script>
 
 <template>
-  <div class="header" :class="{ dth: !CheckActiveMenu(route) }">
+  <div class="header" :class="{ dth: !CheckActiveMenu() }">
     <div class="logo">
       <img :src="Logo" alt="logo" />
     </div>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 // Icons
-import CloseIcon from "@/assets/icons/close.svg";
 import TonIcon from "@/assets/icons/ton.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import ForwardWhiteIcon from "@/assets/icons/forward-white.svg";

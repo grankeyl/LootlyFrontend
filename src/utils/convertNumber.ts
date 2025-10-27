@@ -1,5 +1,5 @@
-import converter from 'number-to-words';
+// import converter from 'number-to-words';
 
-export const convertNumberToText = (num: any) => {
-  return converter.toWords(num);
-};
+// export const convertNumberToText = (num: any) => {
+//   return converter.toWords(num);
+// };

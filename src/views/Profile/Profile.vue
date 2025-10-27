@@ -16,7 +16,7 @@ import { useCacheStore } from '../../stores/pinia-store';
 
 const { open } = useModal();
 
-const useCache = useCacheStore();
+const useCache = useCacheStore() as any;
 const pageRef = ref<HTMLElement|null>(null);
 
 const inventoryCount = ref(0);
@@ -50,7 +50,7 @@ async function openGift() {
             @open-modal-withdraw-gifts="openWithdrawGifts"
         />
         <Gifts
-            :scroll-el="PageRef"
+            :scroll-el="pageRef"
             @open-modal="openGift"
             @inventory-count="inventoryCount = $event"
         />

@@ -47,7 +47,7 @@ setTimeout(() => {
     </div>
 
     <div class="others">
-      <div class="other" v-for="value in 3">
+      <div class="other" v-for="_ in 3">
         <div class="sk-load" v-if="skeleton"></div>
         <div class="image">
           <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1zwhySGCEBxRRFYIcQgvOLOpRGqrT3d7Qng&s" alt="">

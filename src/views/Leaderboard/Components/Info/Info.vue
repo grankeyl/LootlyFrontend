@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-// Icons
-import LootcoinIcon from "@/assets/icons/lootcoin.svg";
-import TonWhite from "@/assets/icons/ton-white.svg";
-import ChevroneRight from "@/assets/icons/chevrone-right.svg";
-
 // Images
 import Reward from "@/assets/images/leaderboard-pg/reward.png";
 
