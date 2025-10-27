@@ -1,15 +1,20 @@
 <script setup lang="ts">
+import { getImgSvg } from "../../../../utils/useApp";
+import { cutNumberNano } from "../../../../utils/useTon";
+import { useCacheStore } from "../../../../stores/pinia-store";
+
+import * as APICases from "../../../../api/cases";
+
 // Icons
 import TonIcon from "@/assets/icons/ton.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import ForwardWhiteIcon from "@/assets/icons/forward-white.svg";
 import WithdrawIcon from "@/assets/icons/withdraw.svg";
-import { getImgSvg } from "../../../../utils/useApp";
-import { cutNumberNano } from "../../../../utils/useTon";
 
 const emit = defineEmits<{ 
   (e:'close'): void; 
   (e:'open-modal-withdraw-gift'): void 
+  (e:'quick-sell-success', payload: any): void
 }>();
 
 const props = defineProps<{
@@ -17,12 +22,37 @@ const props = defineProps<{
   __modal?: { close: (payload?: any) => void }
 }>();
 
+const useCache = useCacheStore() as any;
+
 function withdraw() {
   emit("open-modal-withdraw-gift");
 }
 
 function close() {
   emit('close');
+}
+
+const checkIfQuickSale = (
+  status: string,
+  quick_sale: boolean
+) => {
+  if (status === "sold") return false;
+  if (quick_sale) return true;
+  return false;
+}
+
+async function quickSell(
+  id: string
+) {
+  const res = await APICases.quick_sell(id).catch(() => null);
+  if (!res?.ok) return;
+
+  useCache.UserData.BalanceNano = res.new_balance;
+  close();
+  emit("quick-sell-success", {
+    id: id,
+    status: "sold",
+  });
 }
 </script>
 
@@ -104,7 +134,11 @@ function close() {
       </div> -->
     </div>
     <div class="buttons">
-      <button>
+      <button 
+        v-if="checkIfQuickSale(props.data.status, props.data.quick_sale)" 
+        class="primary"
+        @click="quickSell(props.data.id)"
+      >
         <h4>Sell for {{ cutNumberNano(props.data.price_nano) }}</h4>
         <img :src="TonBlackIcon" alt="close-icon" aria-hidden="true" />
       </button>

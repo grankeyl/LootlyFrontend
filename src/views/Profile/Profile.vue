@@ -18,6 +18,18 @@ const { open } = useModal();
 
 const useCache = useCacheStore() as any;
 const pageRef = ref<HTMLElement|null>(null);
+const inventory = ref<any[]>(
+  Array.from({ length: 10 }, () => ({
+    id: 1,
+    image: "",
+    name: "",
+    price_nano: 1_000_000_000,
+    BGStart: "",
+    BGCenter: "",
+    BGEnd: "",
+    symbol: "",
+  }))
+);
 
 const inventoryCount = ref(0);
 
@@ -27,12 +39,17 @@ async function openWithdrawGifts() {
   if (!dest) return;
 }
 
+async function quickSellSuccess(payload: any) {
+  inventory.value.find((i) => i.id === payload.id).status = "sold";
+}
+
 async function openGift(payload: any) {
   const choose = open(GiftModal, {
     data: payload,
+    onQuickSellSuccess: (p: any) => quickSellSuccess(p),
     onOpenModalWithdrawGift: () => open(WithdrawGiftModal),
-  })
-  await choose.done.catch(() => null)
+  });
+  await choose.done.catch(() => null);
 }
 </script>
 
@@ -51,8 +68,10 @@ async function openGift(payload: any) {
             @open-modal-withdraw-gifts="openWithdrawGifts"
         />
         <Gifts
+            :inventory="inventory"
             :scroll-el="pageRef"
             @open-modal="openGift"
+            @inventory-set="inventory = $event"
             @inventory-count="inventoryCount = $event"
         />
     </div>

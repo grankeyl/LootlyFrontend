@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
+import { getImgSvg } from "../../../../utils/useApp";
 
 // Icons
 import LiveIcon from "@/assets/icons/live.svg";
@@ -205,7 +206,7 @@ onBeforeUnmount(() => {
         }"
       >
         <div class="sk-load" v-if="skeleton"></div>
-        <div class="image"><img :src="item.image" alt="gift image" /></div>
+        <div class="image"><img :src="getImgSvg(item.image)" alt="gift image" /></div>
         <div class="price">
           <p>{{ item.price }}</p>
           <img :src="LiveCaseTon" alt="ton" />

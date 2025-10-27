@@ -244,7 +244,7 @@
       transform-origin: center;
       will-change: transform;
 
-      &:first-child {
+      &.primary {
         background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
         box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
         backdrop-filter: blur(15px);

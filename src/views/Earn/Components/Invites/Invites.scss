@@ -17,6 +17,7 @@
   justify-content: space-between;
   width: 100%;
   margin-top: 24px;
+  padding-bottom: calc(var(--menu-height) + 110px);
 
   &.skeleton {
     .friends {
@@ -168,7 +169,6 @@
     width: 100%;
     height: fit-content;
     margin-top: 24px;
-    padding-bottom: calc(var(--menu-height) + 100px);
 
     .filters {
       display: flex;

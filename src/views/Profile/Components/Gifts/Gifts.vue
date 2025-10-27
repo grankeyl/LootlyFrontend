@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { Icon } from "../../../../components/Icon";
 
@@ -13,13 +13,14 @@ type Gift = any;
 
 const emit = defineEmits<{
   (e: 'open-modal', payload: Gift): void
+  (e: 'inventory-set', value: any[]): void
   (e: 'inventory-count', value: number): void
 }>();
 
 const props = defineProps<{
   scrollEl?: any;
+  inventory?: any[];
 }>();
-
 
 function handleClick(payload: Gift) {
   emit('open-modal', payload);
@@ -35,18 +36,7 @@ const inventoryHasMore = ref(true);
 const inventoryStatus = ref("all");
 const inventoryLimit = ref(20);
 const inventoryOffset = ref(0);
-const inventory = ref<any[]>(
-  Array.from({ length: 10 }, () => ({
-    id: 1,
-    image: "",
-    name: "",
-    price_nano: 1_000_000_000,
-    BGStart: "",
-    BGCenter: "",
-    BGEnd: "",
-    symbol: "",
-  }))
-);
+const inventoryLocal = ref<any[]>(props.inventory ?? []) as any;
 
 async function getInventory(initial = false) {
   if (inventoryLoadingMore.value || (!inventoryHasMore.value && !initial)) return;
@@ -54,7 +44,7 @@ async function getInventory(initial = false) {
   inventoryLoadingMore.value = true;
   if (initial) {
     skeleton.value = true;
-    inventory.value = [];
+    inventoryLocal.value = [];
     inventoryOffset.value = 0;
     inventoryHasMore.value = true;
   }
@@ -72,11 +62,13 @@ async function getInventory(initial = false) {
   }
 
   const items: any[] = res.items ?? [];
-  inventory.value.push(...items);
+  inventoryLocal.value.push(...items);
+  emit("inventory-set", inventoryLocal.value);
+  
   inventoryOffset.value += items.length;
 
   if (res.total_all != null) {
-    inventoryHasMore.value = inventory.value.length < res.total_all;
+    inventoryHasMore.value = inventoryLocal.value.length < res.total_all;
     emit("inventory-count", res.total_all);
   } else {
     // Фоллбек
@@ -246,15 +238,19 @@ onBeforeUnmount(() => {
   resizeOff?.();
   resizeOff = null;
 });
+
+watch(() => props.inventory, (v) => {
+  inventoryLocal.value = v;
+});
 </script>
 
 <template>
   <div class="gifts" :class="{ skeleton: skeleton }">
     <div class="items blocks">
-      <div v-if="skeleton" class="item" v-for="(_, index) in inventory" :key="index">
+      <div v-if="skeleton" class="item" v-for="(_, index) in inventoryLocal" :key="index">
         <div class="sk-load" v-if="skeleton"></div>
       </div>
-      <div v-if="!skeleton" class="item" v-for="(item, index) in inventory" :key="index" @click="handleClick(item)">
+      <div v-if="!skeleton" class="item" v-for="(item, index) in inventoryLocal" :key="index" @click="handleClick(item)">
         <div
           class="background upg"
           :style="{

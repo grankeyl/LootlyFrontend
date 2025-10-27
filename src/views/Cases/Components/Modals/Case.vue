@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useAttrs, defineOptions } from "vue";
-import { cutNumberNano } from "../../../../utils/useTon";
+import { cutNumber, cutNumberNano } from "../../../../utils/useTon";
 import { useCacheStore } from "../../../../stores/pinia-store";
 import { Icon } from "../../../../components/Icon";
 import { getImgSvg } from "../../../../utils/useApp";
@@ -88,6 +88,26 @@ function clearCase() {
   itemWin.value = {};
   isWin.value = false;
   skeletonRewards.value = false;
+}
+
+async function rollToDemo() {
+  if (isRollClicked.value || isRolling.value) return;
+  if (useCache.UserData.BalanceNano < props.data.price_nano) return;
+
+  console.log(itemRewards.value);
+  const rewardCount = itemRewards.value.length;
+  const random = Math.floor(Math.random() * rewardCount+1);
+  const reward = itemRewards.value[random];
+
+  isRollClicked.value = true;
+  isRolling.value = true;
+  isWin.value = false;
+  itemRolling.value = {
+    item_id: reward.id,
+    ok: true,
+    reward_name: reward.name,
+    reward_price: 800000000000,
+  };
 }
 
 async function rollTo() {
@@ -374,7 +394,7 @@ onMounted(() => {
         
         <div v-if="!isRolling" class="buttons">
           <div class="topper">
-            <button :disabled="skeletonRewards">
+            <button :disabled="skeletonRewards" @click="rollToDemo()">
               <h4>Demo Open 0</h4>
               <img :src="TonWhiteIcon" alt="ton-icon" />
             </button>
