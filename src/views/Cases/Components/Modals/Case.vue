@@ -218,6 +218,8 @@ onMounted(getRewards);
                 slug="confetti"
                 :loop="false"
                 renderer="svg"
+                width="100%"
+                height="100%"
               />
             </div>
             <div class="image-win">
