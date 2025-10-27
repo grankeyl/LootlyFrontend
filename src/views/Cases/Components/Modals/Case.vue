@@ -167,6 +167,30 @@ function close() {
 }
 
 onMounted(getRewards);
+
+onMounted(() => {
+  const el = document.querySelector('.sheet') as HTMLElement;
+  if (!el) return;
+
+  const nudge = () => {
+    const max = el.scrollHeight - el.clientHeight;
+    if (el.scrollTop <= 0) el.scrollTop = 1;               // подпираем верх
+    else if (el.scrollTop >= max) el.scrollTop = max - 1;  // подпираем низ
+  };
+
+  // при старте и каждом таче держим подпорку
+  nudge();
+  el.addEventListener('touchstart', nudge, { passive: true });
+  el.addEventListener('touchmove', (e) => {
+    const max = el.scrollHeight - el.clientHeight;
+    const atTop = el.scrollTop <= 0;
+    const atBottom = el.scrollTop >= max;
+    if (atTop || atBottom) {
+      nudge();
+      e.preventDefault(); // блокируем резинку
+    }
+  }, { passive: false });
+});
 </script>
 
 <template>

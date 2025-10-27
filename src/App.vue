@@ -14,6 +14,7 @@ import LoadingMP4 from './assets/images/load.mp4';
 
 const router = useRouter();
 const loading = ref(true);
+const videoRef = ref<HTMLVideoElement|null>(null);
 const useCache = useCacheStore();
 
 let removeHook: (() => void) | undefined;
@@ -51,6 +52,26 @@ onMounted(async () => {
       loading.value = false;
     }, 1000);
   }
+
+  await nextTick();
+  const v = videoRef.value;
+  if (v) {
+    v.setAttribute('muted', '');
+    v.muted = true;
+    v.setAttribute('playsinline', '');
+    (v as any).setAttribute?.('webkit-playsinline', '');
+
+    v.preload = 'auto';
+    v.autoplay = true;
+
+    v.src = LoadingMP4;
+
+    const tryPlay = () => v.play().catch(() => {});
+    v.addEventListener('canplay', tryPlay, { once: true });
+    v.addEventListener('loadeddata', tryPlay, { once: true });
+  }
+
+  setTimeout(() => (loading.value = false), 1000);
 });
 </script>
 
@@ -62,8 +83,18 @@ onMounted(async () => {
       <RouterView />
       <Menu />
     </div>
-    <div v-if="loading" class="page load">
-      <video :src="LoadingMP4" autoplay loop muted></video>
+
+    <div v-else class="page load">
+      <video
+        ref="videoRef"
+        muted
+        playsinline
+        webkit-playsinline
+        autoplay
+        preload="auto"
+        disableRemotePlayback
+        data-wf-ignore="true"
+      />
     </div>
   </div>
 </template>

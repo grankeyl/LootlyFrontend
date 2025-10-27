@@ -73,7 +73,9 @@
 
   .indicator {
     pointer-events: none;
-    margin-top: 14px;
+    width: fit-content;
+    margin: auto;
+    margin-top: 16px;
 
     &.done {
       svg {

@@ -10,7 +10,7 @@
     width: 100%;
     max-width: var(--max-width);
     padding-top: calc(
-      var(--tg-safe-area-inset-top, 10px) + 25px
+      var(--tg-safe-area-inset-top, -30px) + 60px
     );
     padding-bottom: 5px;
     z-index: 10000;
