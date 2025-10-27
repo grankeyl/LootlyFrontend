@@ -153,8 +153,6 @@
             border-radius: inherit;
             background: var(--bg-card);
             mix-blend-mode: overlay;
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             z-index: -1;
           }
 

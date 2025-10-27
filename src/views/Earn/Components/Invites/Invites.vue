@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
         <p>Earns from Referrals</p>
       </div>
       <div class="amount">
-        <h1>5000</h1>
+        <h1>0</h1>
         <img :src="TonIcon" alt="ton-icon" />
       </div>
       <div class="button" @click="handleClick">
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
     <div class="stats">
       <div class="stat">
         <div class="title">
-          <h4>999k</h4>
+          <h4>0</h4>
           <img :src="FriendsIcon" alt="friends-icon" />
         </div>
         <div class="descr">
@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="stat">
         <div class="title">
-          <h4>999k</h4>
+          <h4>0</h4>
           <img :src="TonIcon" alt="friends-icon" />
         </div>
         <div class="descr">
@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="stat">
         <div class="title">
-          <h4>999k</h4>
+          <h4>0</h4>
           <img :src="PercentIcon" alt="friends-icon" />
         </div>
         <div class="descr">
@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="friends">
+    <div v-if="referrals && referrals.length > 0" class="friends">
       <div class="filters">
         <div class="item">
           <h4>@</h4>

@@ -27,11 +27,12 @@ async function openWithdrawGifts() {
   if (!dest) return;
 }
 
-async function openGift() {
+async function openGift(payload: any) {
   const choose = open(GiftModal, {
+    data: payload,
     onOpenModalWithdrawGift: () => open(WithdrawGiftModal),
-  });
-  await choose.done.catch(() => null);
+  })
+  await choose.done.catch(() => null)
 }
 </script>
 

@@ -245,10 +245,6 @@ img.showing {
   }
 
   &.rolling {
-    .cover {
-      // height: 90px;
-    }
-
     .cover .relay .symbol, .cover .relay .model {
       display: none;
     }
@@ -642,7 +638,7 @@ img.showing {
         align-items: center;
         justify-content: center;
         width: 100%;
-        height: 5.1em;
+        height: 51px;
         background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
         box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
         backdrop-filter: blur(15px);
@@ -702,8 +698,8 @@ img.showing {
           align-items: center;
           justify-content: center;
           gap: 0.4em;
-          width: 4.0em;
-          height: 4.0em;
+          width: 40px;
+          height: 40px;
           padding: 0 0.8em;
           border-radius: 1.3rem;
           background: var(--bg-10);
@@ -746,8 +742,8 @@ img.showing {
           align-items: center;
           justify-content: center;
           gap: 0.4em;
-          width: 4.0em;
-          height: 4.0em;
+          width: 40px;
+          height: 40px;
           padding: 0 0.8em;
           border-radius: 1.3rem;
           background: var(--bg-10);
@@ -756,6 +752,10 @@ img.showing {
           transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
           transform-origin: center;
           will-change: transform; 
+
+          &:nth-child(2) {
+            width: 60px;
+          }
 
           &[disabled] {
             opacity: .4;

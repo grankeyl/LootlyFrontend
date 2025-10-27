@@ -5,7 +5,7 @@ import { useCacheStore } from "../../../../stores/pinia-store";
 import { Icon } from "../../../../components/Icon";
 import { getImgSvg } from "../../../../utils/useApp";
 
-import Lottie from "../../../../components/Lottie.vue?raw";
+import Lottie from "../../../../components/Lottie.vue";
 
 import * as APICases from "../../../../api/cases";
 
@@ -14,8 +14,8 @@ import TonIcon from "@/assets/icons/ton.svg"
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import CloseIcon from "@/assets/icons/close.svg";
-import MinusIcon from "@/assets/icons/minus.svg";
-import PlusIcon from "@/assets/icons/plus.svg";
+// import MinusIcon from "@/assets/icons/minus.svg";
+// import PlusIcon from "@/assets/icons/plus.svg";
 import Roulette from "@/components/common/Roulette/Roulette.vue";
 
 // Images
@@ -24,6 +24,11 @@ import Ton from "@/assets/icons/ton.svg";
 const useCache = useCacheStore() as any;
 
 defineOptions({ inheritAttrs: false })
+
+const emit = defineEmits<{ 
+  (e:'close'): void; 
+}>();
+
 const props = defineProps<{ data: any }>();
 const attrs = useAttrs()
 
@@ -46,6 +51,7 @@ const itemRewards = ref<any[]>(
     image: null,
     price_ton: 100,
     name: "",
+    loaded: false,
   }))
 );
 
@@ -156,6 +162,10 @@ async function getRewards() {
   skeletonRewards.value = false;
 }
 
+function close() {
+  emit('close');
+}
+
 onMounted(getRewards);
 </script>
 
@@ -173,7 +183,7 @@ onMounted(getRewards);
         </div>
       </div>
       <div class="sheet" :class="{ rolling: isRolling }">
-        <div class="close">
+        <div class="close" @click="close">
           <img :src="CloseIcon" alt="close-icon" aria-hidden="true" />
         </div>
 
@@ -187,7 +197,7 @@ onMounted(getRewards);
         >
           <div class="backdrop-relay"></div>
           <div v-if="!isRolling" class="symbol upg">
-            <img :src="props.data.Symbol" alt="symbol" />
+            <img :src="getImgSvg(props.data.Symbol)" alt="symbol" />
           </div>
         </div>
 
@@ -204,7 +214,7 @@ onMounted(getRewards);
 
           <div v-if="isWin" class="cover-win">
             <div class="lottie-win">
-              <Lottie 
+              <Lottie
                 slug="confetti"
                 :loop="false"
                 renderer="svg"
@@ -240,7 +250,7 @@ onMounted(getRewards);
               }"
             >
               <div class="image">
-                <img :src="itemWin.image" alt="gift image" />
+                <img :src="getImgSvg(itemWin.image)" alt="gift image" />
               </div>
               <div class="price">
                 <p>{{ itemWin.price_ton }}</p>
@@ -295,7 +305,13 @@ onMounted(getRewards);
             >
               <div class="sk-load" v-if="skeletonRewards"></div>
               <div class="image">
-                <img :src="reward.image || ''" :class="{ showing: reward.image }" alt="gift image" />
+                <img
+                  v-if="getImgSvg(reward.image)"
+                  :src="getImgSvg(reward.image)"
+                  :class="{ showing: reward.image }"
+                  @load="reward.loaded = true"
+                  :alt="reward.loaded ? 'gift image' : ''"
+                />
               </div>
               <div class="price">
                 <p>{{ reward.price_ton }}</p>
@@ -341,7 +357,7 @@ onMounted(getRewards);
               <img :src="TonBlackIcon" alt="ton-icon" />
             </button>
           </div>
-          <div class="bottomer">
+          <!-- <div class="bottomer">
             <div class="left">
               <button :disabled="skeletonRewards"><p>1x</p></button>
               <button :disabled="skeletonRewards"><p>3x</p></button>
@@ -358,7 +374,7 @@ onMounted(getRewards);
                 <img :src="PlusIcon" alt="plus-icon" />
               </button>
             </div>
-          </div>
+          </div> -->
         </div>
 
       </div>

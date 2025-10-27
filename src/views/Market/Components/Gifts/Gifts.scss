@@ -5,10 +5,18 @@
   padding: 0 var(--padding-left);
   padding-bottom: calc(var(--menu-height) + 20px);
 
-  &.skeleton {
-    .items.blocks {
-      .item {
-        opacity: .2;
+  .items.skeleton {
+    .item {
+      padding: 0;
+      opacity: .3;
+      background: var(--bg-15);
+      
+      .background { opacity: 0; }
+      .model { opacity: 0; }
+      .name { opacity: 0; }
+      button {
+        h4 { opacity: 0; }
+        img { opacity: 0; }
       }
     }
   }
@@ -26,7 +34,7 @@
     .item {
       width: 100%;
       aspect-ratio: 175 / 185;
-      border-radius: 2.0em;
+      border-radius: 20px;
       background: var(--bg-secondary);
       overflow: hidden;
       position: relative;

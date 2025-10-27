@@ -7,19 +7,22 @@ import * as APICases from "../../../../api/cases";
 
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
+import { getImgSvg } from "../../../../utils/useApp";
+
+type Gift = any;
 
 const emit = defineEmits<{
-  (e: "open-modal"): void;
-  (e: "open-modal-withdraw-gift"): void;
-  (e: "inventory-count", count: number): void;
+  (e: 'open-modal', payload: Gift): void
+  (e: 'inventory-count', value: number): void
 }>();
 
 const props = defineProps<{
   scrollEl?: any;
 }>();
 
-function handleClick() {
-  emit("open-modal");
+
+function handleClick(payload: Gift) {
+  emit('open-modal', payload);
 }
 
 let io: IntersectionObserver | null = null;
@@ -251,7 +254,7 @@ onBeforeUnmount(() => {
       <div v-if="skeleton" class="item" v-for="(_, index) in inventory" :key="index">
         <div class="sk-load" v-if="skeleton"></div>
       </div>
-      <div v-if="!skeleton" class="item" v-for="(item, index) in inventory" :key="index" @click="handleClick">
+      <div v-if="!skeleton" class="item" v-for="(item, index) in inventory" :key="index" @click="handleClick(item)">
         <div
           class="background upg"
           :style="{
@@ -263,7 +266,7 @@ onBeforeUnmount(() => {
         <div class="model">
           <div class="upg">
             <div class="image">
-              <img :src="item.reward_image" alt="model" />
+              <img :src="getImgSvg(item.reward_image)" alt="model" />
             </div>
           </div>
         </div>

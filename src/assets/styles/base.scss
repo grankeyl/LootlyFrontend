@@ -38,6 +38,23 @@
 
     --gradient-pink-case: radial-gradient(99.63% 106.36% at 50% -6.36%, #BF1394 0%, #630C53 50%, #29072C 100%);
     --gradient-lotus-case: radial-gradient(76.77% 97.73% at 50% -6.36%, #747DD0 0%, #363561 50%, #17112B 100%);
+
+    --tg-viewport-height: 100vh 
+    --tg-viewport-stable-height: 100vh 
+    --tg-content-safe-area-inset-top: 0px 
+    --tg-content-safe-area-inset-bottom: 0px 
+    --tg-content-safe-area-inset-left: 0px 
+    --tg-content-safe-area-inset-right: 0px
+    
+    --tg-safe-area-inset-top: env(safe-area-inset-top, 0px)
+    --tg-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px)
+    --tg-safe-area-inset-left: env(safe-area-inset-left, 0px)
+    --tg-safe-area-inset-right: env(safe-area-inset-right, 0px)
+
+    --tg-content-safe-area-inset-top: env(safe-area-inset-top, 0px)
+    --tg-content-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px)
+    --tg-content-safe-area-inset-left: env(safe-area-inset-left, 0px)
+    --tg-content-safe-area-inset-right: env(safe-area-inset-right, 0px)
 }
 
 *, ::before, ::after {
@@ -47,6 +64,7 @@
   margin: 0;
   padding: 0;
   scrollbar-width: none;
+  font-family: var(--font-family);
   --webkit-touch-callout: none;
 }
 
@@ -55,7 +73,6 @@ html {
   scroll-behavior: smooth;
   tab-size: 4;
   line-height: 1.5;
-  font-family: var(--font-family);
   background-color: #000;
   -ms-overflow-style: none;
   overflow: hidden;
@@ -65,7 +82,6 @@ html {
 body {
   top: auto;
   height: 100%;
-  font-family: var(--font-family);
   color: var(--color-white);
   background: var(--bg);
   line-height: inherit;

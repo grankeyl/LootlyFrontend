@@ -7,6 +7,7 @@ import * as APIMarket from "../../../../api/market";
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import BasketIcon from "@/assets/icons/basket.svg";
+import { getImgSvg } from "../../../../utils/useApp";
 
 const emit = defineEmits<{
   (e: "gifts-count", count: number): void;
@@ -32,10 +33,9 @@ const gifts = ref<any[]>(
     image: "",
     name: "",
     price_nano: 1_000_000_000,
-    BGStart: "",
-    BGCenter: "",
-    BGEnd: "",
-    symbol: "",
+    bg_start: "",
+    bg_center: "",
+    bg_end: "",
   }))
 );
 
@@ -75,7 +75,9 @@ async function getGifts(initial = false) {
   }
 
   giftsLoadingMore.value = false;
-  skeleton.value = false;
+  setTimeout(() => {
+    skeleton.value = false;
+  }, 200);
 }
 
 function resolveRoot(): Element | null {
@@ -241,11 +243,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="gifts">
-    <div class="items">
-      <div v-if="skeleton" class="item" v-for="(_, index) in gifts" :key="index">
-        <div class="sk-load" v-if="skeleton"></div>
-      </div>
-      <div v-if="!skeleton" class="item" v-for="(item, index) in gifts" :key="index">
+    <div class="items" :class="{ skeleton: skeleton }">
+      <div class="item" v-for="(item, index) in gifts" :key="index">
         <div
           class="background upg"
           :style="{
@@ -254,10 +253,11 @@ onBeforeUnmount(() => {
             '--end-color': item.bg_end,
           }"
         ></div>
+        <div class="sk-load" v-if="skeleton"></div>
         <div class="model">
           <div class="upg">
             <div class="image">
-              <img :src="item.image" alt="model" />
+              <img :src="getImgSvg(item.image)" alt="model" />
             </div>
           </div>
         </div>

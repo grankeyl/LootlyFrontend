@@ -33,7 +33,8 @@ function onKey(e: KeyboardEvent) {
   if (opts.escToClose && e.key === 'Escape') requestDismiss('esc');
 }
 
-function onOverlayClick(e: MouseEvent) {
+function onOverlayClick(e?: MouseEvent) {
+  if (!e) return;
   if (!opts.clickToClose) return;
   if (e.target === e.currentTarget) requestDismiss('overlay');
 }
@@ -121,7 +122,12 @@ function exposeToChild() {
     }"
     ref="panel"
   >
-    <component :is="component" v-bind="{ ...(props?.props||{}), ...exposeToChild() }" />
+    <component
+      :is="component"
+      v-bind="{ ...(props?.props||{}), ...exposeToChild() }"
+      @close="requestClose()"
+      @dismiss="requestDismiss()"
+    />
   </div>
 </template>
 

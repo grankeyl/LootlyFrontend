@@ -5,9 +5,9 @@ import { Icon } from "../../../../components/Icon";
 import MarketIcon from "@/assets/icons/market.svg";
 import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
 import FilterSortIcon from "@/assets/icons/filters/sort.svg";
-import FilterModelIcon from "@/assets/icons/filters/model.svg";
-import FilterSymbolIcon from "@/assets/icons/filters/symbol.svg";
-import FilterBackdropIcon from "@/assets/icons/filters/backdrop.svg";
+// import FilterModelIcon from "@/assets/icons/filters/model.svg";
+// import FilterSymbolIcon from "@/assets/icons/filters/symbol.svg";
+// import FilterBackdropIcon from "@/assets/icons/filters/backdrop.svg";
 import FilterPriceIcon from "@/assets/icons/filters/price.svg";
 </script>
 
@@ -30,7 +30,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
           <img :src="ChevroneDownIcon" alt="chevrone-down-icon" aria-hidden="true" />
         </div>
       </div>
-      <div class="item">
+      <!-- <div class="item">
         <div class="circle"></div>
         <div class="icon">
           <img :src="FilterModelIcon" alt="filter-icon" aria-hidden="true" />
@@ -65,7 +65,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         <div class="dropdown">
           <img :src="ChevroneDownIcon" alt="chevrone-down-icon" aria-hidden="true" />
         </div>
-      </div>
+      </div> -->
       <div class="item">
         <div class="circle"></div>
         <div class="icon">
@@ -89,7 +89,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         <h4>Latest</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
       </div>
-      <div class="cheap model">
+      <!-- <div class="cheap model">
         <img :src="FilterModelIcon" alt="filter-icon" aria-hidden="true" />
         <h4>Model</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
@@ -103,7 +103,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         <img :src="FilterBackdropIcon" alt="filter-icon" aria-hidden="true" />
         <h4>Backdrop</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
-      </div>
+      </div> -->
       <div class="cheap price-range">
         <img :src="FilterPriceIcon" alt="filter-icon" aria-hidden="true" />
         <h4>Price Range</h4>

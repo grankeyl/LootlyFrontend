@@ -4,7 +4,7 @@ import { ref } from 'vue'
 // Icons
 import CloseIcon from "@/assets/icons/close.svg";
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
-import WalletIcon from "@/assets/icons/wallet.svg?raw";
+import WalletIcon from "@/assets/icons/wallet.svg";
 import TonLineIcon from "@/assets/icons/ton-line.svg";
 
 // Images

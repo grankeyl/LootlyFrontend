@@ -4,13 +4,25 @@ import TonIcon from "@/assets/icons/ton.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import ForwardWhiteIcon from "@/assets/icons/forward-white.svg";
 import WithdrawIcon from "@/assets/icons/withdraw.svg";
+import { getImgSvg } from "../../../../utils/useApp";
+import { cutNumberNano } from "../../../../utils/useTon";
 
-const emit = defineEmits<{
-  (e: "open-modal-withdraw-gift"): void;
+const emit = defineEmits<{ 
+  (e:'close'): void; 
+  (e:'open-modal-withdraw-gift'): void 
+}>();
+
+const props = defineProps<{
+  data: any
+  __modal?: { close: (payload?: any) => void }
 }>();
 
 function withdraw() {
   emit("open-modal-withdraw-gift");
+}
+
+function close() {
+  emit('close');
 }
 </script>
 
@@ -21,23 +33,20 @@ function withdraw() {
         <div
           class="background upg"
           :style="{
-            '--center-color': '#EAB843',
-            '--around-color': '#B24C6E',
+            '--center-color': props.data.bg_center,
+            '--around-color': props.data.bg_start,
           }"
         ></div>
-        <div class="symbol upg">
-          <img src="https://app.spicko-quane.shop/s3/symbols/Teleplane.png" alt="symbol" />
-        </div>
         <div class="model">
           <div class="upg">
             <div class="image">
-              <img src="https://app.spicko-quane.shop/s3/models/Serphira/Cattie.svg" alt="model" />
+              <img :src="getImgSvg(props.data.reward_image)" alt="model" />
             </div>
           </div>
         </div>
       </div>
       <div class="title">
-        <h4>Gift Name</h4>
+        <h4>{{ props.data.reward_name }}</h4>
       </div>
       <div class="actions">
         <button>
@@ -57,43 +66,16 @@ function withdraw() {
             <h4>Floor Price</h4>
           </div>
           <div class="right">
-            <h4>2500</h4>
+            <h4>{{ cutNumberNano(props.data.price_nano) }}</h4>
             <img :src="TonIcon" alt="ton-icon" />
           </div>
         </div>
         <div class="item">
           <div class="left">
-            <h4>Model</h4>
+            <h4>Gift</h4>
           </div>
           <div class="right">
-            <h4>Model Name</h4>
-            <p>5%</p>
-          </div>
-        </div>
-        <div class="item">
-          <div class="left">
-            <h4>Symbol</h4>
-          </div>
-          <div class="right">
-            <h4>Symbol Name</h4>
-            <p>4%</p>
-          </div>
-        </div>
-        <div class="item">
-          <div class="left">
-            <h4>Background</h4>
-          </div>
-          <div class="right">
-            <h4>Background Name</h4>
-            <p>3%</p>
-          </div>
-        </div>
-        <div class="item">
-          <div class="left">
-            <h4>Capacity</h4>
-          </div>
-          <div class="right">
-            <h4>0 of 5000</h4>
+            <h4>{{ props.data.reward_name }}</h4>
           </div>
         </div>
       </div>
@@ -123,10 +105,10 @@ function withdraw() {
     </div>
     <div class="buttons">
       <button>
-        <h4>Sell for 225</h4>
+        <h4>Sell for {{ cutNumberNano(props.data.price_nano) }}</h4>
         <img :src="TonBlackIcon" alt="close-icon" aria-hidden="true" />
       </button>
-      <button>
+      <button @click="close">
         <h4>Close</h4>
       </button>
     </div>

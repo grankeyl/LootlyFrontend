@@ -27,11 +27,10 @@
       width: 100%;
       aspect-ratio: 114 / 127;
       border-radius: 1.0em;
-      background: var(--bg-secondary);
       overflow: hidden;
       position: relative;
       container-type: inline-size;
-      transition: transform 0.2s ease-in-out;
+      transition: opacity 0.15s ease-in-out, transform 0.2s ease-in-out;
       cursor: pointer;
 
       &:active {

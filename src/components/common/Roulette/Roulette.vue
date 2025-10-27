@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import TelegramModule from "../../../hooks/useTelegram";
+import { getImgSvg } from "../../../utils/useApp";
 
 const emit = defineEmits<{ (e: 'win', reward: any): void }>();
 const props = defineProps<{ Rolling: boolean, Items: any, NeedItem: any }>() as any;
@@ -256,7 +257,7 @@ watch(() => props.Rolling, (v, old) => {
             '--bg-end-color': it.bg_end || '#000000',
           }"
         >
-          <img :src="it.image" alt="" />
+          <img :src="getImgSvg(it.image)" alt="" />
           <div class="price">
             <p>{{ it.price_ton }}</p>
             <img :src="TonWhiteIcon" alt="ton" />
