@@ -19,7 +19,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
     </div>
     <div class="filters">
       <div class="item">
-        <div class="circle"></div>
+        <!-- <div class="circle"></div> -->
         <div class="icon">
           <img :src="FilterSortIcon" alt="filter-icon" aria-hidden="true" />
         </div>
@@ -67,7 +67,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         </div>
       </div> -->
       <div class="item">
-        <div class="circle"></div>
+        <!-- <div class="circle"></div> -->
         <div class="icon">
           <img :src="FilterPriceIcon" alt="filter-icon" aria-hidden="true" />
         </div>
@@ -79,7 +79,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         </div>
       </div>
     </div>
-    <div class="cheaps">
+    <!-- <div class="cheaps">
       <div class="cheap clear">
         <h4>Clear</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
@@ -89,7 +89,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         <h4>Latest</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
       </div>
-      <!-- <div class="cheap model">
+      <div class="cheap model">
         <img :src="FilterModelIcon" alt="filter-icon" aria-hidden="true" />
         <h4>Model</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
@@ -103,13 +103,13 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         <img :src="FilterBackdropIcon" alt="filter-icon" aria-hidden="true" />
         <h4>Backdrop</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
-      </div> -->
+      </div>
       <div class="cheap price-range">
         <img :src="FilterPriceIcon" alt="filter-icon" aria-hidden="true" />
         <h4>Price Range</h4>
         <div class="kit-icon" v-html="Icon.Close"></div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
