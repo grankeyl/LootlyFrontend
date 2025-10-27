@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useAttrs, defineOptions } from "vue";
-import { cutNumber, cutNumberNano } from "../../../../utils/useTon";
+import { cutNumberNano } from "../../../../utils/useTon";
 import { useCacheStore } from "../../../../stores/pinia-store";
 import { Icon } from "../../../../components/Icon";
 import { getImgSvg } from "../../../../utils/useApp";
