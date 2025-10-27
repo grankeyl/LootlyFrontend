@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Icon } from "../../../../components/Icon";
-
 // Icons
 import MarketIcon from "@/assets/icons/market.svg";
 import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
