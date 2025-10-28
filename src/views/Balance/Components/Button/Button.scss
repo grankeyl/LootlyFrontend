@@ -7,6 +7,8 @@
     max-width: var(--max-width);
     height: 100px;
     padding: 0 var(--padding-left);
+    left: 50%;
+    transform: translateX(-50%);
     position: fixed;
     bottom: var(--menu-height);
     z-index: 1;

@@ -8,17 +8,23 @@ import ChevroneRight from "@/assets/icons/chevrone-right.svg";
 
 // Images
 import Gifted from "@/assets/images/earn-pg/gifted.png";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 const skeleton = ref(true);
 
 setTimeout(() => {
   skeleton.value = false;
 }, 1000);
+
+function useTask() {
+  const link = 'https://t.me/LootlyNews';
+  TelegramModule.useLink(link);
+}
 </script>
 
 <template>
   <div class="tasks" :class="{ skeleton: skeleton }">
-    <div class="primary">
+    <!-- <div class="primary">
       <div class="sk-load" v-if="skeleton"></div>
       <div class="smb">
         <img :src="Gifted" alt="gifted" />
@@ -44,13 +50,13 @@ setTimeout(() => {
           <p>200</p>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div class="others">
-      <div class="other" v-for="_ in 3">
+      <div class="other" v-for="_ in 1" @click="useTask">
         <div class="sk-load" v-if="skeleton"></div>
         <div class="image">
-          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1zwhySGCEBxRRFYIcQgvOLOpRGqrT3d7Qng&s" alt="">
+          <img src="https://i.ibb.co/3593Cj84/telegram-peer-photo-size-2-5190691857137530605-1-0-0.jpg" alt="">
         </div>
         <div class="context">
           <h4>Subscribe to Lootly Telegram</h4>

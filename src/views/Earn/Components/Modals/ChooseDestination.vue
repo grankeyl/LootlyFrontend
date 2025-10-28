@@ -4,7 +4,7 @@ import { ref } from 'vue'
 // Icons
 import CloseIcon from "@/assets/icons/close.svg";
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
-import WalletIcon from "@/assets/icons/wallet.svg";
+import WalletIcon from "@/assets/icons/wallet.svg?raw";
 import TonLineIcon from "@/assets/icons/ton-line.svg";
 
 // Images
@@ -14,7 +14,7 @@ const emit = defineEmits<{
   (e: "open-modal-withdraw-balance"): void;
 }>();
 
-const address = ref('UQx...2Rq1')
+const address = ref('...')
 
 function chooseWallet() {
   emit('open-modal-withdraw-balance');
@@ -31,7 +31,7 @@ function chooseWallet() {
       <h4>Куда отправляем?</h4>
       <p>Выводим на игровой баланс Lootly или на внешний TON адрес</p>
     </div>
-    <div class="wallet">
+    <div class="wallet disabled">
       <div class="icon">
         <div v-html="WalletIcon"></div>
       </div>
@@ -48,7 +48,7 @@ function chooseWallet() {
         </div> -->
       </div>
     </div>
-    <div class="selectors">
+    <div class="selectors disabled">
       <div class="item" @click="chooseWallet">
         <div class="top">
           <p>{{ address }}</p>

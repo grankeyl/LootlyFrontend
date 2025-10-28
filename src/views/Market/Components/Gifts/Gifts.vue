@@ -9,8 +9,11 @@ import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import BasketIcon from "@/assets/icons/basket.svg";
 import { getImgSvg } from "../../../../utils/useApp";
 
+type Gift = any;
+
 const emit = defineEmits<{
   (e: "gifts-count", count: number): void;
+  (e: 'open-modal', payload: Gift): void
 }>();
 
 const props = defineProps<{
@@ -202,6 +205,8 @@ async function autoDrainIfStillVisible() {
   }
 }
 
+function openItem(g: Gift) { emit("open-modal", g); }
+
 onMounted(async () => {
   await nextTick();
   await getGifts(true);
@@ -244,7 +249,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="gifts">
     <div class="items" :class="{ skeleton: skeleton }">
-      <div class="item" v-for="(item, index) in gifts" :key="index">
+      <div class="item" v-for="(item, index) in gifts" :key="index" @click="openItem(item)">
         <div
           class="background upg"
           :style="{
@@ -269,9 +274,9 @@ onBeforeUnmount(() => {
             <h4>{{ cutNumberNano(item.price_nano) }}</h4>
             <img :src="TonWhiteIcon" alt="ton" />
           </button>
-          <button>
+          <!-- <button>
             <img :src="BasketIcon" alt="basket" />
-          </button>
+          </button> -->
         </div>
       </div>
 

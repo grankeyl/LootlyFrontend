@@ -15,9 +15,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  margin-top: 24px;
   width: 100%;
-  margin-top: 24px;
+  // margin-top: 24px;
+  margin-top: -10px;
   padding-bottom: calc(var(--menu-height) + 100px);
 
   &.skeleton {

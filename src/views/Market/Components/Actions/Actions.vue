@@ -1,12 +1,12 @@
 <script setup lang="ts">
 // Icons
 import MarketIcon from "@/assets/icons/market.svg";
-import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
-import FilterSortIcon from "@/assets/icons/filters/sort.svg";
+// import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
+// import FilterSortIcon from "@/assets/icons/filters/sort.svg";
 // import FilterModelIcon from "@/assets/icons/filters/model.svg";
 // import FilterSymbolIcon from "@/assets/icons/filters/symbol.svg";
 // import FilterBackdropIcon from "@/assets/icons/filters/backdrop.svg";
-import FilterPriceIcon from "@/assets/icons/filters/price.svg";
+// import FilterPriceIcon from "@/assets/icons/filters/price.svg";
 </script>
 
 <template>
@@ -15,9 +15,9 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
       <h4>Market</h4>
       <img :src="MarketIcon" alt="market-icon" aria-hidden="true" />
     </div>
-    <div class="filters">
+    <!-- <div class="filters">
       <div class="item">
-        <!-- <div class="circle"></div> -->
+        <div class="circle"></div>
         <div class="icon">
           <img :src="FilterSortIcon" alt="filter-icon" aria-hidden="true" />
         </div>
@@ -28,7 +28,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
           <img :src="ChevroneDownIcon" alt="chevrone-down-icon" aria-hidden="true" />
         </div>
       </div>
-      <!-- <div class="item">
+      <div class="item">
         <div class="circle"></div>
         <div class="icon">
           <img :src="FilterModelIcon" alt="filter-icon" aria-hidden="true" />
@@ -63,9 +63,9 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
         <div class="dropdown">
           <img :src="ChevroneDownIcon" alt="chevrone-down-icon" aria-hidden="true" />
         </div>
-      </div> -->
+      </div>
       <div class="item">
-        <!-- <div class="circle"></div> -->
+        <div class="circle"></div>
         <div class="icon">
           <img :src="FilterPriceIcon" alt="filter-icon" aria-hidden="true" />
         </div>
@@ -76,7 +76,7 @@ import FilterPriceIcon from "@/assets/icons/filters/price.svg";
           <img :src="ChevroneDownIcon" alt="chevrone-down-icon" aria-hidden="true" />
         </div>
       </div>
-    </div>
+    </div> -->
     <!-- <div class="cheaps">
       <div class="cheap clear">
         <h4>Clear</h4>

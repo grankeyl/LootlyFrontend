@@ -14,7 +14,7 @@ import LoadingMP4 from './assets/images/load.mp4';
 
 const router = useRouter();
 const loading = ref(true);
-const videoRef = ref<HTMLVideoElement|null>(null);
+const videoRef = ref<HTMLVideoElement | null>(null);
 const useCache = useCacheStore();
 
 let removeHook: (() => void) | undefined;
@@ -50,28 +50,16 @@ onMounted(async () => {
     console.log(useCache.UserData);
     setTimeout(() => {
       loading.value = false;
-    }, 1000);
+    }, 1500);
   }
 
-  await nextTick();
-  const v = videoRef.value;
-  if (v) {
-    v.setAttribute('muted', '');
-    v.muted = true;
-    v.setAttribute('playsinline', '');
-    (v as any).setAttribute?.('webkit-playsinline', '');
-
-    v.preload = 'auto';
-    v.autoplay = true;
-
-    v.src = LoadingMP4;
-
-    const tryPlay = () => v.play().catch(() => {});
-    v.addEventListener('canplay', tryPlay, { once: true });
-    v.addEventListener('loadeddata', tryPlay, { once: true });
+  const video = videoRef.value;
+  if (video) {
+    video.src = LoadingMP4;
+    video.play().catch(() => {
+      console.warn('Autoplay blocked');
+    });
   }
-
-  setTimeout(() => (loading.value = false), 1000);
 });
 </script>
 

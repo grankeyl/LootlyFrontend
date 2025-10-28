@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 // Icons
 import CloseIcon from "@/assets/icons/close.svg";
 import TonIcon from "@/assets/icons/ton.svg";
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import AddBlackIcon from "@/assets/icons/add-black.svg";
 import BackspaceIcon from "@/assets/icons/backspace.svg";
-
-import { ref } from 'vue'
 
 const amountStr = ref<string>('0')
 
@@ -23,7 +23,7 @@ function tap(val: number | '.') {
   let next = (s === '0' ? '' : s) + String(val)
 
   const [int = '', frac = ''] = next.split('.')
-  if (frac && frac.length > 9) return // максимум 9 знаков после точки
+  if (frac && frac.length > 9) return
 
   if (!frac && int.length > 1 && int.startsWith('0')) {
     next = String(Number(int))

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
+import { useCacheStore } from "../../../../stores/pinia-store";
+
 import * as APIUser from "../../../../api/user";
 
 // Icons
@@ -10,6 +12,8 @@ import FriendsIcon from "@/assets/icons/friends.svg";
 import PercentIcon from "@/assets/icons/percent.svg";
 import TonLineIcon from "@/assets/icons/ton-line.svg";
 import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
+
+const useCache = useCacheStore() as any;
 
 const props = defineProps<{
   /** HTMLElement | Window | Ref<HTMLElement|null> */
@@ -27,7 +31,7 @@ const hasMore = ref(true);
 
 const referralsCount = ref(0);
 const referralsOffset = ref(0);
-const referralsLimit = ref(10);
+const referralsLimit = ref(20);
 const referrals = ref<any[]>([]);
 
 const sentinel = ref<HTMLDivElement|null>(null);
@@ -203,7 +207,7 @@ onBeforeUnmount(() => {
         <p>Earns from Referrals</p>
       </div>
       <div class="amount">
-        <h1>0</h1>
+        <h1>{{ useCache.UserData.AllSum }}</h1>
         <img :src="TonIcon" alt="ton-icon" />
       </div>
       <div class="button" @click="handleClick">
@@ -214,7 +218,7 @@ onBeforeUnmount(() => {
     <div class="stats">
       <div class="stat">
         <div class="title">
-          <h4>0</h4>
+          <h4>{{ referralsCount }}</h4>
           <img :src="FriendsIcon" alt="friends-icon" />
         </div>
         <div class="descr">
@@ -223,7 +227,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="stat">
         <div class="title">
-          <h4>0</h4>
+          <h4>{{ useCache.UserData.AllSum }}</h4>
           <img :src="TonIcon" alt="friends-icon" />
         </div>
         <div class="descr">
@@ -232,7 +236,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="stat">
         <div class="title">
-          <h4>0</h4>
+          <h4>{{ useCache.UserData.RSPercent }}</h4>
           <img :src="PercentIcon" alt="friends-icon" />
         </div>
         <div class="descr">

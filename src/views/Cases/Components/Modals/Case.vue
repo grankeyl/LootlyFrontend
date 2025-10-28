@@ -26,7 +26,8 @@ const useCache = useCacheStore() as any;
 defineOptions({ inheritAttrs: false })
 
 const emit = defineEmits<{ 
-  (e:'close'): void; 
+  (e:'close'): void;
+  (e:'not-enough', payload: any): void;
 }>();
 
 const props = defineProps<{ data: any }>();
@@ -92,11 +93,10 @@ function clearCase() {
 
 async function rollToDemo() {
   if (isRollClicked.value || isRolling.value) return;
-  if (useCache.UserData.BalanceNano < props.data.price_nano) return;
 
   console.log(itemRewards.value);
   const rewardCount = itemRewards.value.length;
-  const random = Math.floor(Math.random() * rewardCount+1);
+  const random = Math.floor(Math.random() * rewardCount);
   const reward = itemRewards.value[random];
 
   isRollClicked.value = true;
@@ -105,6 +105,7 @@ async function rollToDemo() {
   itemRolling.value = {
     item_id: reward.id,
     ok: true,
+    demo: true,
     reward_name: reward.name,
     reward_price: 800000000000,
   };
@@ -112,7 +113,10 @@ async function rollToDemo() {
 
 async function rollTo() {
   if (isRollClicked.value || isRolling.value) return;
-  if (useCache.UserData.BalanceNano < props.data.price_nano) return;
+  if (useCache.UserData.BalanceNano < props.data.price_nano) {
+    emit('not-enough', { id: 1 });
+    return;
+  };
 
   isRollClicked.value = true;
 
@@ -140,6 +144,11 @@ async function quickSell(
 }
 
 function onWin(reward: any) {
+  if (reward.rewardItem && reward.rewardItem.demo) { 
+    itemWin.value = reward;
+    isWin.value = true; 
+    return; 
+  }
   if (reward) {
     itemWin.value = reward;
     if (!itemWin.value.rewardItem.quick_sale) {
@@ -290,21 +299,21 @@ onMounted(() => {
             <div
               class="item"
               :style="{ 
-                '--bg-start-color': itemWin.bg_start || '#000000',
-                '--bg-center-color': itemWin.bg_center || '#000000',
-                '--bg-end-color': itemWin.bg_end || '#000000',
+                '--bg-start-color': itemWin?.bg_start || '#000000',
+                '--bg-center-color': itemWin?.bg_center || '#000000',
+                '--bg-end-color': itemWin?.bg_end || '#000000',
               }"
             >
               <div class="image">
-                <img :src="getImgSvg(itemWin.image)" alt="gift image" />
+                <img :src="getImgSvg(itemWin?.image)" alt="gift image" />
               </div>
               <div class="price">
-                <p>{{ itemWin.price_ton }}</p>
+                <p>{{ itemWin?.price_ton }}</p>
                 <img :src="TonWhiteIcon" alt="ton" />
               </div>
             </div>
             <div class="winner-gift-name">
-              <h4>{{ itemWin.name }}</h4>
+              <h4>{{ itemWin?.name }}</h4>
             </div>
           </div>
 

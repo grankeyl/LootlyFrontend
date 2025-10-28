@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch, computed } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { Icon } from "../../../../components/Icon";
-
 import * as APICases from "../../../../api/cases";
-
-// Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import { getImgSvg } from "../../../../utils/useApp";
 
@@ -18,239 +15,255 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-  scrollEl?: any;
-  inventory?: any[];
+  scrollEl?: any;         // HTMLElement | Ref<HTMLElement|null>
+  inventory?: any[];      // начальные данные (опционально)
+  status?: string;        // фильтр, по умолчанию 'all'
+  pageSize?: number;      // лимит на страницу, по умолчанию 20
 }>();
 
-function handleClick(payload: Gift) {
-  emit('open-modal', payload);
-}
+/* ================== STATE ================== */
+const status = computed(() => props.status ?? "all");
+const limit  = computed(() => Math.max(1, props.pageSize ?? 20));
 
-let io: IntersectionObserver | null = null;
-
+const items = ref<any[]>(props.inventory ?? []);
+const total = ref<number | null>(null);
+const offset = ref(0);
+const hasMore = ref(true);
+const loading = ref(false);
 const skeleton = ref(true);
 
-const inventorySentinel = ref<HTMLDivElement|null>(null);
-const inventoryLoadingMore = ref(false);
-const inventoryHasMore = ref(true);
-const inventoryStatus = ref("all");
-const inventoryLimit = ref(20);
-const inventoryOffset = ref(0);
-const inventoryLocal = ref<any[]>(props.inventory ?? []) as any;
+const sentinel = ref<HTMLDivElement|null>(null);
+const containerEl = ref<HTMLElement|null>(null); // .gifts .items
+let io: IntersectionObserver | null = null;
+let ro: ResizeObserver | null = null;
+let scrollOff: (() => void) | null = null;
 
-async function getInventory(initial = false) {
-  if (inventoryLoadingMore.value || (!inventoryHasMore.value && !initial)) return;
+let reqId = 0; // защита от гонок
 
-  inventoryLoadingMore.value = true;
+/* ================== HELPERS ================== */
+function getPassedEl(): HTMLElement | null {
+  const passed = props.scrollEl && ('value' in props.scrollEl ? props.scrollEl.value : props.scrollEl);
+  return passed instanceof Element ? (passed as HTMLElement) : null;
+}
+
+function getScrollable(el: Element | null): HTMLElement | null {
+  const isScrollable = (n: Element | null) => {
+    if (!n) return false;
+    const cs = getComputedStyle(n);
+    const oy = cs.overflowY;
+    return (oy === 'auto' || oy === 'scroll') && (n as HTMLElement).scrollHeight > (n as HTMLElement).clientHeight;
+  };
+
+  // сначала проверяем сам элемент
+  if (isScrollable(el)) return el as HTMLElement;
+
+  // затем поднимаемся вверх
+  let node: Element | null = el?.parentElement ?? null;
+  while (node && node !== document.body) {
+    if (isScrollable(node)) return node as HTMLElement;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+const root = ref<HTMLElement | null>(null);
+function pickRoot() {
+  root.value =
+    getPassedEl() ??
+    getScrollable(containerEl.value) ??
+    getScrollable(sentinel.value) ??   // 👈 если скроллер — сама .items
+    null;
+}
+
+function nearBottom(gap = 600) {
+  const r = root.value;
+  if (r) return r.scrollTop + r.clientHeight >= r.scrollHeight - gap;
+  return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - gap;
+}
+
+/* ================== DATA ================== */
+async function load(initial = false) {
+  if (loading.value || (!hasMore.value && !initial)) return;
+
+  const my = ++reqId;
+  loading.value = true;
   if (initial) {
     skeleton.value = true;
-    inventoryLocal.value = [];
-    inventoryOffset.value = 0;
-    inventoryHasMore.value = true;
+    items.value = [];
+    offset.value = 0;
+    hasMore.value = true;
+    total.value = null;
+    emit("inventory-set", items.value);
   }
 
-  const res = await APICases.inventory(
-    inventoryStatus.value,
-    inventoryLimit.value,
-    inventoryOffset.value
-  ).catch(() => null);
+  const res = await APICases
+    .inventory(status.value, limit.value, offset.value)
+    .catch(() => null);
+
+  if (my !== reqId) return; // пришёл устаревший ответ
 
   if (!res) {
-    inventoryLoadingMore.value = false;
+    loading.value = false;
     skeleton.value = false;
     return;
   }
 
-  const items: any[] = res.items ?? [];
-  inventoryLocal.value.push(...items);
-  emit("inventory-set", inventoryLocal.value);
-  
-  inventoryOffset.value += items.length;
+  const batch: any[] = res.items ?? [];
+  items.value.push(...batch);
+  emit("inventory-set", items.value);
 
-  if (res.total_all != null) {
-    inventoryHasMore.value = inventoryLocal.value.length < res.total_all;
-    emit("inventory-count", res.total_all);
+  offset.value += batch.length;
+
+  const t = (res.total_all ?? res.total ?? null) as number | null;
+  if (t != null) {
+    total.value = t;
+    hasMore.value = items.value.length < t;
+    emit("inventory-count", t);
   } else {
-    // Фоллбек
-    inventoryHasMore.value = items.length === inventoryLimit.value;
+    hasMore.value = batch.length === limit.value;
   }
 
-  inventoryLoadingMore.value = false;
+  loading.value = false;
   skeleton.value = false;
 }
 
-function resolveRoot(): Element | null {
-  const el = props.scrollEl?.value ?? props.scrollEl ?? null;
-  return el instanceof Element ? el : null;
+/* ================== AUTOFILL ================== */
+function needsMoreToFill(buffer = 120) {
+  const r = root.value;
+  if (r) return r.scrollHeight < r.clientHeight + buffer;
+  return document.documentElement.scrollHeight < window.innerHeight + buffer;
 }
 
-function setupObserver() {
-  if (!inventorySentinel.value) return;
-  io?.disconnect();
-
-  io = new IntersectionObserver(
-    entries => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        if (inventoryLoadingMore.value || !inventoryHasMore.value) continue;
-        io?.unobserve(entry.target);
-        (async () => {
-          await getInventory(false);
-          await nextTick();
-          await autoDrainIfStillVisible();
-          if (inventorySentinel.value && inventoryHasMore.value) {
-            io?.observe(inventorySentinel.value);
-          }
-        })();
-      }
-    },
-    {
-      root: resolveRoot(),
-      rootMargin: "0px 0px 1200px 0px",
-      threshold: 0,
-    }
-  );
-
-  io.observe(inventorySentinel.value);
-}
-
-let ro: ResizeObserver | null = null;
-let scrollOff: (() => void) | null = null;
-let resizeOff: (() => void) | null = null;
-
-function nearBottom(gap = 600) {
-  const root = resolveRoot();
-  if (root) {
-    const el = root as HTMLElement;
-    return el.scrollTop + el.clientHeight >= el.scrollHeight - gap;
-  }
-  return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - gap;
-}
-
-function attachScrollFallback() {
-  const root = resolveRoot();
-  let tick = false;
-  const onScroll = () => {
-    if (tick) return;
-    tick = true;
-    requestAnimationFrame(async () => {
-      tick = false;
-      if (!inventoryLoadingMore.value && inventoryHasMore.value && nearBottom(700)) {
-        await getInventory(false);
-        await nextTick();
-        autoDrainIfStillVisible();
-      }
-    });
-  };
-
-  if (root) {
-    root.addEventListener("scroll", onScroll, { passive: true });
-    scrollOff = () => root.removeEventListener("scroll", onScroll);
-  } else {
-    window.addEventListener("scroll", onScroll, { passive: true });
-    scrollOff = () => window.removeEventListener("scroll", onScroll);
-  }
-}
-
-function isSentinelVisible(): boolean {
-  if (!inventorySentinel.value) return false;
-  const root = resolveRoot();
-  const sRect = inventorySentinel.value.getBoundingClientRect();
-
-  if (root) {
-    const rRect = (root as Element).getBoundingClientRect();
-    return sRect.top <= rRect.bottom;
-  }
-  return sRect.top <= window.innerHeight;
-}
-
-function needsMoreToFill(buffer = 200): boolean {
-  const root = resolveRoot();
-  if (root) {
-    const el = root as HTMLElement;
-    return el.scrollHeight < el.clientHeight + buffer;
-  }
-  const doc = document.documentElement;
-  return doc.scrollHeight < window.innerHeight + buffer;
-}
-
-async function topUpViewport(maxPages = 10) {
+async function fillViewport(maxPages = 10) {
   let pages = 0;
-  while (
-    inventoryHasMore.value &&
-    !inventoryLoadingMore.value &&
-    needsMoreToFill(120) &&
-    pages < maxPages
-  ) {
-    await getInventory(false);
+  while (!loading.value && hasMore.value && needsMoreToFill() && pages < maxPages) {
+    await load(false);
     await nextTick();
     pages++;
   }
 }
 
-async function autoDrainIfStillVisible() {
-  await topUpViewport(10);
-  while (
-    !inventoryLoadingMore.value &&
-    inventoryHasMore.value &&
-    isSentinelVisible()
-  ) {
-    await getInventory(false);
-    await nextTick();
-    await topUpViewport(5);
-  }
+/* ================== OBSERVERS ================== */
+function teardownIO() {
+  if (io && sentinel.value) io.unobserve(sentinel.value);
+  io?.disconnect();
+  io = null;
 }
 
+function setupIO() {
+  teardownIO();
+  if (!sentinel.value) return;
+
+  io = new IntersectionObserver(async entries => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      if (loading.value || !hasMore.value) continue;
+      io?.unobserve(e.target);
+      await load(false);
+      await nextTick();
+      await fillViewport(5);
+      if (sentinel.value && hasMore.value) io?.observe(sentinel.value);
+    }
+  }, {
+    root: root.value ?? null,
+    rootMargin: "0px 0px 800px 0px",
+    threshold: 0,
+  });
+
+  io.observe(sentinel.value);
+}
+
+function teardownScroll() {
+  scrollOff?.();
+  scrollOff = null;
+}
+
+function setupScroll() {
+  teardownScroll();
+  const target: HTMLElement | Window = root.value ?? window;
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(async () => {
+      ticking = false;
+      if (!loading.value && hasMore.value && nearBottom(700)) {
+        await load(false);
+        await nextTick();
+        await fillViewport(5);
+      }
+    });
+  };
+  target.addEventListener("scroll", onScroll, { passive: true });
+  scrollOff = () => target.removeEventListener("scroll", onScroll);
+}
+
+function rebindAll() {
+  pickRoot();
+  setupIO();
+  setupScroll();
+}
+
+/* ================== LIFECYCLE ================== */
+const itemsEl = ref<HTMLElement|null>(null);
 onMounted(async () => {
   await nextTick();
-  await getInventory(true);
-  await nextTick();
-  await topUpViewport(12);
-  setupObserver();
+  containerEl.value = itemsEl.value;
 
-  const list = document.querySelector(".gifts .items") as HTMLElement | null;
-  if (list) {
-    ro = new ResizeObserver(() => autoDrainIfStillVisible());
-    ro.observe(list);
+  rebindAll();
+
+  await load(true);
+  await nextTick();
+  await fillViewport(12);
+
+  // следим за изменением размеров списка — при «раскрытии» root может появиться
+  if (containerEl.value) {
+    ro = new ResizeObserver(() => {
+      pickRoot();
+      setupIO(); // обновить root у IO
+      // скролл-таргет, как правило, не меняется после появления, но на всякий — перевесим
+      setupScroll();
+    });
+    ro.observe(containerEl.value);
   }
 
-  attachScrollFallback();
-  const onResize = () => {
-    topUpViewport(8);
+  // на resize тоже переопределим root + дольём
+  const onWinResize = async () => {
+    rebindAll();
+    await fillViewport(8);
   };
-  window.addEventListener('resize', onResize, { passive: true });
-  resizeOff = () => window.removeEventListener('resize', onResize as any);
-
-  await nextTick();
-  autoDrainIfStillVisible();
+  window.addEventListener("resize", onWinResize, { passive: true });
+  // сохраним для снятия:
+  scrollOff = ((oldOff => {
+    return () => {
+      oldOff?.();
+      window.removeEventListener("resize", onWinResize as any);
+    };
+  })(scrollOff)) as any;
 });
 
 onBeforeUnmount(() => {
-  if (io && inventorySentinel.value) io.unobserve(inventorySentinel.value);
-  io?.disconnect();
-  io = null;
-
+  teardownIO();
+  teardownScroll();
   ro?.disconnect();
   ro = null;
-
-  scrollOff?.();
-  scrollOff = null;
-  resizeOff?.();
-  resizeOff = null;
 });
 
 watch(() => props.inventory, (v) => {
-  inventoryLocal.value = v;
+  if (!v) return;
+  items.value = v;
 });
+
+function openItem(g: Gift) { emit("open-modal", g); }
 </script>
 
 <template>
   <div class="gifts" :class="{ skeleton: skeleton }">
-    <div class="items blocks">
-      <div v-if="skeleton" class="item" v-for="(_, index) in inventoryLocal" :key="index">
+    <div class="items blocks" ref="itemsEl">
+      <div v-if="skeleton" class="item" v-for="i in 8" :key="'sk-'+i">
         <div class="sk-load" v-if="skeleton"></div>
       </div>
-      <div v-if="!skeleton" class="item" v-for="(item, index) in inventoryLocal" :key="index" @click="handleClick(item)">
+      <div v-if="!skeleton" class="item" v-for="(item, index) in items" :key="index" @click="openItem(item)">
         <div
           class="background upg"
           :style="{
@@ -259,7 +272,7 @@ watch(() => props.inventory, (v) => {
             '--end-color': item.bg_end,
           }"
         ></div>
-        <div class="model">
+        <div class="model"> 
           <div class="upg">
             <div class="image">
               <img :src="getImgSvg(item.reward_image)" alt="model" />
@@ -271,7 +284,7 @@ watch(() => props.inventory, (v) => {
             <h5>Solded</h5>
             <div class="kit-icon" v-html="Icon.Done"></div>
           </button>
-          <button v-if="item.status && item.status === 'held'">
+          <button v-if="item.status && (item.status === 'held' || item.status === 'purchased')">
             <h5>{{ cutNumberNano(item.price_nano) }}</h5>
             <img :src="TonWhiteIcon" alt="ton-icon" />
           </button>
@@ -281,13 +294,16 @@ watch(() => props.inventory, (v) => {
         </div>
       </div>
 
-      <div v-if="!skeleton && inventoryLoadingMore" class="loading-more">
+      <div v-if="!skeleton && loading" class="loading-more">
         <div class="sk-load"></div>
       </div>
 
-      <div ref="inventorySentinel" class="sentinel"></div>
+      <div ref="sentinel" class="sentinel"></div>
     </div>
   </div>
 </template>
 
 <style lang="scss" src="./Gifts.scss" scoped></style>
+<style>
+.sentinel { height: 1px; width: 100%; }
+</style>

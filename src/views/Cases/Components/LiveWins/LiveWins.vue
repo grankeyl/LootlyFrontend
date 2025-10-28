@@ -21,6 +21,7 @@ type LiveItem = {
   BGStart: string;
   BGCenter: string;
   BGEnd: string;
+  loaded: boolean;
 };
 
 const skeleton = ref<boolean>(true);
@@ -35,6 +36,7 @@ const items = ref<LiveItem[]>(
     BGStart: "",
     BGCenter: "",
     BGEnd: "",
+    loaded: false,
   }))
 );
 
@@ -193,20 +195,28 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <TransitionGroup name="pop" tag="div" class="items" appear ref="wrapRef">
+    <TransitionGroup name="pop" tag="div" class="items" ref="wrapRef">
       <div
         class="item"
-        v-for="(item, index) in items.slice(0, MAX_ITEMS)"
-        :key="index"
-        :style="{ 
+        v-for="item in items.slice(0, MAX_ITEMS)"
+        :key="item.id"
+        :style="{
           '--deg': `${item.degree}deg`,
-          '--start-color': `${item.BGStart ?? '#000000'}`,
-          '--center-color': `${item.BGCenter ?? '#000000'}`,
-          '--end-color': `${item.BGEnd ?? '#000000'}`,
+          '--start-color': item.BGStart || '#000',
+          '--center-color': item.BGCenter || '#000',
+          '--end-color': item.BGEnd || '#000',
         }"
       >
         <div class="sk-load" v-if="skeleton"></div>
-        <div class="image"><img :src="getImgSvg(item.image)" alt="gift image" /></div>
+        <div class="image">
+          <img
+            v-if="getImgSvg(item.image)"
+            :src="getImgSvg(item.image)"
+            :class="{ showing: item.image }"
+            @load="item.loaded = true"
+            :alt="item.loaded ? 'gift image' : ''"
+          />
+        </div>
         <div class="price">
           <p>{{ item.price }}</p>
           <img :src="LiveCaseTon" alt="ton" />
@@ -226,9 +236,9 @@ onBeforeUnmount(() => {
 .item{ scroll-snap-align:start; }
 .item{
   transform: rotate(var(--deg, 0deg));
-  transition: transform .45s cubic-bezier(.25,1,.5,1), opacity .35s ease, filter .35s ease;
+  transition: transform .38s cubic-bezier(.25,1,.5,1), opacity .35s ease, filter .35s ease;
 }
-.pop-enter-from{ opacity:0; transform: rotate(calc(var(--deg,0deg) - 12deg)) scale(.88); filter: blur(6px); }
+.pop-enter-from{ opacity:0; transform: rotate(calc(var(--deg,0deg) - 12deg)) scale(.68); filter: blur(6px); }
 .pop-enter-active{ transition: opacity .5s ease, transform .55s cubic-bezier(.22,1.1,.36,1), filter .5s ease; }
 .pop-enter-to{ opacity:1; transform: rotate(var(--deg,0deg)) scale(1); filter: blur(0); }
 .pop-move{ transition: transform .35s cubic-bezier(.25,1,.5,1); }

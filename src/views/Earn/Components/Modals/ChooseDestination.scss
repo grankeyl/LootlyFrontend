@@ -53,6 +53,11 @@
     margin: auto;
     gap: 6px;
 
+    &.disabled {
+      opacity: .4;
+      pointer-events: none;
+    }
+
     .icon {
       width: fit-content;
       height: fit-content;
@@ -127,6 +132,11 @@
     gap: 8px;
     text-align: left;
     margin-bottom: 80px;
+
+    &.disabled {
+      opacity: .4;
+      pointer-events: none;
+    }
 
     .item {
       display: flex;

@@ -1,7 +1,8 @@
 .sheet {
   text-align: center;
-  height: fit-content;
+  height: 80vh;
   position: relative;
+  overflow-y: scroll;
 
   .close {
     width: fit-content;
@@ -37,7 +38,7 @@
     }
 
     p {
-      max-width: 200px;
+      max-width: 290px;
       font-weight: 600;
       font-size: 1.2rem;
       color: var(--color-descr);
@@ -132,8 +133,8 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     padding: 0 16px;
-    margin-top: 40px;
-    margin-bottom: calc(var(--menu-height) + 45px);
+    margin-top: 20px;
+    margin-bottom: calc(var(--menu-height) + 35px);
 
     button {
       display: flex;
@@ -173,7 +174,7 @@
     width: 100%;
     height: fit-content;
     margin-top: auto;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     gap: 8px;
     padding: 16px;
