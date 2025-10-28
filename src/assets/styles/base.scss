@@ -93,6 +93,10 @@ body {
   overflow: hidden;
 }
 
+#tc-widget-root div {
+  z-index: 100000 !important;
+}
+
 #app {
   // flex-direction: column;
   // max-width: var(--max-width);

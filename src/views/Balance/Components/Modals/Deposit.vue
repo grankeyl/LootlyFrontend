@@ -14,7 +14,7 @@ import AddBlackIcon from "@/assets/icons/add-black.svg";
 import BackspaceIcon from "@/assets/icons/backspace.svg";
 
 
-const amountStr = ref<string>('0')
+const amountStr = ref<string>('5')
 
 function tap(val: number | '.') {
   const s = String(amountStr.value)
