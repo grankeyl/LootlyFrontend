@@ -20,7 +20,7 @@ setTimeout(() => {
       <h4>Leaderboard</h4>
     </div>
     <div class="description">
-      <p>Описание по какому принципу и какой импакт</p>
+      <p>Top users with total bets</p>
     </div>
   </div>
 </template>
