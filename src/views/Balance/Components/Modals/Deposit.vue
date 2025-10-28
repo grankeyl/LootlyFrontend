@@ -49,12 +49,10 @@ async function deposit() {
   const n = parseFloat(amountStr.value.replace(',', '.'));
   if (!Number.isFinite(n) || n < 0.1) return;
 
-  // корректный пересчёт в нанотоны для вашего API:
   const [i = '0', f = ''] = String(n).split('.');
   const frac = (f + '000000000').slice(0, 9);
   const nano = (BigInt(i) * 1_000_000_000n) + BigInt(frac);
 
-  // если API ждёт число — ок; если строку — передай String(nano)
   const res = await APIWallet.deposit(Number(nano));
   if (res) {
     await sendPayment(res.address, res.memo, n);
@@ -74,9 +72,8 @@ async function sendPayment(receiverAddress: string, memo: string, amountTon: num
     validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
     messages: [
       {
-        // дружелюбная форма адреса ок, но лучше явно:
-        address: Address.parse(receiverAddress).toString({ urlSafe: true, bounceable: true }),
-        amount: toNano(amountTon).toString(),         // строка в нанотонах
+        address: Address.parse(receiverAddress).toString(),
+        amount: toNano(amountTon).toString(),
         payload: body.toBoc().toString('base64'),
       },
     ],
