@@ -12,9 +12,10 @@ import TonIcon from "@/assets/icons/ton.svg";
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import AddBlackIcon from "@/assets/icons/add-black.svg";
 import BackspaceIcon from "@/assets/icons/backspace.svg";
+import { toUserFriendlyAddress } from 'ton-ui-vue';
 
-
-const amountStr = ref<string>('5')
+const amountStr = ref<string>('5');
+const walletAddress = ref('...');
 
 function tap(val: number | '.') {
   const s = String(amountStr.value)
@@ -54,6 +55,8 @@ async function deposit() {
   const nano = (BigInt(i) * 1_000_000_000n) + BigInt(frac);
 
   const res = await APIWallet.deposit(Number(nano));
+  console.log('receiver=', Address.parse(res.address).toRawString(),
+            'me=', Address.parse(tonConnectUI.account!.address).toRawString());
   if (res) {
     await sendPayment(res.address, res.memo, n);
     showToast('Wallet connected', 'success');
@@ -62,25 +65,45 @@ async function deposit() {
   }
 }
 
-async function sendPayment(receiverAddress: string, memo: string, amountTon: number) {
-  const body = beginCell()
-    .storeUint(0, 32)
-    .storeStringTail(String(memo ?? ""))
-    .endCell();
-
-  const tx = {
-    validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
-    messages: [
-      {
-        address: Address.parse(receiverAddress).toString(),
-        amount: toNano(amountTon).toString(),
-        payload: body.toBoc().toString('base64'),
-      },
-    ],
-  };
-
-  await tonConnectUI.sendTransaction(tx);
+function isSelf(addr: string) {
+  const me = Address.parse(tonConnectUI.account!.address);
+  return Address.parse(addr).equals(me);
 }
+
+async function sendPayment(receiver: string, memo: string, amountTon: number) {
+  if (!tonConnectUI.account) { showToast('Подключи кошелёк', 'error'); return; }
+
+  if (isSelf(receiver)) {
+    showToast('Нельзя отправлять депозит на свой же адрес', 'error');
+    console.warn('Self-transfer blocked:',
+      Address.parse(receiver).toRawString(),
+      Address.parse(tonConnectUI.account.address).toRawString());
+    return;
+  }
+
+  const body = beginCell().storeUint(0, 32).storeStringTail(memo ?? '').endCell();
+  await tonConnectUI.sendTransaction({
+    validUntil: Math.floor(Date.now() / 1000) + 300,
+    messages: [{
+      address: Address.parse(receiver)
+        .toString({ bounceable: false }),
+      amount: toNano(amountTon).toString(),
+      payload: body.toBoc().toString('base64'),
+      // bounce: false
+    }]
+  });
+}
+
+const getTonWalletAddress = async () => {
+  if (!tonConnectUI.account) return;
+  const rawAddress = tonConnectUI.account.address;
+  const walletAddressString = toUserFriendlyAddress(rawAddress);
+  walletAddress.value = walletAddressString;
+  if (tonConnectUI.connected) { await APIWallet.connect(walletAddress.value); }
+  return walletAddressString;
+}
+
+getTonWalletAddress();
 </script>
 
 <template>
