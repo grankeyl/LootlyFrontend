@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
 // Images
 import AboutBalanceImg from "@/assets/images/earn-pg/about-balance.png";
 
 // Icons
 import CloseIcon from "@/assets/icons/close.svg";
 import LootcoinIcon from "@/assets/icons/lootcoin.svg";
-import AddBlackIcon from "@/assets/icons/add-black.svg";
-
-const amountStr = ref<string>('0')
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -17,35 +12,6 @@ const emit = defineEmits<{
 
 function close() {
   emit('close');
-}
-
-function tap(val: number | '.') {
-  const s = String(amountStr.value)
-
-  if (val === '.') {
-    if (!s) { amountStr.value = '0.'; return }
-    if (s.includes('.')) return
-    amountStr.value = s + '.'
-    return
-  }
-
-  let next = (s === '0' ? '' : s) + String(val)
-
-  const [int = '', frac = ''] = next.split('.')
-  if (frac && frac.length > 9) return
-
-  if (!frac && int.length > 1 && int.startsWith('0')) {
-    next = String(Number(int))
-  }
-  if (next.length > 20) return
-
-  amountStr.value = next
-}
-
-function backspace() {
-  const s = String(amountStr.value ?? '')
-  if (!s) return
-  amountStr.value = s.slice(0, -1) || '0'
 }
 </script>
 
