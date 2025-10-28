@@ -9,9 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ton/core": "^0.62.0",
     "@tonconnect/ui": "^2.3.1",
     "@twa-dev/sdk": "^8.0.2",
     "axios": "^1.12.2",
+    "buffer": "npm:Buffer@^0.0.0",
+    "Buffer": "^0.0.0",
     "dayjs": "^1.11.18",
     "gsap": "^3.13.0",
     "inflection": "^3.0.2",
@@ -19,11 +22,13 @@
     "lottie-web": "^5.13.0",
     "numeralize-ru": "^2.0.0",
     "pinia": "^3.0.3",
+    "process": "^0.11.10",
     "ton-ui-vue": "^0.1.5",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@rollup/plugin-inject": "^5.0.5",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^24.4.0",
     "@vitejs/plugin-vue": "^6.0.1",
@@ -31,6 +36,7 @@
     "sass-embedded": "^1.92.1",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
+    "vite-plugin-node-polyfills": "^0.24.0",
     "vue-tsc": "^3.0.5"
   }
 }

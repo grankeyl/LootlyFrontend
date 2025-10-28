@@ -39,11 +39,17 @@ export async function disconnect(
   }
 }
 
-export async function deposit() {
+export async function deposit(
+  min_amount_nano: number
+) {
   try {
     const initData = Cookies.get("init-data");
-    const response = await api.get(
+    const response = await api.post(
       `/deposit`,
+      {
+        min_amount_nano: min_amount_nano,
+        ttl_seconds: 0
+      },
       { headers: { "X-init-data": initData } }
     );
     if (response.status === 200) {
