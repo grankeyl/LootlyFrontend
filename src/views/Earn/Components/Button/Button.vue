@@ -12,7 +12,7 @@ function inviteFriend() {
   const miniAppLink = import.meta.env.VITE_APP_MINI_APP_LINK;
   const code = useCache.UserData.Code;
   const link = `${miniAppLink}=${code}`;
-  const message = `The best app for meme gifts and NFTs ❤️`;
+  const message = `💅 Лучшая платформа для игр на NFT`;
   TelegramModule.useShare(link, message);
 }
 </script>
