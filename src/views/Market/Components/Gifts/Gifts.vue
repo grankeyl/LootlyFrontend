@@ -6,7 +6,7 @@ import * as APIMarket from "../../../../api/market";
 
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
-import BasketIcon from "@/assets/icons/basket.svg";
+// import BasketIcon from "@/assets/icons/basket.svg";
 import { getImgSvg } from "../../../../utils/useApp";
 
 type Gift = any;

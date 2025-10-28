@@ -3,11 +3,11 @@ import { ref } from "vue";
 
 // Icons
 import LootcoinIcon from "@/assets/icons/lootcoin.svg";
-import TonWhite from "@/assets/icons/ton-white.svg";
+// import TonWhite from "@/assets/icons/ton-white.svg";
 import ChevroneRight from "@/assets/icons/chevrone-right.svg";
 
 // Images
-import Gifted from "@/assets/images/earn-pg/gifted.png";
+// import Gifted from "@/assets/images/earn-pg/gifted.png";
 import TelegramModule from "../../../../hooks/useTelegram";
 
 const skeleton = ref(true);
