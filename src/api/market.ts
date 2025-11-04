@@ -42,3 +42,21 @@ export async function buy(
     return false;
   }
 }
+
+export async function item(
+  id: string
+) {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.get(
+      `/market/item/${id}`,
+      { headers: { "X-init-data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}

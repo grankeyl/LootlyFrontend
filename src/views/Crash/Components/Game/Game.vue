@@ -143,30 +143,10 @@ async function startPlaying() {
 
   await nextTick();
   buildPath();
-  runLineReveal();     // ← 2с, но с выбранным DRAW_MODE
+  runLineReveal();
   startFlame();
   startWobble();
-  // запуск линии на 2s
-  // const w = svgRef.value!.clientWidth || 320;
-  // if (lineTween) { lineTween.kill(); lineTween = null; }
-  // if (maskRectRef.value) {
-  //   gsap.set(maskRectRef.value, { attr: { width: 0 } });
-  //   placeRocketByMaskWidth();
-  //   lineTween = gsap.to(maskRectRef.value, {
-  //     attr: { width: w },
-  //     duration: 2,
-  //     ease: "linear",
-  //     onUpdate: () => { placeRocketByMaskWidth(); placeHeadFXByMaskWidth(); }
-  //   });
-  // }
-  // startFlame(); // <- здесь
 
-  // const grad = (svgRef.value!.querySelector('#lineGradient') as SVGLinearGradientElement);
-  // gsap.fromTo(grad, { attr: { gradientTransform: 'translate(0,0)' } }, {
-  //   attr: { gradientTransform: 'translate(0.2,0)' }, duration: 2, ease: 'none'
-  // });
-
-  // ⬇⬇⬇ ЭТО ВЕРНУТЬ
   if (!tickerAdded) {
     gsap.ticker.add(onTick);
     tickerAdded = true;

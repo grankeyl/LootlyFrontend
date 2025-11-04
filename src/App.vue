@@ -30,6 +30,46 @@ function scrollTopSmooth() {
   }
 }
 
+function miniAppTransport(dtx: any) {
+  if (dtx && dtx !== 'debug') {
+    if (dtx.startsWith('m_')) { 
+      const id = dtx.split('m_')[1];
+      router.push(`/market/item/${id}`);
+    }
+    if (dtx.startsWith('gift_')) {
+      const giftId = dtx.split('gift_')[1];
+      router.push(`/gift/${giftId}`);
+    }
+    if (dtx.startsWith('u_')) {
+      const userId = dtx.split('u_')[1];
+      router.push(`/view/${userId}`);
+    }
+    if (dtx === 'cases') { router.push('/cases'); }
+    if (dtx === 'market') { router.push('/market'); }
+    if (dtx === 'earn') { router.push('/earn'); }
+    if (dtx === 'profile') { router.push('/profile'); }
+    if (dtx === 'balance') { router.push('/balance'); }
+    if (dtx === 'leaderboard') { router.push('/leaderboard'); }
+    if (dtx === 'crash') { router.push('/crash'); }
+  }
+}
+
+async function initStartApp(startParam?: string) {
+  if (!startParam) {
+    return;
+  }
+
+  const [startApp, startAppType = ''] = (startParam ?? '').split('_');
+
+  switch (startAppType) {
+    case 'opener':
+      console.log('Opener', startApp);
+      break;
+    default:
+      miniAppTransport(startParam);
+  }
+};
+
 onMounted(() => {
   removeHook = router.afterEach(async () => {
     await nextTick();

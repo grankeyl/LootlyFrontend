@@ -11,6 +11,7 @@ import CrashView from "../views/Crash/Crash.vue";
 const routes = [
   { path: "/", component: CasesView },
   { path: "/market", component: MarketView },
+  { path: "/market/item/:id", component: MarketView },
   { path: "/earn", component: EarnView },
   { path: "/profile", component: ProfileView },
   { path: "/balance", component: BalanceView },

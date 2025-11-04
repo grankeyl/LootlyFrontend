@@ -1,33 +1,50 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useModal } from './../../components/common/Modal';
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useModal } from './../../components/common/Modal'
 
-// Components
-import GiftModal from './Components/Modals/Gift.vue';
-import Actions from "./Components/Actions/Actions.vue";
-import Gifts from "./Components/Gifts/Gifts.vue";
-import Backdrop from "@/assets/images/profile-pg/bg-blured.png";
+import * as APIMarket from './../../api/market'
 
-const { open } = useModal();
+import GiftModal from './Components/Modals/Gift.vue'
+import Actions from "./Components/Actions/Actions.vue"
+import Gifts from "./Components/Gifts/Gifts.vue"
+import Backdrop from "@/assets/images/profile-pg/bg-blured.png"
 
-const pageRef = ref<HTMLElement | null>(null);
-const loaded = ref(false);
+const route = useRoute()
+const { open } = useModal()
+
+const pageRef = ref<HTMLElement | null>(null)
+const loaded = ref(false)
 
 function onImageLoad() {
-  loaded.value = true;
+  loaded.value = true
 }
 
 async function openGift(payload: any) {
   const choose = open(GiftModal, {
     data: payload,
     onBuySuccess: (p: any) => buySuccess(p),
-  });
-  await choose.done.catch(() => null);
+  })
+  await choose.done.catch(() => null)
 }
 
-async function buySuccess(payload: any) {
-  console.log(payload);
+function buySuccess(payload: any) {
+  console.log('buy success', payload)
 }
+
+watch(
+  () => route.params.id,
+  async (id: any) => {
+    if (!id) return
+
+    const res = await APIMarket.item(id)
+    if (!res) return
+
+    console.log(res)
+    openGift({ ...res.item })
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

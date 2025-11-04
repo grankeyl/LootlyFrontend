@@ -9,6 +9,7 @@ import * as APIMarket from "../../../../api/market";
 import TonIcon from "@/assets/icons/ton.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import ForwardWhiteIcon from "@/assets/icons/forward-white.svg";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 const emit = defineEmits<{ 
   (e:'close'): void; 
@@ -37,6 +38,16 @@ async function buy(
   emit("buy-success", { ...res });
   close();
 }
+
+function share(
+  id: string
+) {
+  const miniAppLink = import.meta.env.VITE_APP_MINI_APP_LINK;
+  const link = `${miniAppLink}=m_${id}`;
+  const message = "Check it.";
+  return link;
+  TelegramModule.useShare(link, message);
+}
 </script>
 
 <template>
@@ -62,7 +73,7 @@ async function buy(
         <h4>{{ props.data.name }}</h4>
       </div>
       <div class="actions">
-        <button>
+        <button @click="share(props.data.id)">
           <img :src="ForwardWhiteIcon" alt="close-icon" aria-hidden="true" />
           <h4>{{ $t('market.modals.gift.actions.share') }}</h4>
         </button>
