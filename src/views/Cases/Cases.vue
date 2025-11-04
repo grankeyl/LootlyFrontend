@@ -39,7 +39,7 @@ async function openNotEnough(payload: any) {
 <template>
     <div class="page">
         <LiveWins />
-        <Block />
+        <!-- <Block /> -->
         <Tabs
             @SwitchTab="SwitchTab"
             :ActiveTab="ActiveTab"
