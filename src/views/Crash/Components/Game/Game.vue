@@ -21,7 +21,7 @@ const PATH_MODE: PathMode = 'expo';
 const fillPathRef = ref<SVGPathElement|null>(null);
 const pathD = ref<string>('');
 
-let lineTween: gsap.core.Tween | null = null as any;
+let lineTween: gsap.core.Timeline | null = null;
 let lastTweenTarget = 1;
 let playingTween: gsap.core.Tween | null = null;
 let displayObj = { v: 1 };
@@ -45,8 +45,6 @@ let pathLen = 0;
 const ROCKET_W = 123;
 const ROCKET_H = 123;
 const NOSE_OFFSET = 0; // если нужно сместить нос чуть вперёд
-
-let resizeObs: ResizeObserver | null = null;
 
 const GROWTH_PER_SEC = 0.08;
 const MAX_DT = 0.12;
@@ -126,12 +124,14 @@ function runLineReveal(duration = 2) {
   gsap.set(maskRectRef.value, { attr: { width: 0 } });
 
   const common = {
-    duration,
     onUpdate: () => { placeRocketByMaskWidth(); placeHeadFXByMaskWidth?.(); }
   } as const;
 
   lineTween = gsap.timeline()
-    .to(maskRectRef.value, { attr: { width: w      }, duration: duration*0.45, ease: "power2.out", ...common });
+    .to(
+      maskRectRef.value,
+      { attr: { width: w }, ease: "power2.out", duration: duration * 0.45, ...common }
+    );
 }
 
 async function startPlaying() {
