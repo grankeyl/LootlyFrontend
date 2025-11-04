@@ -76,7 +76,7 @@ onMounted(getRank);
         <p v-if="useCache.UserData?.Rank">{{ useCache.UserData.Rank }}</p>
       </div>
       <div @click="openLeaderboard" class="mark">
-        <h4>Leaderboard</h4>
+        <h4>{{ $t('profile.user.leaderboard') }}</h4>
         <img :src="ChevroneYellowRight" alt="chevrone-yellow-right-icon" />
       </div>
     </div>

@@ -36,7 +36,9 @@ async function openGift(payload: any) {
   const choose = open(GiftModal, {
     data: payload,
     onQuickSellSuccess: (p: any) => quickSellSuccess(p),
-    onOpenModalWithdrawGift: () => open(WithdrawGiftModal),
+    onOpenModalWithdrawGift: () => open(WithdrawGiftModal, {
+      data: payload,
+    }),
   });
   await choose.done.catch(() => null);
 }

@@ -64,7 +64,7 @@ async function buy(
       <div class="actions">
         <button>
           <img :src="ForwardWhiteIcon" alt="close-icon" aria-hidden="true" />
-          <h4>Share</h4>
+          <h4>{{ $t('market.modals.gift.actions.share') }}</h4>
         </button>
       </div>
     </div>
@@ -72,7 +72,7 @@ async function buy(
       <div class="block">
         <div class="item">
           <div class="left">
-            <h4>Floor Price</h4>
+            <h4>{{ $t('market.modals.gift.table.floorPrice') }}</h4>
           </div>
           <div class="right">
             <h4>{{ cutNumberNano(props.data.price_nano) }}</h4>
@@ -81,7 +81,7 @@ async function buy(
         </div>
         <div class="item">
           <div class="left">
-            <h4>Gift</h4>
+            <h4>{{ $t('market.modals.gift.table.gift') }}</h4>
           </div>
           <div class="right">
             <h4>{{ props.data.name }}</h4>
@@ -91,11 +91,11 @@ async function buy(
     </div>
     <div class="buttons">
       <button class="primary" @click="buy(props.data.id)">
-        <h4>Buy for {{ cutNumberNano(props.data.price_nano) }}</h4>
+        <h4>{{ $t('market.modals.gift.buttons.buyFor', { price: cutNumberNano(props.data.price_nano) }) }}</h4>
         <img :src="TonBlackIcon" alt="close-icon" aria-hidden="true" />
       </button>
       <button @click="close">
-        <h4>Close</h4>
+        <h4>{{ $t('market.modals.gift.buttons.close') }}</h4>
       </button>
     </div>
   </div>

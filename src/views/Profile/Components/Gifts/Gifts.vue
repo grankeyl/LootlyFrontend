@@ -254,7 +254,11 @@ watch(() => props.inventory, (v) => {
   items.value = v;
 });
 
-function openItem(g: Gift) { emit("open-modal", g); }
+function openItem(g: Gift) { 
+  if (!g) return;
+  if (g.status === "sold") return;
+  emit("open-modal", g); 
+}
 </script>
 
 <template>
@@ -281,7 +285,7 @@ function openItem(g: Gift) { emit("open-modal", g); }
         </div>
         <div class="button" :class="item.status">
           <button v-if="item.status && item.status === 'sold'">
-            <h5>Solded</h5>
+            <h5>{{ $t('profile.gifts.statusSold') }}</h5>
             <div class="kit-icon" v-html="Icon.Done"></div>
           </button>
           <button v-if="item.status && (item.status === 'held' || item.status === 'purchased')">
@@ -289,7 +293,7 @@ function openItem(g: Gift) { emit("open-modal", g); }
             <img :src="TonWhiteIcon" alt="ton-icon" />
           </button>
           <button v-if="item.status && item.status === 'used'">
-            <h5>Withdrawal</h5>
+            <h5>{{ $t('profile.gifts.statusUsed') }}</h5>
           </button>
         </div>
       </div>

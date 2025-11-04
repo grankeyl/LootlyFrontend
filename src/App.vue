@@ -76,6 +76,7 @@ onMounted(async () => {
       <video
         ref="videoRef"
         muted
+        loop
         playsinline
         webkit-playsinline
         autoplay

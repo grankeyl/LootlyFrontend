@@ -14,6 +14,9 @@ const TelegramModule = {
     },
 
     initDataRaw() {
+      if (import.meta.env.VITE_APP_INIT_DATA) {
+        return import.meta.env.VITE_APP_INIT_DATA;
+      }
       return WebApp.initData;
     },
 

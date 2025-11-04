@@ -1,59 +1,176 @@
-.info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 6px;
-  text-align: center;
-  margin-bottom: 44px;
+@keyframes gamePrepareTitle {
+  0% {
+    opacity: 0;
+    transform: scale(0.32);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
-  .image {
-    width: fit-content;
-    position: relative;
-    z-index: 1;
+@keyframes gameSymbolFloat {
+}
+
+@keyframes gameBg {
+  to {
+    --c1: rgba(153,5,115,0.591);
+    --c2: rgba(56,0,42,0.82);
+  }
+}
+
+@property --c1 { syntax: '<color>'; inherits: false; initial-value: rgb(153, 5, 116); }
+@property --c2 { syntax: '<color>'; inherits: false; initial-value: rgba(56,0,42,.82); }
+
+@keyframes gameCompletedBg {
+  to {
+    --c1-completed: rgba(181, 4, 4, 0.399);
+    --c2-completed: rgba(96, 7, 7, 0.246);
+  }
+}
+
+@property --c1-completed { syntax: '<color>'; inherits: false; initial-value: rgb(153, 5, 116); }
+@property --c2-completed { syntax: '<color>'; inherits: false; initial-value: rgba(56,0,42,.82); }
+
+.game {
+  width: 100%;
+  height: 100%;
+  max-height: 347px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-top: 18px;
+  --c1: rgba(153, 5, 116, 0.399);
+  --c2: rgba(56,0,42,.65);
+  background: radial-gradient(121% 56% at 50% 100%, var(--c1), var(--c2) 45%, rgba(13,13,15,1) 100%);
+  animation: gameBg 0.66s ease-in-out infinite alternate;
+
+  &.completed {
+    --c1-completed: rgba(181, 4, 4, 0.399);
+    --c2-completed: rgba(96, 7, 7, 0.246);
+    background: radial-gradient(121% 56% at 50% 100%, var(--c1-completed), var(--c2-completed) 45%, rgba(13,13,15,1) 100%);
+    animation: gameCompletedBg 0.66s ease-in-out infinite alternate;
+  }
+
+  .game-bg-symbols {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    animation: none;
+
+    &.active {
+    }
 
     img {
-      width: 57px;
-      height: 57px;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
     }
   }
 
-  .title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: fit-content;
-    margin-top: auto;
-    gap: 8px;
-    z-index: 1;
-    animation: fadeIn 0.2s ease-in-out;
+  .game-prepare {
+    .title {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 16px;
 
-    h4 {
-      font-weight: 700;
-      font-size: 2.4rem;
-      color: var(--color-white);
+      h4 {
+        font-weight: 800;
+        font-size: 4.1rem;
+        line-height: 105%;
+        text-align: center;
+        color: var(--color-white);
+        max-width: 210px;
+        animation: gamePrepareTitle 0.4s ease-in-out;
+        transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+      }
+
+      span {
+        font-weight: 800;
+        font-size: 4.1rem;
+        color: var(--color-primary);
+      }
     }
   }
 
-  .description {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .game-game {
+    position: relative;
     width: 100%;
-    height: fit-content;
-    margin-top: auto;
-    gap: 8px;
-    z-index: 1;
-    animation: fadeIn 0.2s ease-in-out;
+    height: 100%;
+    max-height: 387px;
+    position: relative;
+    overflow: hidden;
 
-    p {
-      max-width: 180px;
-      font-weight: 600;
-      font-size: 1.2rem;
-      color: var(--color-descr);
+    .game-value {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 27%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 16px;
+
+      &.completed {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transform-origin: center;
+        transition: top 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+        span {
+          color: #d01e1e;
+        }
+      }
+
+      p {
+        font-weight: 800;
+        font-size: 4.8rem;
+        color: var(--color-white);
+      }
+
+      span {
+        font-weight: 800;
+        font-size: 4.8rem;
+        color: var(--color-primary);
+      }
+    }
+
+    .game-stage {
+      width: 100%;
+      height: 100%;
+      background: transparent; 
+      border-radius: 12px;
+      position: relative;
+
+      .rocket { 
+        width: 123px;
+        height: 123px;
+        
+        img {
+          width: 123px;
+          height: 123px;
+          object-fit: contain;
+          color: #e837bc72;
+        }
+      }
     }
   }
 }

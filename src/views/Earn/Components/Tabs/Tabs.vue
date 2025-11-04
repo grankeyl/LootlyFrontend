@@ -28,7 +28,7 @@ const SwitchTab = (tab: string) => {
         @click="SwitchTab('tasks')" 
         :class="{ active: CheckActiveTab('tasks') }"
       >
-        <h4>Tasks</h4>
+        <h4>{{ $t('earn.tabs.tasks') }}</h4>
         <img :src="CheckIcon" alt="check-icon" />
       </div>
       <div 
@@ -36,7 +36,7 @@ const SwitchTab = (tab: string) => {
         @click="SwitchTab('invites')" 
         :class="{ active: CheckActiveTab('invites') }"
       >
-        <h4>Invite & Loot</h4>
+        <h4>{{ $t('earn.tabs.invites') }}</h4>
         <img :src="FriendsIcon" alt="friends-icon" />
       </div>
     </div>

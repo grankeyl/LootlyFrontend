@@ -37,6 +37,7 @@ const leaderboardLimit = ref(10);
 
 async function getLeaderboard(initial = false) {
   if (leaderboardLoadingMore.value || (!leaderboardHasMore.value && !initial)) return;
+  if (leaderboardOffset.value >= 100) return;
 
   leaderboardLoadingMore.value = true;
   if (initial) {

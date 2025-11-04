@@ -23,7 +23,7 @@ const props = defineProps<{
   <div class="actions">
     <div class="head">
       <div class="title">
-        <h4>Gifts</h4>
+        <h4>{{ $t('profile.actions.title') }}</h4>
         <p>{{ props.inventoryCount }}</p>
       </div>
       <!-- <div class="button">

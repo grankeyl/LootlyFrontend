@@ -59,7 +59,7 @@ function useTask() {
           <img src="https://i.ibb.co/3593Cj84/telegram-peer-photo-size-2-5190691857137530605-1-0-0.jpg" alt="">
         </div>
         <div class="context">
-          <h4>Subscribe to Lootly Telegram</h4>
+          <h4>{{ $t('earn.tasks.others.taskTitle') }}</h4>
           <span>
             <p>250</p>
             <img :src="LootcoinIcon" alt="lootcoin-icon" />

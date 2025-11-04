@@ -10,7 +10,9 @@ const pageRef = ref<HTMLElement|null>(null);
 <template>
     <div class="page" ref="pageRef">
         <div class="content">
-            <Game />
+            <Game 
+                :force-crash-at="11.81"
+            />
             <Tabs />
         </div>
     </div>

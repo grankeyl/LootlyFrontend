@@ -13,7 +13,7 @@ import WithdrawIcon from "@/assets/icons/withdraw.svg";
 
 const emit = defineEmits<{ 
   (e:'close'): void; 
-  (e:'open-modal-withdraw-gift'): void 
+  (e:'open-modal-withdraw-gift', payload: any): void 
   (e:'quick-sell-success', payload: any): void
 }>();
 
@@ -24,8 +24,10 @@ const props = defineProps<{
 
 const useCache = useCacheStore() as any;
 
-function withdraw() {
-  emit("open-modal-withdraw-gift");
+function withdraw(data: any) {
+  emit("open-modal-withdraw-gift", {
+    ...data,
+  });
 }
 
 function close() {
@@ -81,11 +83,11 @@ async function quickSell(
       <div class="actions">
         <button>
           <img :src="ForwardWhiteIcon" alt="close-icon" aria-hidden="true" />
-          <h4>Share</h4>
+          <h4>{{ $t('profile.modals.gift.actions.share') }}</h4>
         </button>
-        <button @click="withdraw">
+        <button @click="withdraw(props.data)">
           <img :src="WithdrawIcon" alt="close-icon" aria-hidden="true" />
-          <h4>Withdraw</h4>
+          <h4>{{ $t('profile.modals.gift.actions.withdraw') }}</h4>
         </button>
       </div>
     </div>
@@ -93,7 +95,7 @@ async function quickSell(
       <div class="block">
         <div class="item">
           <div class="left">
-            <h4>Floor Price</h4>
+            <h4>{{ $t('profile.modals.gift.table.floorPrice') }}</h4>
           </div>
           <div class="right">
             <h4>{{ cutNumberNano(props.data.price_nano) }}</h4>
@@ -102,7 +104,7 @@ async function quickSell(
         </div>
         <div class="item">
           <div class="left">
-            <h4>Gift</h4>
+            <h4>{{ $t('profile.modals.gift.table.gift') }}</h4>
           </div>
           <div class="right">
             <h4>{{ props.data.reward_name }}</h4>
@@ -139,11 +141,11 @@ async function quickSell(
         class="primary"
         @click="quickSell(props.data.id)"
       >
-        <h4>Sell for {{ cutNumberNano(props.data.price_nano) }}</h4>
+        <h4>{{ $t('profile.modals.gift.buttons.sellFor', { price: cutNumberNano(props.data.price_nano) }) }}</h4>
         <img :src="TonBlackIcon" alt="close-icon" aria-hidden="true" />
       </button>
       <button @click="close">
-        <h4>Close</h4>
+        <h4>{{ $t('profile.modals.gift.buttons.close') }}</h4>
       </button>
     </div>
   </div>

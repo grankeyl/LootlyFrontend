@@ -6,7 +6,7 @@ export const obfuscateAddress = (address: string) => {
     return `${str.slice(0, startLength)}...${str.slice(-endLength)}`;
 };
 
-export const cutNumber = (num: string, decimals = 2) => {
+export const cutNumber = (num: any, decimals = 2) => {
   let str = String(num);
 
   if (str.includes('.')) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useTranslation } from "i18next-vue";
 
 // Icons
 import CasesIcon from "@/assets/icons/case.svg";
@@ -11,11 +12,14 @@ import ProfileIcon from "@/assets/icons/profile.svg";
 const route = useRoute();
 const router = useRouter();
 const ActiveMenu = ref('cases');
+
+const { t } = useTranslation();
+
 const menuItems = [
-  { id: 'cases', name: 'Cases', icon: CasesIcon, path: '/' },
-  { id: 'market', name: 'Market', icon: MarketIcon, path: '/market' },
-  { id: 'earn', name: 'Earn', icon: TicketsIcon, path: '/earn' },
-  { id: 'profile', name: 'Profile', icon: ProfileIcon, path: '/profile' },
+  { id: 'cases', name: t('menu.cases'), icon: CasesIcon, path: '/' },
+  { id: 'market', name: t('menu.market'), icon: MarketIcon, path: '/market' },
+  { id: 'earn', name: t('menu.earn'), icon: TicketsIcon, path: '/earn' },
+  { id: 'profile', name: t('menu.profile'), icon: ProfileIcon, path: '/profile' },
 ];
 
 const SwitchMenu = (menu: any) => {

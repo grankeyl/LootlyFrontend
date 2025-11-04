@@ -260,8 +260,8 @@ onMounted(() => {
         >
           <div class="title">
             <div v-if="isWin" class="win">
-              <h4>Congrats!</h4>
-              <span>You have won:</span>
+              <h4>{{ $t('cases.modals.case.congrats') }}</h4>
+              <span>{{ $t('cases.modals.case.congratsDesc') }}</span>
             </div>
           </div>
 
@@ -341,8 +341,8 @@ onMounted(() => {
               </button>
             </div>
             <div v-if="isWin" class="win">
-              <h4>Congrats!</h4>
-              <span>You have won:</span>
+              <h4>{{ $t('cases.modals.case.congrats') }}</h4>
+              <span>{{ $t('cases.modals.case.congratsDesc') }}</span>
             </div>
           </div>
 
@@ -379,7 +379,7 @@ onMounted(() => {
         <div v-if="isRolling && !isWin" class="buttons rolling">
           <div class="topper">
             <button @click="skipRoll">
-              <h4>Skip</h4>
+              <h4>{{ $t('cases.modals.case.buttons.skip') }}</h4>
             </button>
           </div>
         </div>
@@ -387,16 +387,16 @@ onMounted(() => {
         <div v-if="isRolling && isWin" class="buttons win">
           <div v-if="itemWin.rewardItem.quick_sale" class="topper">
             <button @click="quickSell(itemWin.rewardItem.reward)">
-              <h4>Sell for {{ itemWin.price_ton }}</h4>
+              <h4>{{ $t('cases.modals.case.buttons.sellFor', { price: itemWin.price_ton }) }}</h4>
               <img :src="TonBlackIcon" alt="ton-icon" />
             </button>
             <button @click="onCollect">
-              <h4>Collect</h4>
+              <h4>{{ $t('cases.modals.case.buttons.collect') }}</h4>
             </button>
           </div>
           <div v-else class="topper">
             <button @click="onCollect">
-              <h4>Ok</h4>
+              <h4>{{ $t('cases.modals.case.buttons.ok') }}</h4>
             </button>
           </div>
         </div>
@@ -404,11 +404,11 @@ onMounted(() => {
         <div v-if="!isRolling" class="buttons">
           <div class="topper">
             <button :disabled="skeletonRewards" @click="rollToDemo()">
-              <h4>Demo Open 0</h4>
+              <h4>{{ $t('cases.modals.case.buttons.demoOpen') }} 0</h4>
               <img :src="TonWhiteIcon" alt="ton-icon" />
             </button>
             <button :disabled="skeletonRewards" @click="rollTo()">
-              <h4>Open {{ cutNumberNano(props.data.price_nano) }}</h4>
+              <h4>{{ $t('cases.modals.case.buttons.open', { price: cutNumberNano(props.data.price_nano) }) }}</h4>
               <img :src="TonBlackIcon" alt="ton-icon" />
             </button>
           </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 // Images
 import Backdrop from "@/assets/images/earn-pg/bg-blured.png";
@@ -7,12 +7,25 @@ import Info from "./Components/Info/Info.vue";
 import Top from "./Components/Top/Top.vue";
 
 const pageRef = ref<HTMLElement|null>(null);
+
+/* === плавное появление задника === */
+const loaded = ref(false);
+const imgSrc = ref<string | null>(null);
+
+onMounted(async () => {
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = Backdrop;
+  try { /* @ts-ignore */ if (typeof img.decode === 'function') await img.decode(); } catch {}
+  imgSrc.value = Backdrop;
+  loaded.value = true;
+});
 </script>
 
 <template>
     <div class="page" ref="pageRef">
-        <div class="backdrop">
-            <img :src="Backdrop" alt="backdrop" />
+        <div class="backdrop" :class="{ loaded }">
+            <img v-if="imgSrc" :src="imgSrc" alt="backdrop" />
         </div>
 
         <div class="blur"></div>

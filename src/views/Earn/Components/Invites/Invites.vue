@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
   <div class="invites" :class="{ skeleton: skeleton }">
     <div class="balance">
       <div class="descr">
-        <p>Earns from Referrals</p>
+        <p>{{ $t('earn.invites.balance.descr') }}</p>
       </div>
       <div class="amount">
         <h1>{{ useCache.UserData.AllSum }}</h1>
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="button" @click="handleClick">
         <img :src="WithdrawIcon" alt="withdraw-icon" />
-        <h4>Withdraw</h4>
+        <h4>{{ $t('earn.invites.balance.buttons.withdraw') }}</h4>
       </div>
     </div>
     <div class="stats">
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
           <img :src="FriendsIcon" alt="friends-icon" />
         </div>
         <div class="descr">
-          <p>Referrals</p>
+          <p>{{ $t('earn.invites.stats.referrals') }}</p>
         </div>
       </div>
       <div class="stat">
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
           <img :src="TonIcon" alt="friends-icon" />
         </div>
         <div class="descr">
-          <p>Total Earned</p>
+          <p>{{ $t('earn.invites.stats.totalEarned') }}</p>
         </div>
       </div>
       <div class="stat">
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
           <img :src="PercentIcon" alt="friends-icon" />
         </div>
         <div class="descr">
-          <p>Your percent</p>
+          <p>{{ $t('earn.invites.stats.yourPercent') }}</p>
         </div>
       </div>
     </div>
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
           <h4>@</h4>
         </div>
         <div class="item">
-          <h4>{{ referralsCount }} Friends</h4>
+          <h4>{{ $t('earn.invites.filters.referrals', { count: referralsCount }) }}</h4>
         </div>
         <div class="item">
           <div class="select">

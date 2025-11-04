@@ -28,8 +28,9 @@
     gap: 8px;
 
     .item {
-      width: 75px;
-      aspect-ratio: 75 / 75;
+      width: 95px;
+      height: 95px;
+      aspect-ratio: 95px / 95px;
       border-radius: 1.6em;
       background: var(--bg-secondary);
       overflow: hidden;
@@ -40,51 +41,6 @@
 
       &:active {
         transform: scale(0.94);
-      }
-
-      .background {
-        &.upg {
-          width: 100%;
-          height: 100%;
-          position: absolute;
-          top: 0;
-          left: 0;
-          z-index: 0;
-          background: radial-gradient(circle, var(--center-color), var(--around-color));
-        }
-
-        &.no-upg {
-          width: 100%;
-          height: 100%;
-          position: absolute;
-          top: 0;
-          left: 0;
-          z-index: 0;
-        }
-      }
-
-      .symbol {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        opacity: .6;
-        z-index: 1;
-        mix-blend-mode: luminosity;
-
-        &.no-upg {
-          opacity: .2;
-        }
-
-        img {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 100%;
-          height: calc(100% - 20px);
-          transform: translate(-50%, -59%);
-          object-fit: cover;
-        }
       }
 
       .model {
@@ -142,7 +98,7 @@
     height: fit-content;
     margin-top: auto;
     position: absolute;
-    bottom: 0;
+    bottom: calc(var(--menu-height) / 2.2);
     gap: 8px;
     padding: 16px;
 

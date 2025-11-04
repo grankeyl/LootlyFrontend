@@ -27,12 +27,12 @@ function close() {
       <img :src="LootcoinIcon" alt="">
       <h4>Lootly Coin</h4>
       <p>
-        Additional balance in the app, used for airdrops
+        {{ $t('earn.modals.balanceAbout.descr') }}
       </p>
     </div>
     <div class="buttons">
       <button @click="close">
-        <h4>Okey</h4>
+        <h4>{{ $t('earn.modals.balanceAbout.buttons.ok') }}</h4>
       </button>
     </div>
   </div>
