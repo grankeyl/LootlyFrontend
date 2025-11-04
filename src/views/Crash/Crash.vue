@@ -11,7 +11,7 @@ const pageRef = ref<HTMLElement|null>(null);
     <div class="page" ref="pageRef">
         <div class="content">
             <Game 
-                :force-crash-at="11.81"
+                :force-crash-at="2.76"
             />
             <Tabs />
         </div>

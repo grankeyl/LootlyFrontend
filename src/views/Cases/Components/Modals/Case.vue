@@ -268,7 +268,7 @@ onMounted(() => {
           <div v-if="isWin" class="cover-win">
             <div class="lottie-win">
               <Lottie
-                slug="confetti"
+                path="/animations/confetti.json"
                 :loop="false"
                 renderer="svg"
                 width="100%"

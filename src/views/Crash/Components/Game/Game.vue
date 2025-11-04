@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, defineExpose, nextTick } from "vue";
 import { gsap } from "gsap";
+import { cutNumber } from "../../../../utils/useTon";
+
+// Images
 import GameBgSymbolsImage from "@/assets/images/crash-pg/game-bg-symbols.png";
 import RocketImage from "@/assets/images/crash-pg/rocket.png";
-import { cutNumber } from "../../../../utils/useTon";
+import Lottie from "../../../../components/Lottie.vue";
 
 type Stage = 'prepare' | 'playing' | 'completed';
 const props = defineProps<{ forceCrashAt?: number | null }>();
@@ -29,6 +32,17 @@ const crashAt = ref(0);
 const lastTS = ref(0);
 let tickerAdded = false;
 
+// refs
+const windWrapRef = ref<HTMLDivElement|null>(null);
+// состояние ветра
+let windTickerAdded = false;
+let windAcc = 0; // накопленный путь в px
+// базовые параметры
+const WIND_BASE_PX_S = 110;    // базовая скорость (px/сек)
+const WIND_FACTOR_MAX = 6;     // ограничим рост скорости
+const WIND_IDLE_FACTOR = 0.6;  // во время prepare ветер слабее
+let windTick: (() => void) | null = null;
+
 const valueRef = ref<HTMLParagraphElement | null>(null);
 
 /* ===== Линия (SVG) через MASK ===== */
@@ -39,7 +53,11 @@ const maskRectRef = ref<SVGRectElement | null>(null);
 
 // сверху рядом с остальными refs
 const rocketRef = ref<HTMLDivElement|null>(null);
+const rocketImgRef = ref<HTMLImageElement|null>(null);
+const flameRef = ref<HTMLDivElement|null>(null);
 let pathLen = 0;
+// flame jitter tween
+let flameJitterTw: gsap.core.Tween | null = null;
 
 // подгони под свой спрайт
 const ROCKET_W = 123;
@@ -49,6 +67,8 @@ const NOSE_OFFSET = 0; // если нужно сместить нос чуть �
 const GROWTH_PER_SEC = 0.08;
 const MAX_DT = 0.12;
 const TWEEN_DUR = 0.28;
+
+const boomRef = ref<HTMLDivElement|null>(null);
 
 function setRoundX(x: number) { _forced.value = Math.max(1.01, x); }
 defineExpose({ setRoundX });
@@ -76,7 +96,8 @@ function startFlame() {
       .to(flameEl, { scaleY: 1.20, scaleX: 1.02, opacity: 0.9,  duration: 0.08, ease: "power1.inOut" });
 
     // лёгкий шумовой джиттер размера (имитация турбулентности)
-    gsap.to(flameEl, {
+    if (flameJitterTw) { flameJitterTw.kill(); flameJitterTw = null; }
+    flameJitterTw = gsap.to(flameEl, {
       duration: 0.2, repeat: -1, yoyo: true, ease: "sine.inOut",
       onUpdate() {
         const rx = 1 + (Math.random() - 0.5) * 0.06;
@@ -142,10 +163,16 @@ async function startPlaying() {
   lastTS.value = performance.now();
 
   await nextTick();
+  if (rocketImgRef.value) gsap.set(rocketImgRef.value, { opacity: 1 });
+  if (flameRef.value) {
+    gsap.set(flameRef.value, { opacity: 1 });
+    gsap.killTweensOf(flameRef.value);
+  }
   buildPath();
   runLineReveal();
   startFlame();
   startWobble();
+  startWind();
 
   if (!tickerAdded) {
     gsap.ticker.add(onTick);
@@ -191,16 +218,6 @@ function onTick() {
       }
     }
   });
-}
-
-function crashNow() {
-  if (gameStage.value !== 'playing') return;
-  gameStage.value = 'completed';
-  if (playingTween) { playingTween.kill(); playingTween = null; }
-  gsap.killTweensOf(displayObj);
-  if (valueRef.value) gsap.fromTo(valueRef.value, { scale: 1 }, { scale: 1.47, duration: 0.24, ease: "power1.out", yoyo: true, repeat: 1 });
-  if (stageRef.value) gsap.fromTo(stageRef.value, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "back.out(2)" });
-  window.setTimeout(() => startPrepare(), 5000);
 }
 
 function placeRocketByMaskWidth() {
@@ -345,12 +362,82 @@ onBeforeUnmount(() => {
   if (flameTl) { flameTl.kill(); flameTl = null; }
   if (swayTl)  { swayTl.kill();  swayTl  = null; }
   if (wobbleTickerAdded) { gsap.ticker.remove((gsap.ticker as any)._listeners.at(-1)); } // защитно
+  stopWind();
+  if (flameJitterTw) { flameJitterTw.kill(); flameJitterTw = null; }
+  gsap.killTweensOf(flameRef.value);
   window.removeEventListener("resize", buildPath);
 });
+
+function currentWindSpeed(): number {
+  const x = Math.max(1, gamePlayingX.value);
+  const factor = Math.min(1 + 0.75 * Math.log2(x), WIND_FACTOR_MAX);
+  const stageK = (gameStage.value === 'prepare') ? WIND_IDLE_FACTOR : 1;
+  return WIND_BASE_PX_S * factor * stageK;
+}
+
+function startWind() {
+  if (windTickerAdded) return;
+  windTickerAdded = true;
+  let last = performance.now();
+
+  windTick = () => {
+    const wrap = windWrapRef.value;
+    if (!wrap) return;
+
+    const now = performance.now();
+    const dt = (now - last) / 1000;
+    last = now;
+
+    const oneTileW = wrap.scrollWidth / 2 || 313;
+    windAcc = (windAcc + currentWindSpeed() * dt) % oneTileW;
+
+    const x = -oneTileW + windAcc;
+    gsap.set(wrap, { x });
+  };
+  gsap.ticker.add(windTick);
+}
+
+function stopWind() {
+  if (!windTickerAdded) return;
+  windTickerAdded = false;
+
+  if (windTick) {
+    gsap.ticker.remove(windTick);
+    windTick = null;
+  }
+
+  if (windWrapRef.value) {
+    windWrapRef.value.style.opacity = '0';
+    gsap.set(windWrapRef.value, { x: 0 });
+  }
+}
+
+function crashNow() {
+  if (gameStage.value !== 'playing') return;
+  gameStage.value = 'completed';
+  if (playingTween) { playingTween.kill(); playingTween = null; }
+  gsap.killTweensOf(displayObj);
+  stopWind();
+  if (svgRef.value) gsap.fromTo(svgRef.value, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "back.out(2)" });
+  if (valueRef.value) gsap.fromTo(valueRef.value, { scale: 1 }, { scale: 1.47, duration: 0.24, ease: "power1.out", yoyo: true, repeat: 1 });
+  if (flameTl) { flameTl.kill(); flameTl = null; }
+  if (flameJitterTw) { flameJitterTw.kill(); flameJitterTw = null; }
+  if (flameRef.value) {
+    gsap.killTweensOf(flameRef.value);
+    gsap.to(flameRef.value, { opacity: 0, duration: 0.3, ease: "power1.out" });
+  }
+  if (rocketImgRef.value) {
+    gsap.to(rocketImgRef.value, { opacity: 0, duration: 0.3, ease: "power1.out" });
+  }
+  window.setTimeout(() => startPrepare(), 2500);
+}
 
 watch(() => gameStage.value, (v) => {
   if (v === 'prepare' && wobbleRef.value) {
     gsap.to(wobbleRef.value, { x:0, y:0, rotation:0, skewX:0, skewY:0, scale:1, duration:0.3, ease:"sine.out" });
+  }
+  if (v === 'playing' && windWrapRef.value) {
+    windAcc += 30;
   }
 });
 </script>
@@ -371,6 +458,67 @@ watch(() => gameStage.value, (v) => {
       <div class="game-value" ref="valueRef" :class="{ completed: gameStage === 'completed' }">
         <p>{{ cutNumber(gamePlayingX) }}</p>
         <span>x</span>
+      </div>
+      <div class="game-weerh">
+        <div class="wind-viewport">
+          <div class="wind-wrap" ref="windWrapRef">
+            <svg 
+              v-for="n in 2" 
+              :key="'w'+n" 
+              class="wind-svg"
+              width="313"
+              height="132"
+              viewBox="0 0 313 132"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g style="mix-blend-mode:screen">
+                <rect x="222" y="106" width="91" height="4" rx="2" fill="url(#paint0)" />
+              </g>
+              <g style="mix-blend-mode:screen">
+                <rect y="78" width="91" height="4" rx="2" fill="url(#paint1)" />
+              </g>
+              <g style="mix-blend-mode:screen">
+                <rect x="158" y="62" width="61" height="4" rx="2" fill="url(#paint2)" />
+              </g>
+              <g style="mix-blend-mode:screen">
+                <rect x="175" width="93" height="4" rx="2" fill="url(#paint3)" />
+              </g>
+              <g style="mix-blend-mode:screen">
+                <rect x="51" y="29" width="121" height="4" rx="2" fill="url(#paint4)" />
+              </g>
+              <g style="mix-blend-mode:screen">
+                <rect x="97" y="128" width="122" height="4" rx="2" fill="url(#paint5)" />
+              </g>
+              <defs>
+                <linearGradient id="paint0" x1="222" y1="108" x2="313" y2="108" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF6FDB" stop-opacity="0" />
+                  <stop offset="1" stop-color="#FF6FDB" stop-opacity="0.3" />
+                </linearGradient>
+                <linearGradient id="paint1" x1="0" y1="80" x2="91" y2="80" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF6FDB" stop-opacity="0" />
+                  <stop offset="1" stop-color="#FF6FDB" stop-opacity="0.3" />
+                </linearGradient>
+                <linearGradient id="paint2" x1="158" y1="64" x2="219" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF6FDB" stop-opacity="0" />
+                  <stop offset="1" stop-color="#FF6FDB" stop-opacity="0.3" />
+                </linearGradient>
+                <linearGradient id="paint3" x1="175" y1="2" x2="268" y2="2" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF6FDB" stop-opacity="0" />
+                  <stop offset="1" stop-color="#FF6FDB" stop-opacity="0.3" />
+                </linearGradient>
+                <linearGradient id="paint4" x1="51" y1="31" x2="172" y2="31" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF6FDB" stop-opacity="0" />
+                  <stop offset="1" stop-color="#FF6FDB" stop-opacity="0.3" />
+                </linearGradient>
+                <linearGradient id="paint5" x1="97" y1="130" x2="219" y2="130" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF6FDB" stop-opacity="0" />
+                  <stop offset="1" stop-color="#FF6FDB" stop-opacity="0.3" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
       </div>
       <div class="game-stage" ref="stageRef">
         <div class="stage-wobble" ref="wobbleRef">
@@ -426,8 +574,16 @@ watch(() => gameStage.value, (v) => {
           </svg>
           <div class="rocket" ref="rocketRef">
             <div class="rocket-inner">
-              <img :src="RocketImage" alt="rocket" />
-              <div class="flame"></div>
+              <img ref="rocketImgRef" :src="RocketImage" alt="rocket" />
+              <div v-if="gameStage ==='completed' " class="boom" ref="boomRef">
+                <Lottie 
+                  path="/animations/boom.json"
+                  :loop="true"
+                  :width="140" 
+                  :height="140"
+                />
+              </div>
+              <div ref="flameRef" class="flame"></div>
             </div>
           </div>
         </div>
@@ -503,4 +659,8 @@ watch(() => gameStage.value, (v) => {
   will-change: transform;   /* плавнее */
   pointer-events: none;
 }
+
+.wind-viewport { position: absolute; inset: 0; overflow: hidden; }
+.wind-wrap { display: flex; width: max-content; will-change: transform; }
+.wind-svg { flex-shrink: 0; width: 313px; height: 132px; }
 </style>

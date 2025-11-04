@@ -40,8 +40,7 @@ watch(
     const res = await APIMarket.item(id)
     if (!res) return
 
-    console.log(res)
-    openGift({ ...res.item })
+    openGift({ ...res })
   },
   { immediate: true }
 )

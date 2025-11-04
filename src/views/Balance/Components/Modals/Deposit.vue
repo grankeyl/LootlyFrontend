@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { showToast } from '../../../../utils/toastManager';
+import { showErrorToast, showSuccessToast } from '../../../../utils/toastManager';
 import { tonConnectUI } from '../../../../hooks/useTonConnect';
 import { beginCell, toNano, Address } from '@ton/core';
+import { toUserFriendlyAddress } from 'ton-ui-vue';
 
 import * as APIWallet from '../../../../api/wallet';
 
@@ -12,7 +13,6 @@ import TonIcon from "@/assets/icons/ton.svg";
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import AddBlackIcon from "@/assets/icons/add-black.svg";
 import BackspaceIcon from "@/assets/icons/backspace.svg";
-import { toUserFriendlyAddress } from 'ton-ui-vue';
 
 const amountStr = ref<string>('5');
 const walletAddress = ref('...');
@@ -59,9 +59,9 @@ async function deposit() {
             'me=', Address.parse(tonConnectUI.account!.address).toRawString());
   if (res) {
     await sendPayment(res.address, res.memo, n);
-    showToast('Wallet connected', 'success');
+    showSuccessToast('Wallet connected');
   } else {
-    showToast('Wallet not connected', 'error');
+    showErrorToast('Wallet not connected');
   }
 }
 
@@ -71,10 +71,10 @@ function isSelf(addr: string) {
 }
 
 async function sendPayment(receiver: string, memo: string, amountTon: number) {
-  if (!tonConnectUI.account) { showToast('Подключи кошелёк', 'error'); return; }
+  if (!tonConnectUI.account) { showErrorToast('Подключи кошелёк'); return; }
 
   if (isSelf(receiver)) {
-    showToast('Нельзя отправлять депозит на свой же адрес', 'error');
+    showErrorToast('Нельзя отправлять депозит на свой же адрес');
     console.warn('Self-transfer blocked:',
       Address.parse(receiver).toRawString(),
       Address.parse(tonConnectUI.account.address).toRawString());

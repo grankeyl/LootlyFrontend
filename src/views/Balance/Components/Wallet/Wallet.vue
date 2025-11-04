@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { obfuscateAddress } from "../../../../utils/useTon";
 import { tonConnectUI } from '../../../../hooks/useTonConnect';
-import { showToast } from "../../../../utils/toastManager";
+import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { toUserFriendlyAddress } from "ton-ui-vue";
 
 import * as APIWallet from '../../../../api/wallet';
@@ -37,10 +37,10 @@ const openTonWallet = () => {
       const walletAddress = getTonWalletAddress() as any;
       const response = await APIWallet.connect(walletAddress);
       if (response && response.WalletAddress) {
-        showToast('Wallet connected', 'success');
+        showSuccessToast('Wallet connected');
       } else {
         clearInterval(interval);
-        showToast('Wallet not connected', 'error');
+        showErrorToast('Wallet not connected');
       }
     }
   }, 1000);

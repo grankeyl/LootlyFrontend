@@ -49,7 +49,7 @@ export async function item(
   try {
     const initData = Cookies.get("init-data");
     const response = await api.get(
-      `/market/item/${id}`,
+      `/market-items/item/${id}`,
       { headers: { "X-init-data": initData } }
     );
     if (response.status === 200) {
