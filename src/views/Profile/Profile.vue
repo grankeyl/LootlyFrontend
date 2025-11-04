@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useModal } from './../../components/common/Modal';
 import { useCacheStore } from '../../stores/pinia-store';
+import { useRoute } from 'vue-router';
+
+import * as APIUser from './../../api/user';
 
 import User from "./Components/User/User.vue";
 import Actions from "./Components/Actions/Actions.vue";
@@ -13,6 +16,7 @@ import WithdrawGiftModal from './Components/Modals/WithdrawGift.vue';
 import Backdrop from "@/assets/images/profile-pg/bg-blured.png";
 
 const { open } = useModal();
+const route = useRoute()
 const useCache = useCacheStore() as any;
 
 const pageRef = ref<HTMLElement|null>(null);
@@ -55,6 +59,19 @@ onMounted(async () => {
   imgSrc.value = Backdrop;
   loaded.value = true;
 });
+
+watch(
+  () => route.params.id,
+  async (id: any) => {
+    if (!id) return
+
+    const res = await APIUser.item(id)
+    if (!res) return
+
+    openGift({ ...res.item })
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

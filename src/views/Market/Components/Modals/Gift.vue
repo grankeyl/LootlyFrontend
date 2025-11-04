@@ -45,7 +45,6 @@ function share(
   const miniAppLink = import.meta.env.VITE_APP_MINI_APP_LINK;
   const link = `${miniAppLink}=m_${id}`;
   const message = "Check it.";
-  return link;
   TelegramModule.useShare(link, message);
 }
 </script>

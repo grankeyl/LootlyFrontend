@@ -36,13 +36,9 @@ function miniAppTransport(dtx: any) {
       const id = dtx.split('m_')[1];
       router.push(`/market/item/${id}`);
     }
-    if (dtx.startsWith('gift_')) {
-      const giftId = dtx.split('gift_')[1];
-      router.push(`/gift/${giftId}`);
-    }
-    if (dtx.startsWith('u_')) {
-      const userId = dtx.split('u_')[1];
-      router.push(`/view/${userId}`);
+    if (dtx.startsWith('p_')) { 
+      const id = dtx.split('p_')[1];
+      router.push(`/profile/item/${id}`);
     }
     if (dtx === 'cases') { router.push('/cases'); }
     if (dtx === 'market') { router.push('/market'); }
@@ -83,11 +79,12 @@ onBeforeUnmount(() => {
 });
 
 onMounted(async () => {
-  const initData = TelegramModule.initDataRaw() as any;
-  const init = await APIUser.init(initData);
+  const initDataRaw = TelegramModule.initDataRaw() as any;
+  const initData = TelegramModule.initData() as any;
+  const init = await APIUser.init(initDataRaw);
   if (init) {
     useCache.UserData = { ...init.user };
-    console.log(useCache.UserData);
+    initStartApp(initData.start_param);
     setTimeout(() => {
       loading.value = false;
     }, 1500);

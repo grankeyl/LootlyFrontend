@@ -10,6 +10,7 @@ import TonIcon from "@/assets/icons/ton.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import ForwardWhiteIcon from "@/assets/icons/forward-white.svg";
 import WithdrawIcon from "@/assets/icons/withdraw.svg";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 const emit = defineEmits<{ 
   (e:'close'): void; 
@@ -56,6 +57,15 @@ async function quickSell(
     status: "sold",
   });
 }
+
+function share(
+  id: string
+) {
+  const miniAppLink = import.meta.env.VITE_APP_MINI_APP_LINK;
+  const link = `${miniAppLink}=p_${id}`;
+  const message = "Check it.";
+  TelegramModule.useShare(link, message);
+}
 </script>
 
 <template>
@@ -81,7 +91,7 @@ async function quickSell(
         <h4>{{ props.data.reward_name }}</h4>
       </div>
       <div class="actions">
-        <button>
+        <button @click="share(props.data.id)">
           <img :src="ForwardWhiteIcon" alt="close-icon" aria-hidden="true" />
           <h4>{{ $t('profile.modals.gift.actions.share') }}</h4>
         </button>

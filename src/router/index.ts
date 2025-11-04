@@ -14,6 +14,7 @@ const routes = [
   { path: "/market/item/:id", component: MarketView },
   { path: "/earn", component: EarnView },
   { path: "/profile", component: ProfileView },
+  { path: "/profile/item/:id", component: ProfileView },
   { path: "/balance", component: BalanceView },
   { path: "/leaderboard", component: LeaderboardView },
   { path: "/crash", component: CrashView },
