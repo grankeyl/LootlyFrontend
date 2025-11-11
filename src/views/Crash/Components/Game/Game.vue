@@ -34,7 +34,7 @@ const fillPathRef = ref<SVGPathElement|null>(null);
 const pathD = ref<string>('');
 
 let lineTween: gsap.core.Timeline | null = null;
-let lastTweenTarget = 1;
+let lastTweenTarget = ref(1);
 let playingTween: gsap.core.Tween | null = null;
 let displayObj = { v: 1 };
 const crashAt = ref(0);
@@ -150,7 +150,7 @@ function runLineReveal(duration = 2) {
 
 async function startPlaying() {
   gameStage.value = props.GameStatus as Stage;
-  realX.value = 1; gamePlayingX.value = 1; displayObj.v = 1; lastTweenTarget = 1;
+  realX.value = 1; gamePlayingX.value = 1; displayObj.v = 1; lastTweenTarget.value = 1;
   if (playingTween) { playingTween.kill(); playingTween = null; }
   crashAt.value = 10000;
   lastTS.value = performance.now();
