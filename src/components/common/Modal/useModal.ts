@@ -17,11 +17,11 @@ let idSeed = 0;
 export function useModal() {
   function open(component: any, props?: any, options: any = {}) {
     const id = ++idSeed;
-    const layer = state.stack.length;                // 👈 позиция в стеке
+    const layer = state.stack.length;
     const inst: ModalInstance = {
       id,
       component: markRaw(component),
-      props: { ...(props ?? {}), _layer: layer },    // 👈 прокинули
+      props: { ...(props ?? {}), _layer: layer },
       options,
       resolve: undefined as any,
       reject: undefined as any,
@@ -49,9 +49,27 @@ export function useModal() {
     }
   }
 
-  function update(id: number, patch: Record<string, any>) {
-    const inst = state.stack.find(m => m.id === id);
-    if (inst) Object.assign(inst.props as any, patch);
+  // 👇 Новое: закрыть все сразу (resolve) или отклонить все (reject)
+  function closeAll(payload?: any) {
+    if (!state.stack.length) return;
+    const all = state.stack.splice(0, state.stack.length);
+    for (const inst of all) inst.resolve?.(payload);
+  }
+
+  function dismissAll(reason?: any) {
+    if (!state.stack.length) return;
+    const all = state.stack.splice(0, state.stack.length);
+    for (const inst of all) inst.reject?.(reason ?? 'force-dismiss-all');
+  }
+
+  // (по желанию) закрыть только верхнюю
+  function closeTop(payload?: any) {
+    const top = state.stack[state.stack.length - 1];
+    if (top) close(top.id, payload);
+  }
+  function dismissTop(reason?: any) {
+    const top = state.stack[state.stack.length - 1];
+    if (top) dismiss(top.id, reason);
   }
 
   return {
@@ -59,6 +77,13 @@ export function useModal() {
     open,
     close,
     dismiss,
-    update,
+    update(id: number, patch: Record<string, any>) {
+      const inst = state.stack.find(m => m.id === id);
+      if (inst) Object.assign(inst.props as any, patch);
+    },
+    closeAll,
+    dismissAll,
+    closeTop,
+    dismissTop,
   };
 }

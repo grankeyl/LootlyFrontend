@@ -27,6 +27,11 @@
   }
 }
 
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 img.showing {
   animation: fadeInPhoto 0.3s ease-in-out !important;
 }
@@ -103,13 +108,20 @@ img.showing {
   // scroll-behavior: auto;
   // overflow-x: hidden;
 
-  position: relative;        /* оставляем только один position */
-  height: 70svh;             /* svh стабильнее на iOS, можно 70dvh */
-  overflow-y: auto;          
+  position: relative;
+  height: 70svh;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: auto; /* без инерции */
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: auto;
   overscroll-behavior: auto;
   touch-action: pan-y;
+
+  .sheetContent {
+    display: flex;
+    flex-direction: column; 
+    width: 100%;
+    height: 100%;
+  }
 
   .roll {
     display: flex;
@@ -548,12 +560,53 @@ img.showing {
         background-position: center;
         position: absolute;
         top: 37%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateY(-50%);
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
         
         img {
+          display: block;
           width: 100%;
           height: 100%;
+          object-fit: contain;
+          opacity: 0;
+          transform: translateY(4px) scale(1.01);
+          filter: blur(8px);
+          transition:
+            opacity .35s ease,
+            transform .45s cubic-bezier(.22,.61,.36,1),
+            filter .45s ease;
+          will-change: opacity, transform, filter;
+        }
+
+        img.loaded {
+          opacity: 1;
+          transform: none;
+          filter: blur(0);
+        }
+
+        .img-ph {
+          position: absolute;
+          top: 54% !important;
+          left: 51% !important;
+          transform: translate(-50%, -50%);
+          inset: 0;
+
+          .spinner{
+            width: 34px;
+            height: 34px;
+            box-sizing: border-box;
+            border: 3px solid var(--bg-10);
+            border-top-color: var(--color-white);
+            opacity: .3;
+            border-radius: 50%;
+            transform-origin: center;
+            animation: spin 1.2s linear infinite;
+          }
+
+          @keyframes logo{ to{ opacity:0.73; } }
+          @keyframes spin{ to{ transform:rotate(360deg); } }
         }
       }
 

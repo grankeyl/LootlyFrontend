@@ -236,200 +236,210 @@ onMounted(() => {
         </div>
       </div>
       <div class="sheet" :class="{ rolling: isRolling }">
-        <div class="close" @click="close">
-          <img :src="CloseIcon" alt="close-icon" aria-hidden="true" />
-        </div>
-
-        <div 
-          class="backdrop"
-          :style="{
-            '--case-start-color': `${props.data.BGStart ?? '#000000'}`,
-            '--case-center-color': `${props.data.BGCenter ?? '#000000'}`,
-            '--case-end-color': `${props.data.BGEnd ?? '#000000'}`,
-          }"
-        >
-          <div class="backdrop-relay"></div>
-          <div v-if="!isRolling" class="symbol upg">
-            <img :src="getImgSvg(props.data.Symbol)" alt="symbol" />
+        <div class="sheetContent">
+          <div class="close" @click="close">
+            <img :src="CloseIcon" alt="close-icon" aria-hidden="true" />
           </div>
-        </div>
 
-        <div 
-          v-if="isRolling"
-          class="cover"
-        >
-          <div class="title">
-            <div v-if="isWin" class="win">
-              <h4>{{ $t('cases.modals.case.congrats') }}</h4>
-              <span>{{ $t('cases.modals.case.congratsDesc') }}</span>
+          <div 
+            class="backdrop"
+            :style="{
+              '--case-start-color': `${props.data.BGStart ?? '#000000'}`,
+              '--case-center-color': `${props.data.BGCenter ?? '#000000'}`,
+              '--case-end-color': `${props.data.BGEnd ?? '#000000'}`,
+            }"
+          >
+            <div class="backdrop-relay"></div>
+            <div v-if="!isRolling" class="symbol upg">
+              <img :src="getImgSvg(props.data.Symbol)" alt="symbol" />
             </div>
           </div>
 
-          <div v-if="isWin" class="cover-win">
-            <div class="lottie-win">
-              <Lottie
-                path="/animations/confetti.json"
-                :loop="false"
-                renderer="svg"
-                width="100%"
-                height="100%"
+          <div 
+            v-if="isRolling"
+            class="cover"
+          >
+            <div class="title">
+              <div v-if="isWin" class="win">
+                <h4>{{ $t('cases.modals.case.congrats') }}</h4>
+                <span>{{ $t('cases.modals.case.congratsDesc') }}</span>
+              </div>
+            </div>
+
+            <div v-if="isWin" class="cover-win">
+              <div class="lottie-win">
+                <Lottie
+                  path="/animations/confetti.json"
+                  :loop="false"
+                  renderer="svg"
+                  width="100%"
+                  height="100%"
+                />
+              </div>
+              <div class="image-win">
+                <div 
+                  class="kit-icon" 
+                  v-html="Icon.Flower" 
+                  :style="{ '--chamomile-color': props.data.ChamomileColor }"
+                ></div>
+              </div>
+            </div>
+
+            <div v-if="!isWin" class="roll">
+              <Roulette 
+                ref="rouletteRef" 
+                :Rolling="isRolling"
+
+                :Items="itemRewards"
+                :NeedItem="itemRolling"
+                @win="onWin"
               />
             </div>
-            <div class="image-win">
-              <div 
-                class="kit-icon" 
-                v-html="Icon.Flower" 
-                :style="{ '--chamomile-color': props.data.ChamomileColor }"
-              ></div>
-            </div>
-          </div>
 
-          <div v-if="!isWin" class="roll">
-            <Roulette 
-              ref="rouletteRef" 
-              :Rolling="isRolling"
-
-              :Items="itemRewards"
-              :NeedItem="itemRolling"
-              @win="onWin"
-            />
-          </div>
-
-          <div v-if="isWin" class="winner-gift">
-            <div
-              class="item"
-              :style="{ 
-                '--bg-start-color': itemWin?.bg_start || '#000000',
-                '--bg-center-color': itemWin?.bg_center || '#000000',
-                '--bg-end-color': itemWin?.bg_end || '#000000',
-              }"
-            >
-              <div class="image">
-                <img :src="getImgSvg(itemWin?.image)" alt="gift image" />
-              </div>
-              <div class="price">
-                <p>{{ itemWin?.price_ton }}</p>
-                <img :src="TonWhiteIcon" alt="ton" />
-              </div>
-            </div>
-            <div class="winner-gift-name">
-              <h4>{{ itemWin?.name }}</h4>
-            </div>
-          </div>
-
-        </div>
-
-        <div 
-          v-if="!isRolling"
-          class="cover not-rolling"
-        >
-          <div class="relay">
-            <div class="model">
-              <div class="upg">
+            <div v-if="isWin" class="winner-gift">
+              <div
+                class="item"
+                :style="{ 
+                  '--bg-start-color': itemWin?.bg_start || '#000000',
+                  '--bg-center-color': itemWin?.bg_center || '#000000',
+                  '--bg-end-color': itemWin?.bg_end || '#000000',
+                }"
+              >
                 <div class="image">
-                  <img :src="getImgSvg(props.data.Image)" alt="model" />
+                  <img :src="getImgSvg(itemWin?.image)" alt="gift image" />
+                </div>
+                <div class="price">
+                  <p>{{ itemWin?.price_ton }}</p>
+                  <img :src="TonWhiteIcon" alt="ton" />
+                </div>
+              </div>
+              <div class="winner-gift-name">
+                <h4>{{ itemWin?.name }}</h4>
+              </div>
+            </div>
+
+          </div>
+
+          <div 
+            v-if="!isRolling"
+            class="cover not-rolling"
+          >
+            <div class="relay">
+              <div class="model">
+                <div class="upg">
+                  <div class="image">
+                    <img :src="getImgSvg(props.data.Image)" alt="model" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="title">
+              <div class="top">
+                <h4>{{ props.data.Name }}</h4>
+                <button>
+                  <h4>{{ cutNumberNano(props.data.price_nano) }}</h4>
+                  <img :src="TonWhiteIcon" alt="ton-icon" />
+                </button>
+              </div>
+              <div v-if="isWin" class="win">
+                <h4>{{ $t('cases.modals.case.congrats') }}</h4>
+                <span>{{ $t('cases.modals.case.congratsDesc') }}</span>
+              </div>
+            </div>
+
+            <div class="items">
+              <div
+                class="item"
+                v-for="(reward, index) in itemRewards"
+                :key="index"
+                :class="{ skeleton: skeletonRewards }"
+                :style="{ 
+                  '--bg-start-color': reward.bg_start || '#000000',
+                  '--bg-center-color': reward.bg_center || '#000000',
+                  '--bg-end-color': reward.bg_end || '#000000',
+                }"
+              >
+                <div class="sk-load" v-if="skeletonRewards"></div>
+
+                <div class="image">
+                  <div class="img-ph" v-show="!reward.loaded">
+                    <div class="spinner" role="status" aria-label="Loading"></div>
+                  </div>
+
+                  <img
+                    v-if="getImgSvg(reward.image)"
+                    :src="getImgSvg(reward.image)"
+                    loading="lazy"
+                    decoding="async"
+                    :class="['showing', { loaded: reward.loaded }]"
+                    @load="reward.loaded = true"
+                    :alt="reward.loaded ? 'gift image' : ''"
+                  />
+                </div>
+
+                <div class="price">
+                  <p>{{ reward.price_ton }}</p>
+                  <img :src="TonIcon" alt="ton" />
                 </div>
               </div>
             </div>
           </div>
-          <div class="title">
-            <div class="top">
-              <h4>{{ props.data.Name }}</h4>
-              <button>
-                <h4>{{ cutNumberNano(props.data.price_nano) }}</h4>
+
+          <div v-if="isRolling && !isWin" class="buttons rolling">
+            <div class="topper">
+              <button @click="skipRoll">
+                <h4>{{ $t('cases.modals.case.buttons.skip') }}</h4>
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="isRolling && isWin" class="buttons win">
+            <div v-if="itemWin.rewardItem.quick_sale" class="topper">
+              <button @click="quickSell(itemWin.rewardItem.reward)">
+                <h4>{{ $t('cases.modals.case.buttons.sellFor', { price: itemWin.price_ton }) }}</h4>
+                <img :src="TonBlackIcon" alt="ton-icon" />
+              </button>
+              <button @click="onCollect">
+                <h4>{{ $t('cases.modals.case.buttons.collect') }}</h4>
+              </button>
+            </div>
+            <div v-else class="topper">
+              <button @click="onCollect">
+                <h4>{{ $t('cases.modals.case.buttons.ok') }}</h4>
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="!isRolling" class="buttons">
+            <div class="topper">
+              <button :disabled="skeletonRewards" @click="rollToDemo()">
+                <h4>{{ $t('cases.modals.case.buttons.demoOpen') }} 0</h4>
                 <img :src="TonWhiteIcon" alt="ton-icon" />
               </button>
+              <button :disabled="skeletonRewards" @click="rollTo()">
+                <h4>{{ $t('cases.modals.case.buttons.open', { price: cutNumberNano(props.data.price_nano) }) }}</h4>
+                <img :src="TonBlackIcon" alt="ton-icon" />
+              </button>
             </div>
-            <div v-if="isWin" class="win">
-              <h4>{{ $t('cases.modals.case.congrats') }}</h4>
-              <span>{{ $t('cases.modals.case.congratsDesc') }}</span>
-            </div>
-          </div>
-
-          <div class="items">
-            <div
-              class="item"
-              v-for="(reward, index) in itemRewards"
-              :key="index"
-              :class="{ skeleton: skeletonRewards }"
-              :style="{ 
-                '--bg-start-color': reward.bg_start || '#000000',
-                '--bg-center-color': reward.bg_center || '#000000',
-                '--bg-end-color': reward.bg_end || '#000000',
-              }"
-            >
-              <div class="sk-load" v-if="skeletonRewards"></div>
-              <div class="image">
-                <img
-                  v-if="getImgSvg(reward.image)"
-                  :src="getImgSvg(reward.image)"
-                  :class="{ showing: reward.image }"
-                  @load="reward.loaded = true"
-                  :alt="reward.loaded ? 'gift image' : ''"
-                />
+            <!-- <div class="bottomer">
+              <div class="left">
+                <button :disabled="skeletonRewards"><p>1x</p></button>
+                <button :disabled="skeletonRewards"><p>3x</p></button>
+                <button :disabled="skeletonRewards"><p>5x</p></button>
               </div>
-              <div class="price">
-                <p>{{ reward.price_ton }}</p>
-                <img :src="TonIcon" alt="ton" />
+              <div class="right">
+                <button :disabled="skeletonRewards">
+                  <img :src="MinusIcon" alt="minus-icon" />
+                </button>
+                <button :disabled="skeletonRewards">
+                  <h4>2x</h4>
+                </button>
+                <button :disabled="skeletonRewards">
+                  <img :src="PlusIcon" alt="plus-icon" />
+                </button>
               </div>
-            </div>
+            </div> -->
           </div>
-        </div>
-
-        <div v-if="isRolling && !isWin" class="buttons rolling">
-          <div class="topper">
-            <button @click="skipRoll">
-              <h4>{{ $t('cases.modals.case.buttons.skip') }}</h4>
-            </button>
-          </div>
-        </div>
-        
-        <div v-if="isRolling && isWin" class="buttons win">
-          <div v-if="itemWin.rewardItem.quick_sale" class="topper">
-            <button @click="quickSell(itemWin.rewardItem.reward)">
-              <h4>{{ $t('cases.modals.case.buttons.sellFor', { price: itemWin.price_ton }) }}</h4>
-              <img :src="TonBlackIcon" alt="ton-icon" />
-            </button>
-            <button @click="onCollect">
-              <h4>{{ $t('cases.modals.case.buttons.collect') }}</h4>
-            </button>
-          </div>
-          <div v-else class="topper">
-            <button @click="onCollect">
-              <h4>{{ $t('cases.modals.case.buttons.ok') }}</h4>
-            </button>
-          </div>
-        </div>
-        
-        <div v-if="!isRolling" class="buttons">
-          <div class="topper">
-            <button :disabled="skeletonRewards" @click="rollToDemo()">
-              <h4>{{ $t('cases.modals.case.buttons.demoOpen') }} 0</h4>
-              <img :src="TonWhiteIcon" alt="ton-icon" />
-            </button>
-            <button :disabled="skeletonRewards" @click="rollTo()">
-              <h4>{{ $t('cases.modals.case.buttons.open', { price: cutNumberNano(props.data.price_nano) }) }}</h4>
-              <img :src="TonBlackIcon" alt="ton-icon" />
-            </button>
-          </div>
-          <!-- <div class="bottomer">
-            <div class="left">
-              <button :disabled="skeletonRewards"><p>1x</p></button>
-              <button :disabled="skeletonRewards"><p>3x</p></button>
-              <button :disabled="skeletonRewards"><p>5x</p></button>
-            </div>
-            <div class="right">
-              <button :disabled="skeletonRewards">
-                <img :src="MinusIcon" alt="minus-icon" />
-              </button>
-              <button :disabled="skeletonRewards">
-                <h4>2x</h4>
-              </button>
-              <button :disabled="skeletonRewards">
-                <img :src="PlusIcon" alt="plus-icon" />
-              </button>
-            </div>
-          </div> -->
         </div>
 
       </div>

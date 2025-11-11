@@ -14,7 +14,7 @@
   padding: 0 var(--padding-left);
   padding-bottom: calc(var(--menu-height) + 20px);
   transform-origin: top;
-  animation: showBlocks 0.6s ease-in-out;
+  animation: showBlocks 0.3s ease-in-out;
 
   .items.skeleton {
     .item {
@@ -50,7 +50,7 @@
       overflow: hidden;
       position: relative;
       container-type: inline-size;
-      transition: transform 0.2s ease-in-out;
+      transition: transform 0.1s ease-in-out;
       cursor: pointer;
       padding: 8px;
       isolation: isolate;

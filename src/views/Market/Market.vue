@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useModal } from './../../components/common/Modal'
+import { showSuccessToast } from '../../utils/toastManager'
 
 import * as APIMarket from './../../api/market'
 
@@ -9,6 +10,7 @@ import GiftModal from './Components/Modals/Gift.vue'
 import Actions from "./Components/Actions/Actions.vue"
 import Gifts from "./Components/Gifts/Gifts.vue"
 import Backdrop from "@/assets/images/profile-pg/bg-blured.png"
+import NotEnoght from './Components/Modals/NotEnoght.vue'
 
 const route = useRoute()
 const { open } = useModal()
@@ -24,12 +26,22 @@ async function openGift(payload: any) {
   const choose = open(GiftModal, {
     data: payload,
     onBuySuccess: (p: any) => buySuccess(p),
+    onNotEnough: (p: any) => openNotEnoght(p),
   })
   await choose.done.catch(() => null)
 }
 
+async function openNotEnoght(payload: any) {
+  const choose = open(NotEnoght, {
+    data: payload,
+  });
+  const dest = await choose.done.catch(() => null);
+  if (!dest) return;
+}
+
 function buySuccess(payload: any) {
-  console.log('buy success', payload)
+  console.log('buy success', payload);
+  showSuccessToast(`Successful purchase of the “${payload.purchase.item_name}”`)
 }
 
 watch(
@@ -51,7 +63,7 @@ watch(
     <img :src="Backdrop" alt="backdrop" @load="onImageLoad" />
   </div>
 
-  <div class="page" ref="pageRef">
+  <div class="pageMarket" ref="pageRef">
     <Actions />
     <Gifts 
       :scroll-el="pageRef"

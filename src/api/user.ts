@@ -97,3 +97,21 @@ export async function item(
     return false;
   }
 }
+
+export async function itemWithdraw(
+  id: string
+) {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.get(
+      `/inventory/withdraw/${id}`,
+      { headers: { "X-init-data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}

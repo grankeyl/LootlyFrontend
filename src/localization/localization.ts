@@ -1,5 +1,9 @@
 export const localization = {
     ru: {
+        extra: {
+            somethingWentWrong: "Что-то пошло не так",
+        },
+
         menu: {
             cases: "Кейсы",
             market: "Маркет",
@@ -18,6 +22,13 @@ export const localization = {
                         ok: "Отлично",
                         demoOpen: "Демо-спин",
                         open: "Открыть {{price}}",
+                    }
+                },
+                notEnoght: {
+                    title: "У вас недостаточно TON",
+                    descr: "Пополните баланс и повторите попытку",
+                    buttons: {
+                        deposit: "Пополнить",
                     }
                 }
             }
@@ -102,6 +113,40 @@ export const localization = {
                     buttons: {
                         sellFor: "Продать за {{price}}",
                         close: "Закрыть",
+                    }
+                },
+                withdrawGift: {
+                    title: "Вывод подарка",
+                    descr: "Подтвердите вывод подарка <span>{{name}}</span> в ваш профиль Telegram",
+                    buttons: {
+                        confirm: "Подтвердить",
+                        cancel: "Отменить",
+                    }
+                }
+            }
+        },
+        leaderboard: {
+            info: {
+                title: "Лидерборд",
+                descr: "Топ пользователей с общим объемом TON",
+            },
+        },
+        balance: {
+            wallet: {
+                notConnected: "Кошелёк не подключен",
+                connect: "Подключить",
+                deposit: "Пополнить",
+            },
+            button: {
+                back: "Назад",
+            },
+            modals: {
+                deposit: {
+                    title: "Пополнение баланса",
+                    descr: "*ВАЖНО! Вы не можете выводить TON с баланса, вывести можно только подарки, выигранные или купленные в маркете",
+                    max: "МАКС",
+                    buttons: {
+                        deposit: "Пополнить",
                     }
                 }
             }

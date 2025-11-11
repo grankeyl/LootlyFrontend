@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (e:'close'): void; 
   (e:'open-modal-withdraw-gift'): void 
   (e:'buy-success', payload: any): void
+  (e:'not-enough', payload: any): void
 }>();
 
 const props = defineProps<{
@@ -31,6 +32,11 @@ function close() {
 async function buy(
   id: string
 ) {
+  if (useCache.UserData.BalanceNano < props.data.price_nano) {
+    emit('not-enough', { id: 1 });
+    return;
+  };
+
   const res = await APIMarket.buy(id).catch(() => null);
   if (!res?.ok) return;
 
@@ -56,8 +62,9 @@ function share(
         <div
           class="background upg"
           :style="{
+            '--start-color': props.data.bg_start,
             '--center-color': props.data.bg_center,
-            '--around-color': props.data.bg_start,
+            '--end-color': props.data.bg_end,
           }"
         ></div>
         <div class="model">

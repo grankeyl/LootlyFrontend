@@ -20,8 +20,19 @@ export const cutNumber = (num: any, decimals = 2) => {
 
 export const cutNumberNano = (num: any, decimals = 2) => {
   const n = parseFloat(num);
-  if (isNaN(n)) return (0).toFixed(decimals);
+  if (isNaN(n) || n < 0) return (0).toFixed(decimals);
 
   const ton = n / 1e9;
-  return ton.toFixed(decimals); // ← гарантирует "9598.00"
+  return ton.toFixed(decimals);
+};
+
+export const tonToNano = (amount: string | number): bigint => {
+  const s0 = typeof amount === 'number' ? String(amount) : String(amount).trim();
+  const s  = s0.replace(',', '.').replace(/[^\d.]/g, '');
+  const n  = Number(s);
+  if (!Number.isFinite(n) || n < 0.1) return 0n;
+
+  const [i = '0', f = ''] = s.split('.');
+  const frac = (f.replace(/\D/g, '') + '000000000').slice(0, 9);
+  return BigInt(i) * 1_000_000_000n + BigInt(frac);
 };

@@ -5,6 +5,8 @@ export const useCacheStore = defineStore('cache', {
     UserData: {
       Rank: 0,
     },
+
+    LiveWinsData: null,
     CasesData: {},
     CasesRewardsData: {},
 

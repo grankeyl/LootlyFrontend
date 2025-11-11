@@ -9,6 +9,8 @@ import 'dayjs/locale/en';
 
 dayjs.extend(relativeTime);
  
+const msToWholeSec = (ms: any) => Math.floor(ms / 1000);
+
 const getUserLanguage = (): 'ru' | 'en' => {
   return navigator.language.startsWith('ru') ? 'ru' : 'en';
 };
@@ -83,4 +85,4 @@ export const getImgSvg = (uri: string) => {
   return `${bucketsLink}${uri}`;
 }
 
-export { getUserLanguage, unixToDefault, unixToRelative, randomString, cleanString };
+export { msToWholeSec, getUserLanguage, unixToDefault, unixToRelative, randomString, cleanString };

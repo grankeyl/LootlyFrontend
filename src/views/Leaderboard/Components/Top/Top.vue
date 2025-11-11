@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";

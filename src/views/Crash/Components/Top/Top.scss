@@ -7,7 +7,6 @@
   gap: 16px;
   position: relative;
   z-index: 1;
-  padding-bottom: calc(var(--menu-height) + 20px);
 
   &.skeleton {
     justify-content: start;

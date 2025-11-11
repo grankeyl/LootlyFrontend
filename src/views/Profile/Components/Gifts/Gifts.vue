@@ -2,9 +2,17 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch, computed } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { Icon } from "../../../../components/Icon";
-import * as APICases from "../../../../api/cases";
-import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import { getImgSvg } from "../../../../utils/useApp";
+
+import * as APICases from "../../../../api/cases";
+
+// Icons
+import TonWhiteIcon from "@/assets/icons/ton-white.svg";
+
+// Images
+import EmptyImage from "@/assets/images/profile-pg/empty.svg";
+import LogotypeImage from "@/assets/images/logotype.svg";
+import { useRouter } from "vue-router";
 
 type Gift = any;
 
@@ -17,15 +25,21 @@ const emit = defineEmits<{
 const props = defineProps<{
   scrollEl?: any;         // HTMLElement | Ref<HTMLElement|null>
   inventory?: any[];      // начальные данные (опционально)
+  inventoryCount?: number; // начальные данные (опционально)
   status?: string;        // фильтр, по умолчанию 'all'
   pageSize?: number;      // лимит на страницу, по умолчанию 20
 }>();
+
+const router = useRouter();
 
 /* ================== STATE ================== */
 const status = computed(() => props.status ?? "all");
 const limit  = computed(() => Math.max(1, props.pageSize ?? 20));
 
-const items = ref<any[]>(props.inventory ?? []);
+const items = ref<any[]>(props.inventory ?? Array.from({ length: 9 }, () => ({
+  skeleton: true,
+})));
+
 const total = ref<number | null>(null);
 const offset = ref(0);
 const hasMore = ref(true);
@@ -89,7 +103,6 @@ async function load(initial = false) {
   loading.value = true;
   if (initial) {
     skeleton.value = true;
-    items.value = [];
     offset.value = 0;
     hasMore.value = true;
     total.value = null;
@@ -105,11 +118,19 @@ async function load(initial = false) {
   if (!res) {
     loading.value = false;
     skeleton.value = false;
+    items.value = [];
+    return;
+  }
+
+  if (res && res.total_all === 0) {
+    items.value = [];
+    emit("inventory-set", items.value);
+    emit("inventory-count", 0);
     return;
   }
 
   const batch: any[] = res.items ?? [];
-  items.value.push(...batch);
+  items.value.push(...batch.map(i => ({ ...i, skeleton: false })));
   emit("inventory-set", items.value);
 
   offset.value += batch.length;
@@ -204,6 +225,10 @@ function rebindAll() {
   setupScroll();
 }
 
+function openCases() {
+  router.push('/');
+}
+
 /* ================== LIFECYCLE ================== */
 const itemsEl = ref<HTMLElement|null>(null);
 onMounted(async () => {
@@ -257,17 +282,46 @@ watch(() => props.inventory, (v) => {
 function openItem(g: Gift) { 
   if (!g) return;
   if (g.status === "sold") return;
+  if (g.status === "received") return;
+  if (g.status === "reserve") return;
   emit("open-modal", g); 
 }
 </script>
 
 <template>
   <div class="gifts" :class="{ skeleton: skeleton }">
-    <div class="items blocks" ref="itemsEl">
-      <div v-if="skeleton" class="item" v-for="i in 8" :key="'sk-'+i">
-        <div class="sk-load" v-if="skeleton"></div>
+    <div v-if="!items || !items.length" class="empty">
+      <div class="image">
+        <img :src="EmptyImage" alt="empty-gifts" />
       </div>
-      <div v-if="!skeleton" class="item" v-for="(item, index) in items" :key="index" @click="openItem(item)">
+      <div class="context">
+        <div class="title">
+          <h4>You have no gifts(</h4>
+        </div>
+        <div class="descr">
+          <h4>
+            Go to
+            <span class="cases" @click="openCases">
+              <img :src="LogotypeImage" alt="logotype" />
+              <p>Cases</p>
+            </span>
+            and win some
+          </h4>
+        </div>
+      </div>
+    </div>
+    <div v-if="items && items.length" class="profileItems blocks" ref="itemsEl">
+      <div v-if="skeleton" class="profileItem" v-for="(_, index) in items" :key="index">
+        <div class="sk-load"></div>
+      </div>
+      <div 
+        v-if="!skeleton" 
+        class="profileItem" 
+        v-for="(item, index) in items" 
+        v-show="!item.skeleton && item.status !== 'sold'"
+        :key="index" 
+        @click="openItem(item)"
+      >
         <div
           class="background upg"
           :style="{
@@ -294,6 +348,14 @@ function openItem(g: Gift) {
           </button>
           <button v-if="item.status && item.status === 'used'">
             <h5>{{ $t('profile.gifts.statusUsed') }}</h5>
+          </button>
+          <button v-if="item.status && item.status === 'received'">
+            <h5>{{ $t('profile.gifts.statusUsed') }}</h5>
+            <div class="kit-icon" v-html="Icon.Done"></div>
+          </button>
+          <button v-if="item.status && item.status === 'reserve'">
+            <h5>Ожидание</h5>
+            <div class="spinner"></div>
           </button>
         </div>
       </div>

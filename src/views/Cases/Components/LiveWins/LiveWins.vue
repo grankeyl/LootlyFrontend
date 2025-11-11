@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, watch, computed } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { getImgSvg } from "../../../../utils/useApp";
 
@@ -8,9 +8,13 @@ import LiveIcon from "@/assets/icons/live.svg";
 import LiveCaseText from "@/assets/images/cases-pg/live-case-text.svg";
 import LiveCaseBlur from "@/assets/images/cases-pg/live-case-blur.png";
 import LiveCaseTon from "@/assets/images/cases-pg/ton.svg";
+import { useCacheStore } from "../../../../stores/pinia-store";
 
 const WS_URL = import.meta.env.VITE_APP_SOCKET_API_URL;
 const wrapRef = ref<HTMLDivElement|null>(null);
+
+const useCache = useCacheStore() as any;
+
 const randomDeg = () => Math.floor(Math.random() * (11 - -13 + 1)) - 13;
 
 type LiveItem = {
@@ -22,66 +26,120 @@ type LiveItem = {
   BGCenter: string;
   BGEnd: string;
   loaded: boolean;
+  failed?: boolean;
 };
 
 const skeleton = ref<boolean>(true);
+
+const WATCHDOG_MS = 4000;
 const MAX_ITEMS = 6;
+const GAP = 8;
 
-const items = ref<LiveItem[]>(
-  Array.from({ length: MAX_ITEMS }, () => ({
-    id: 1,
-    image: "",
-    degree: randomDeg(),
-    price: 0,
-    BGStart: "",
-    BGCenter: "",
-    BGEnd: "",
-    loaded: false,
-  }))
-);
+const disableSnap = ref(false);
 
-async function prependItemSmooth(it: LiveItem) {
-  const el = wrapRef.value;
-  const first = el?.firstElementChild as HTMLElement | null;
-  const prevLeft = first?.getBoundingClientRect().left ?? 0;
+const initialItems = Array.isArray(useCache?.LiveWinsData)
+  ? useCache.LiveWinsData
+  : Array.from({ length: 4 }, () => ({
+      id: 1, image: "", degree: randomDeg(), price: 0,
+      BGStart: "", BGCenter: "", BGEnd: "", loaded: false,
+    }));
 
-  items.value.unshift(it);
+const items = ref<LiveItem[]>(initialItems);
+const itemsLimited = computed(() => items.value.slice(0, MAX_ITEMS));
 
-  await nextTick();
-  if (!el) return;
-    skeleton.value = false;
+const imgWatchdogs = new Map<number, number>();
 
-  const newFirst = el.firstElementChild as HTMLElement | null;
-  const newLeft = newFirst?.getBoundingClientRect().left ?? 0;
+const hasSrc = (src?: string) => {
+  const s = getImgSvg(src || "");
+  return Boolean(s && typeof s === "string");
+};
 
-  el.scrollLeft += (newLeft - prevLeft);
 
-  if (newFirst) {
-    const w = newFirst.getBoundingClientRect().width + 8;
-    el.scrollTo({ left: el.scrollLeft - w, behavior: "smooth" });
+function armWatchdog(it: LiveItem) {
+  clearWatchdog(it.id);
+  const tid = window.setTimeout(() => {
+    const found = items.value.find(x => x.id === it.id);
+    if (found && !found.loaded) found.failed = true;
+  }, WATCHDOG_MS) as unknown as number;
+  imgWatchdogs.set(it.id, tid);
+}
+
+function clearWatchdog(id: number) {
+  const tid = imgWatchdogs.get(id);
+  if (tid) {
+    clearTimeout(tid);
+    imgWatchdogs.delete(id);
   }
 }
 
-function normalizeOne(payload: any): any | null {
+function onImgLoad(it: LiveItem) {
+  it.loaded = true;
+  it.failed = false;
+  clearWatchdog(it.id);
+}
+
+function onImgError(it: LiveItem) {
+  it.loaded = false;
+  it.failed = true;
+  clearWatchdog(it.id);
+  setTimeout(() => {
+    const i = items.value.findIndex(x => x.id === it.id);
+    if (i !== -1) items.value.splice(i, 1);
+  }, 1000);
+}
+
+async function prependItemSmooth(it: LiveItem) {
+  const el = wrapRef.value;
+  if (!el) return;
+
+  const prevScroll = el.scrollLeft;
+  disableSnap.value = true;
+
+  items.value.unshift({ ...it, loaded: false, failed: false });
+  armWatchdog(it);
+  await nextTick();
+
+  await nextTick();
+
+  const first = el.firstElementChild as HTMLElement | null;
+  const w = (first?.offsetWidth || 0) + GAP;
+
+  el.scrollLeft = prevScroll + w;
+
+  requestAnimationFrame(() => {
+    el.scrollTo({ left: el.scrollLeft - w, behavior: "smooth" });
+    setTimeout(() => { disableSnap.value = false; }, 350);
+  });
+
+  if (items.value.length > MAX_ITEMS) {
+    const removed = items.value.splice(MAX_ITEMS);
+    removed.forEach(r => clearWatchdog(r.id));
+  }
+
+  skeleton.value = false;
+}
+
+function normalizeOne(payload: any): LiveItem | null {
   if (!payload || typeof payload !== "object") return null;
 
-  const image =
-    payload.Image ??
-    payload.image ??
-    payload.ModelImage ??
-    payload.model_image ??
-    "";
+  const rawImage =
+    payload.Image ?? payload.image ?? payload.ModelImage ?? payload.model_image ?? "";
 
-  const priceTon = cutNumberNano(payload.price_nano ?? 0) as any;
+  if (!hasSrc(rawImage)) return null;
+
+  const priceTon = Number(cutNumberNano(payload.price_nano ?? 0));
+  if (!isFinite(priceTon) || priceTon <= 0) return null;
 
   return {
     id: Date.now() + Math.floor(Math.random() * 1000),
-    image,
+    image: rawImage,
     degree: randomDeg(),
     price: priceTon,
     BGStart: payload.BGStart ?? "#000000",
     BGCenter: payload.BGCenter ?? "#000000",
     BGEnd: payload.BGEnd ?? "#000000",
+    loaded: false,
+    failed: false,
   };
 }
 
@@ -116,7 +174,7 @@ function scheduleReconnect() {
 
 function connect() {
   try { ws?.close(); } catch {}
-  ws = new WebSocket(WS_URL);
+  ws = new WebSocket(WS_URL + "/live");
   ws.addEventListener("open", () => {
     console.log("✅ [WS] Connected");
     reconnectAttempts = 0;
@@ -127,9 +185,7 @@ function connect() {
     let data: any = null;
     try { data = JSON.parse(ev.data); } catch { return; }
     if (data?.type) console.log("🏷️ [WS] Event type:", data.type);
-    if (data?.type === "pong" || data?.op === "pong") {
-      return;
-    }
+    if (data?.type === "pong" || data?.op === "pong") return;
 
     const payload =
       data?.payload ??
@@ -138,23 +194,19 @@ function connect() {
       data;
 
     if (payload && payload.type === "append") {
-      const item = payload.item;
-      await prependItemSmooth(normalizeOne(item));
+      const item = normalizeOne(payload.item);
+      if (item) await prependItemSmooth(item);
       return;
     }
 
     if (Array.isArray(payload)) {
       for (let i = 0; i < payload.length; i++) {
         const it = normalizeOne(payload[i]);
-        if (it) {
-          await prependItemSmooth(it);
-        }
+        if (it) await prependItemSmooth(it);
       }
     } else {
       const it = normalizeOne(payload);
-      if (it) {
-        await prependItemSmooth(it);
-      }
+      if (it) await prependItemSmooth(it);
     }
   });
 
@@ -171,7 +223,12 @@ function connect() {
   });
 }
 
+watch(itemsLimited, (val) => {
+  useCache.LiveWinsData = val;
+}, { deep: true });
+
 onMounted(() => {
+  if (items.value.length) skeleton.value = false;
   connect();
 });
 
@@ -191,14 +248,20 @@ onBeforeUnmount(() => {
       <div class="inner">
         <div class="blur"><img :src="LiveCaseBlur" alt="live case blur" /></div>
         <img class="live-icon" :src="LiveIcon" alt="live icon" />
-        <img :src="LiveCaseText" alt="live case blur" />
+        <img :src="LiveCaseText" alt="live case text" />
       </div>
     </div>
 
-    <TransitionGroup name="pop" tag="div" class="items" ref="wrapRef">
+    <TransitionGroup
+      name="pop"
+      tag="div"
+      class="items"
+      :class="{ 'no-snap': disableSnap }"
+      ref="wrapRef"
+    > 
       <div
         class="item"
-        v-for="item in items.slice(0, MAX_ITEMS)"
+        v-for="item in itemsLimited"
         :key="item.id"
         :style="{
           '--deg': `${item.degree}deg`,
@@ -207,17 +270,22 @@ onBeforeUnmount(() => {
           '--end-color': item.BGEnd || '#000',
         }"
       >
-        <div class="sk-load" v-if="skeleton"></div>
+        <div class="img-skeleton" v-if="!item.loaded || (!item.failed && !getImgSvg(item.image))"></div>
+
         <div class="image">
           <img
-            v-if="getImgSvg(item.image)"
+            v-if="!item.failed && getImgSvg(item.image)"
             :src="getImgSvg(item.image)"
-            :class="{ showing: item.image }"
-            @load="item.loaded = true"
             :alt="item.loaded ? 'gift image' : ''"
+            :class="{ loaded: item.loaded }"
+            decoding="async"
+            loading="lazy"
+            @load="onImgLoad(item)"
+            @error="onImgError(item)"
           />
         </div>
-        <div class="price">
+
+        <div v-if="item.price" class="price">
           <p>{{ item.price }}</p>
           <img :src="LiveCaseTon" alt="ton" />
         </div>
@@ -228,18 +296,75 @@ onBeforeUnmount(() => {
 
 <style lang="scss" src="./LiveWins.scss" scoped></style>
 <style scoped>
-.items{
-  display:flex; gap:8px; align-items:center;
-}
-.items::-webkit-scrollbar{ display:none; }
+/* убираем blur и move-транзишены */
+.items{ display:flex; gap:8px; align-items:center; }
 .items{ scroll-snap-type:x proximity; }
-.item{ scroll-snap-align:start; }
-.item{
-  transform: rotate(var(--deg, 0deg));
-  transition: transform .38s cubic-bezier(.25,1,.5,1), opacity .35s ease, filter .35s ease;
+.items.no-snap{ scroll-snap-type: none; }
+
+.item{ scroll-snap-align:start; transform: rotate(var(--deg,0deg)); transition: transform .3s ease, opacity .3s ease; }
+
+.pop-enter-from{ opacity:0; transform: rotate(calc(var(--deg,0deg) - 8deg)) scale(.9); }
+.pop-enter-active{ transition: opacity .3s ease, transform .3s ease; }
+.pop-enter-to{ opacity:1; transform: rotate(var(--deg,0deg)) scale(1); }
+/* важно: не анимируем перемещения, чтобы не портить измерения */
+.pop-move{ transition: none; }
+
+/* изображения — только opacity */
+.image img{ opacity:0; transition:opacity .3s ease; display:block; }
+.image img.loaded{ opacity:1; }
+
+/* контейнер под изображение */
+.image{ position: relative; width: 100%; height: 100%; }
+
+/* скрываем img до полной загрузки и плавно проявляем */
+.image img{
+  opacity: 0;
+  filter: blur(6px);
+  transition: opacity .35s ease, filter .35s ease;
+  display: block;
 }
-.pop-enter-from{ opacity:0; transform: rotate(calc(var(--deg,0deg) - 12deg)) scale(.68); filter: blur(6px); }
-.pop-enter-active{ transition: opacity .5s ease, transform .55s cubic-bezier(.22,1.1,.36,1), filter .5s ease; }
-.pop-enter-to{ opacity:1; transform: rotate(var(--deg,0deg)) scale(1); filter: blur(0); }
-.pop-move{ transition: transform .35s cubic-bezier(.25,1,.5,1); }
+.image img.loaded{
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* пер-item скелетон */
+.img-skeleton{
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.12), rgba(255,255,255,.06));
+  background-size: 200% 100%;
+  animation: shimmer 1.1s linear infinite;
+  z-index: 1;
+}
+
+.img-fallback {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.1));
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1.4s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 </style>

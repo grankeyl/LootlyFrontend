@@ -35,12 +35,14 @@
 .game {
   width: 100%;
   height: 100%;
-  max-height: 347px;
+  max-height: 400px;
   position: relative;
   overflow: hidden;
   border-radius: 24px;
   overflow: hidden;
-  margin-top: 18px;
+  margin-top: calc(
+    var(--tg-safe-area-inset-top, 0px) + 26px
+  );
   --c1: rgba(153, 5, 116, 0.399);
   --c2: rgba(56,0,42,.65);
   background: radial-gradient(121% 56% at 50% 100%, var(--c1), var(--c2) 45%, rgba(13,13,15,1) 100%);
@@ -67,6 +69,100 @@
       height: 100%;
       object-fit: cover;
     }
+  }
+
+  .game-online {
+    position: absolute;
+    bottom: 11px;
+    right: 11px;
+    width: fit-content;
+    height: 29px;
+    padding: 0 11px;
+    background: var(--bg-4);
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+
+    h4 {
+      font-weight: 600;
+      font-size: 1.4rem;
+      color: var(--color-white);
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #E837BB;
+      position: relative;
+      margin-left: 7px;
+      box-shadow: 0 0 0 0 #E837BB;
+      animation: dotPulse 2.4s ease-in-out infinite, dotGlow 1.8s ease-in-out infinite;
+    }
+
+    .online-dot::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(#E837BB, 0.3);
+      animation: dotWave 2.4s ease-out infinite;
+    }
+
+    @keyframes dotPulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.15);
+      }
+    }
+
+    @keyframes dotGlow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(#E837BB, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 6px 2px rgba(#E837BB, 0.35);
+      }
+    }
+
+    @keyframes dotWave {
+      0% {
+        transform: scale(1);
+        opacity: 0.4;
+      }
+      70% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+  }
+
+  .game-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+
+    .spinner{
+      width: 36px;
+      height: 36px;
+      box-sizing: border-box;
+      border: 3px solid var(--bg-10);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin{ to{ transform:rotate(360deg); } }
   }
 
   .game-prepare {
@@ -96,8 +192,11 @@
       }
 
       span {
+        display: inline-block;
+        will-change: transform, filter;
+        text-shadow: 0 6px 18px rgba(0,0,0,.35);
         font-weight: 800;
-        font-size: 4.1rem;
+        font-size: 6.4rem;
         color: var(--color-primary);
       }
     }
@@ -124,6 +223,10 @@
       justify-content: center;
       gap: 3px;
       padding: 0 16px;
+      font-variant-numeric: tabular-nums;
+      -moz-font-feature-settings: "tnum";
+      -webkit-font-feature-settings: "tnum";
+      font-feature-settings: "tnum";
 
       &.completed {
         // top: 50%;

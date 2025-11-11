@@ -12,22 +12,26 @@ const emit = defineEmits<{
 function openDeposit() {
   location.href = '/balance';
 }
+
+function close() {
+  emit('close');
+}
 </script>
 
 <template>
   <div class="sheet">
-    <div class="close">
+    <div class="close" @click="close">
       <img :src="CloseIcon" alt="close-icon" aria-hidden="true" />
     </div>
     <div class="info">
       <img :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
-      <h4>У вас недостаточно TON</h4>
-      <p>Пополните баланс и повторите попытку</p>
+      <h4>{{ $t('cases.modals.notEnoght.title') }}</h4>
+      <p>{{ $t('cases.modals.notEnoght.descr') }}</p>
     </div>
     <div class="buttons">
       <button @click="openDeposit">
         <img :src="AddBlackIcon" alt="add-black-icon" aria-hidden="true" />
-        <h4>Deposit</h4>
+        <h4>{{ $t('cases.modals.notEnoght.buttons.deposit') }}</h4>
       </button>
     </div>
   </div>

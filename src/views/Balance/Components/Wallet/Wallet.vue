@@ -34,14 +34,16 @@ const openTonWallet = () => {
     if (tonConnectUI.connected) {
       clearInterval(interval);
       walletConnected.value = true;
-      const walletAddress = getTonWalletAddress() as any;
-      const response = await APIWallet.connect(walletAddress);
-      if (response && response.WalletAddress) {
-        showSuccessToast('Wallet connected');
-      } else {
-        clearInterval(interval);
-        showErrorToast('Wallet not connected');
-      }
+      setTimeout(async () => {
+        const response = await APIWallet.connect(walletAddress.value);
+        console.log('response', response);
+        if (response) {
+          showSuccessToast('Wallet connected');
+        } else {
+          clearInterval(interval);
+          showErrorToast('Wallet not connected');
+        }
+      }, 1000);
     }
   }, 1000);
 }
@@ -78,12 +80,12 @@ setInterval(() => {
     <div class="wallet-top">
       <div class="context">
         <img :src="WalletPrimaryIcon" alt="wallet-icon" />
-        <h4 v-if="!walletConnected">Wallet not connected</h4>
+        <h4 v-if="!walletConnected">{{ $t('balance.wallet.notConnected') }}</h4>
         <h4 v-if="walletConnected">{{ obfuscateAddress(walletAddress) }}</h4>
       </div>
       <div class="button">
         <button v-if="!walletConnected" @click="openTonWallet">
-          <h4>Connect</h4>
+          <h4>{{ $t('balance.wallet.connect') }}</h4>
           <img class="ton" :src="TonLineIcon" alt="ton-line-icon" />
         </button>
         <button v-if="walletConnected" @click="disconnectTonWallet">
@@ -102,7 +104,7 @@ setInterval(() => {
       <div class="button">
         <button @click="openDeposit" :disabled="!walletConnected">
           <img :src="AddBlackIcon" alt="add-black-icon" aria-hidden="true" />
-          <h4>Deposit</h4>
+          <h4>{{ $t('balance.wallet.deposit') }}</h4>
         </button>
       </div>
     </div>

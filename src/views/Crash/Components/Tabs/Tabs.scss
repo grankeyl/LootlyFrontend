@@ -1,6 +1,7 @@
 .tabs {
     display: block;
     margin-top: 20px;
+    margin-bottom: 20px;
 
     .latests {
         display: flex;
@@ -8,23 +9,27 @@
         align-items: center;
         justify-content: start;
         overflow-x: scroll;
-
+        padding-left: var(--padding-left);
+        
         .item {
             display: flex;
             align-items: center;
             gap: 4px;
             width: fit-content;
+            min-width: 59px;
             height: 24px;
-            padding: 0px 1.5rem;
             transition: opacity 0.2s ease-in-out;
             border: 1px solid var(--color-descr);
             border-radius: 30px;
             opacity: .3;
+            justify-content: center;
+            text-align: center;
 
             &.now {
               border: 1px solid transparent;
               background: #e837bc26;
               opacity: 1;
+              overflow: visible;
                 
               h4 {
                 color: var(--color-primary);
@@ -54,11 +59,141 @@
       gap: 8px;
       z-index: 1;
       margin-top: 15px;
+      padding: 0 var(--padding-left);
+
+      .tools {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        height: fit-content;
+        position: relative;
+        margin-top: 10px;
+        margin-bottom: 6px;
+
+        &.locked {
+          opacity: .5;
+          pointer-events: none;
+        }
+
+        .autowithdraw {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: fit-content;
+          height: fit-content;
+          // padding: 0 1.4rem;
+          position: relative;
+          cursor: pointer;
+          // background: var(--bg-10);
+          will-change: auto;
+          transition: opacity .2s ease-in-out;
+          opacity: 1;
+          transition: opacity .2s ease-in-out;
+
+          &.locked {
+            opacity: .5;
+            pointer-events: none;
+          }
+
+          .sel {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid var(--bg-20);
+            transform: scale(1);
+            transition: transform 0.2s ease-in-out, background .2s ease-in-out;
+
+            &.active {
+              border: 1px solid var(--color-primary);
+              background: var(--color-primary);
+
+              :deep(svg) {
+                opacity: 1;
+              }
+            }
+
+            :deep(svg) {
+              width: 100%;
+              height: 100%;
+              margin-top: 4px;
+              opacity: 0;
+              transition: opacity .2s ease-in-out;
+
+              path {
+                fill: var(--color-white);
+              }
+            }
+
+            &:active {
+              transform: scale(0.96);
+            }
+          }
+
+          h4 {
+            width: fit-content;
+            height: fit-content;
+            font-weight: 600;
+            font-size: 1.6rem;
+            color: var(--color-white);
+          }
+        }
+
+        .value {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          width: 60px;
+          height: fit-content;
+          position: relative;
+          border-radius: 1.3rem;
+          cursor: pointer;
+          background: var(--bg-10);
+          will-change: auto;
+          transition: opacity .2s ease-in-out;
+          overflow: hidden;
+          opacity: 1;
+
+          &.locked {
+            opacity: .5;
+            pointer-events: none;
+          }
+
+          input {
+            width: 60px;
+            height: 40px;
+            line-height: 50px;
+            padding: 0 .5rem;
+            background: transparent;
+            transform: none;
+            contain: paint;
+            isolation: isolate;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            font-weight: 600;
+            font-size: 1.6rem;
+            color: var(--color-white);
+            outline: none;
+            overflow: visible;
+            text-align: center;
+
+            &::placeholder {
+              width: 100%;
+              color: var(--color-descr-tint);
+            }
+          }
+        }
+      }
 
       .top {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
         width: 100%;
         height: fit-content;
         position: relative;
@@ -74,9 +209,16 @@
           border-radius: 1.3rem;
           cursor: pointer;
           background: var(--bg-10);
-          transition: transform 0.2s ease-in-out;
-          transform-origin: center;
-          will-change: transform;
+          will-change: auto;
+          transition: opacity .2s ease-in-out;
+          overflow: hidden;
+          opacity: 1;
+          transition: opacity .2s ease-in-out;
+
+          &.locked {
+            opacity: .5;
+            pointer-events: none;
+          }
 
           img {
             width: 24px;
@@ -86,16 +228,23 @@
 
           input {
             width: 100%;
-            height: fit-content;
-            padding: 0 0.5rem;
-            border: none;
+            height: 100%;
+            line-height: 50px;
+            padding: 0 .5rem;
             background: transparent;
+            transform: none;
+            contain: paint;
+            isolation: isolate;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
             font-weight: 600;
             font-size: 1.6rem;
             color: var(--color-white);
             outline: none;
+            overflow: visible;
 
             &::placeholder {
+              width: 100%;
               color: var(--color-descr-tint);
             }
           }
@@ -105,15 +254,29 @@
           display: flex;
           align-items: center;
           gap: 4px;
-          width: 35%;
+          width: 60%;
           height: fit-content;
-          padding: 0 0.5rem;
           position: relative;
           border-radius: 1.3rem;
           cursor: pointer;
           transition: transform 0.2s ease-in-out;
           transform-origin: center;
-          will-change: transform;
+          opacity: 1;
+          transition: opacity .2s ease-in-out;
+
+          &.locked {
+            opacity: .5;
+            pointer-events: none;
+          }
+
+          &.waiting button {
+            background: var(--bg-4);
+            box-shadow: none;
+
+            h4 {
+              color: var(--color-white);
+            }
+          }
 
           &:active {
             transform: scale(0.96);
@@ -123,18 +286,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 1px;
             width: 100%;
             height: 52px;
             border-radius: 1.3rem;
             background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
             box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
             backdrop-filter: blur(15px);
+            transition: background .2s ease-in-out;
 
             h4 {
               font-weight: 600;
-              font-size: 1.6rem;
+              font-size: 16px;
+              display: flex;
+              width: fit-content;
+              text-align: center;
+              white-space: nowrap;
               color: var(--color-black);
+            }
+
+            img {
+              width: 18px;
+              height: 18px;
+              object-fit: contain;
             }
           }
         }
@@ -152,7 +326,15 @@
       margin-top: auto;
       gap: 8px;
       z-index: 1;
-      margin-top: 15px;
+      margin-top: 12px;
+      padding: 0 var(--padding-left);
+      opacity: 1;
+      transition: opacity .2s ease-in-out;
+
+      &.locked {
+        opacity: .5;
+        pointer-events: none;
+      }
 
       .item {
         display: flex;
@@ -163,7 +345,7 @@
         height: 40px;
         padding: 0 1.4rem;
         position: relative;
-        border-radius: 1.3rem;
+        border-radius: 1.2rem;
         cursor: pointer;
         background: var(--bg-10);
         transition: transform 0.2s ease-in-out;

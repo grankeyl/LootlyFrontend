@@ -14,17 +14,18 @@ import GiftModal from './Components/Modals/Gift.vue';
 import WithdrawGiftModal from './Components/Modals/WithdrawGift.vue';
 
 import Backdrop from "@/assets/images/profile-pg/bg-blured.png";
+import { showSuccessToast } from '../../utils/toastManager';
 
 const { open } = useModal();
+
 const route = useRoute()
 const useCache = useCacheStore() as any;
 
 const pageRef = ref<HTMLElement|null>(null);
-const inventory = ref<any[]>(Array.from({ length: 10 }, () => ({
-  id: 1, image: "", name: "", price_nano: 1_000_000_000,
-  BGStart: "", BGCenter: "", BGEnd: "", symbol: "",
+const inventory = ref<any[]>(Array.from({ length: 9 }, () => ({
+  skeleton: true,
 })));
-const inventoryCount = ref(0);
+const inventoryCount = ref(9);
 
 async function openWithdrawGifts() {
   const choose = open(WithdrawGiftsModal);
@@ -42,9 +43,15 @@ async function openGift(payload: any) {
     onQuickSellSuccess: (p: any) => quickSellSuccess(p),
     onOpenModalWithdrawGift: () => open(WithdrawGiftModal, {
       data: payload,
+      onWithdrawGiftSuccess: (p: any) => withdrawGiftSuccess(p),
     }),
   });
   await choose.done.catch(() => null);
+}
+
+async function withdrawGiftSuccess(payload: any) {
+  showSuccessToast('Gift successfully withdrawn');
+  inventory.value.find(i => i.id === payload.id)!.status = payload.new_status;
 }
 
 /* === плавное появление задника === */
@@ -79,11 +86,21 @@ watch(
     <img v-if="imgSrc" :src="imgSrc" alt="backdrop" />
   </div>
 
-  <div class="page" ref="pageRef">
-    <User :photo="useCache.UserData.Photo" :name="useCache.UserData.Name" />
-    <Actions :inventoryCount="inventoryCount" @open-modal-withdraw-gifts="openWithdrawGifts" />
+  <div class="pageProfile" ref="pageRef">
+    <User 
+      :photo="useCache.UserData.Photo" 
+      :name="useCache.UserData.Name" 
+    />
+
+    <Actions 
+      v-if="inventoryCount"
+      :inventoryCount="inventoryCount" 
+      @open-modal-withdraw-gifts="openWithdrawGifts" 
+    />
+
     <Gifts
       :inventory="inventory"
+      :inventoryCount="inventoryCount"
       :scroll-el="pageRef"
       @open-modal="openGift"
       @inventory-set="inventory = $event"

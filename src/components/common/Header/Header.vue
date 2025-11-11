@@ -18,6 +18,8 @@ const CheckActiveMenu = () => {
   if (route.path === '/earn') return true;
   if (route.path === '/balance') return true;
   if (route.path === '/leaderboard') return true;
+  if (route.path === '/crash') return true;
+  return false;
 }
 
 const OpenBalance = () => {

@@ -5,10 +5,7 @@ import { ref } from "vue";
 import Reward from "@/assets/images/leaderboard-pg/reward.png";
 
 const skeleton = ref(true);
-
-setTimeout(() => {
-  skeleton.value = false;
-}, 1000);
+setTimeout(() => { skeleton.value = false; }, 1000);
 </script>
 
 <template>
@@ -17,10 +14,10 @@ setTimeout(() => {
       <img :src="Reward" alt="reward">
     </div>
     <div class="title">
-      <h4>Leaderboard</h4>
+      <h4>{{ $t('leaderboard.info.title') }}</h4>
     </div>
     <div class="description">
-      <p>Top users with total bets</p>
+      <p>{{ $t('leaderboard.info.descr') }}</p>
     </div>
   </div>
 </template>

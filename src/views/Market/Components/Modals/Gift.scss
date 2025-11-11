@@ -24,7 +24,11 @@
           top: 0;
           left: 0;
           z-index: 0;
-          background: radial-gradient(circle, var(--center-color), var(--around-color));
+          background: radial-gradient(99.63% 106.36% at 50% -6.36%,
+                      var(--start-color) 0%,
+                      var(--center-color) 50%,
+                      var(--end-color) 100%);
+          // background: radial-gradient(circle, var(--center-color), var(--around-color));
         }
 
         &.no-upg {

@@ -8,11 +8,20 @@ import GameBgSymbolsImage from "@/assets/images/crash-pg/game-bg-symbols.png";
 import RocketImage from "@/assets/images/crash-pg/rocket.png";
 import Lottie from "../../../../components/Lottie.vue";
 
-type Stage = 'prepare' | 'playing' | 'completed';
-const props = defineProps<{ forceCrashAt?: number | null }>();
+type Stage = 'loading' | 'prepare' | 'playing' | 'completed';
 
-const gameStage = ref<Stage>('completed');
-const gamePrepareTime = ref(5);
+const emit = defineEmits<{
+  (e:'SetGameX', payload: number): void
+}>();
+const props = defineProps<{ 
+  GameStatus: string,
+  GameBettingEtaMs: number,
+  GameX: number,
+  GameOnline: number,
+}>();
+
+const gameStage = ref<Stage>(props.GameStatus as Stage);
+const gamePrepareTime = ref(props.GameBettingEtaMs || 7);
 const gamePrepareTimeInterval = ref<number | null>(null);
 
 const realX = ref(1);
@@ -70,17 +79,10 @@ const TWEEN_DUR = 0.28;
 
 const boomRef = ref<HTMLDivElement|null>(null);
 
-function setRoundX(x: number) { _forced.value = Math.max(1.01, x); }
-defineExpose({ setRoundX });
-const _forced = ref<number | null>(props.forceCrashAt ?? null);
-watch(() => props.forceCrashAt, v => { _forced.value = v ?? null; });
-
-
 let flameTl: gsap.core.Timeline | null = null;
 let swayTl: gsap.core.Timeline | null = null;
 
 function startFlame() {
-  // запускаем заново каждый раунд
   if (flameTl) { flameTl.kill(); flameTl = null; }
   if (swayTl)  { swayTl.kill();  swayTl  = null; }
 
@@ -89,13 +91,11 @@ function startFlame() {
 
   if (flameEl) {
     flameTl = gsap.timeline({ repeat: -1 });
-    // быстрый «жар» + рандомная микровариация
     flameTl
       .to(flameEl, { scaleY: 1.35, scaleX: 1.08, opacity: 1, duration: 0.09, ease: "power1.inOut" })
       .to(flameEl, { scaleY: 0.85, scaleX: 0.95, opacity: 0.75, duration: 0.10, ease: "power1.inOut" })
       .to(flameEl, { scaleY: 1.20, scaleX: 1.02, opacity: 0.9,  duration: 0.08, ease: "power1.inOut" });
 
-    // лёгкий шумовой джиттер размера (имитация турбулентности)
     if (flameJitterTw) { flameJitterTw.kill(); flameJitterTw = null; }
     flameJitterTw = gsap.to(flameEl, {
       duration: 0.2, repeat: -1, yoyo: true, ease: "sine.inOut",
@@ -123,14 +123,14 @@ function sampleCrashAt() {
 }
 
 function startPrepare() {
-  gameStage.value = 'prepare';
-  gamePrepareTime.value = 5;
+  gamePrepareTime.value = props.GameBettingEtaMs || 7;
+
   if (gamePrepareTimeInterval.value) window.clearInterval(gamePrepareTimeInterval.value);
   gamePrepareTimeInterval.value = window.setInterval(() => {
     if (gamePrepareTime.value <= 0) {
       window.clearInterval(gamePrepareTimeInterval.value!);
       gamePrepareTimeInterval.value = null;
-      startPlaying();
+      // startPlaying();
       return;
     }
     gamePrepareTime.value--;
@@ -156,10 +156,10 @@ function runLineReveal(duration = 2) {
 }
 
 async function startPlaying() {
-  gameStage.value = 'playing';
+  gameStage.value = props.GameStatus as Stage;
   realX.value = 1; gamePlayingX.value = 1; displayObj.v = 1; lastTweenTarget = 1;
   if (playingTween) { playingTween.kill(); playingTween = null; }
-  crashAt.value = _forced.value && _forced.value > 1 ? _forced.value : sampleCrashAt();
+  crashAt.value = 10000;
   lastTS.value = performance.now();
 
   await nextTick();
@@ -168,6 +168,7 @@ async function startPlaying() {
     gsap.set(flameRef.value, { opacity: 1 });
     gsap.killTweensOf(flameRef.value);
   }
+
   buildPath();
   runLineReveal();
   startFlame();
@@ -192,32 +193,28 @@ function onTick() {
   realX.value = Math.min(next, crashAt.value);
   const target = realX.value;
 
-  if (Math.abs(target - lastTweenTarget) < 1e-4) return;
-  lastTweenTarget = target;
+  // if (Math.abs(target - lastTweenTarget) < 1e-4) return;
+  // lastTweenTarget = target;
 
-  if (playingTween) playingTween.kill();
-  playingTween = gsap.to(displayObj, {
-    v: target,
-    duration: TWEEN_DUR,
-    overwrite: false,
-    onUpdate: () => {
-      const rounded = Math.round(displayObj.v * 100) / 100;
-      const prev = gamePlayingX.value;
-      gamePlayingX.value = rounded >= crashAt.value ? crashAt.value : rounded;
-      if (Math.floor(prev * 100) !== Math.floor(gamePlayingX.value * 100)) pulseValue();
-
-      // УДАЛИ ЭТО: конфликтует с маской по времени
-      // const p = getProgressLinear(gamePlayingX.value, crashAt.value);
-      // setLineProgress(p);
-    },
-    onComplete: () => {
-      if (target >= crashAt.value - 1e-6) {
-        gamePlayingX.value = Math.round(crashAt.value * 100) / 100;
-        // и тут не трогаем setLineProgress(1)
-        crashNow();
-      }
-    }
-  });
+  // if (playingTween) playingTween.kill();
+  // playingTween = gsap.to(displayObj, {
+  //   v: target,
+  //   duration: TWEEN_DUR,
+  //   overwrite: false,
+  //   onUpdate: () => {
+  //     const rounded = Math.round(displayObj.v * 100) / 100;
+  //     const prev = gamePlayingX.value;
+  //     emit('SetGameX', rounded);
+  //     gamePlayingX.value = rounded >= crashAt.value ? crashAt.value : rounded;
+  //     if (Math.floor(prev * 100) !== Math.floor(gamePlayingX.value * 100)) pulseValue();
+  //   },
+  //   onComplete: () => {
+  //     if (target >= crashAt.value - 1e-6) {
+  //       gamePlayingX.value = Math.round(crashAt.value * 100) / 100;
+  //       crashNow();
+  //     }
+  //   }
+  // });
 }
 
 function placeRocketByMaskWidth() {
@@ -330,12 +327,10 @@ function startWobble() {
   gsap.ticker.add(wobbleTick);
   function wobbleTick() {
     if (!wobbleRef.value) return;
-    // только когда игра идёт/завершилась (в prepare не дёргаем сцену)
     if (gameStage.value === 'prepare') { gsap.set(wobbleRef.value, { x:0, y:0, rotation:0, skewX:0, skewY:0, scale:1 }); return; }
 
     const t = (performance.now() - t0) / 1000;
 
-    // амплитуды (подкрути по вкусу)
     const ax = 13;    // px по X
     const ay = 9;    // px по Y
     const aR = 1.2;  // deg поворот
@@ -413,8 +408,7 @@ function stopWind() {
 }
 
 function crashNow() {
-  if (gameStage.value !== 'playing') return;
-  gameStage.value = 'completed';
+  // if (gameStage.value !== 'playing') return;
   if (playingTween) { playingTween.kill(); playingTween = null; }
   gsap.killTweensOf(displayObj);
   stopWind();
@@ -429,6 +423,7 @@ function crashNow() {
   if (rocketImgRef.value) {
     gsap.to(rocketImgRef.value, { opacity: 0, duration: 0.3, ease: "power1.out" });
   }
+  // emit('SetGameX', 0);
   window.setTimeout(() => startPrepare(), 2500);
 }
 
@@ -440,6 +435,53 @@ watch(() => gameStage.value, (v) => {
     windAcc += 30;
   }
 });
+
+onMounted(() => {
+  if (props.GameStatus === 'prepare') { startPrepare(); }
+  if (props.GameStatus === 'playing') { startPlaying(); }
+  if (props.GameStatus === 'completed') { 
+    crashNow(); 
+  }
+});
+
+watch(() => props.GameStatus, (v) => {
+  gameStage.value = v as Stage;
+  if (v === 'prepare') { startPrepare(); }
+  if (v === 'playing') { startPlaying(); }
+  if (v === 'completed') { 
+    crashNow();
+  }
+});
+
+watch(() => props.GameX, (v) => {
+  pulseValue();
+  gamePlayingX.value = v;
+});
+
+// рядом с другими refs
+const timerDigitRef = ref<HTMLSpanElement|null>(null);
+
+// ...ниже, после startPrepare() или в конце script:
+watch(gamePrepareTime, () => {
+  if (!timerDigitRef.value) return;
+  // короткий «вылет» с сильным зумом и блюром
+  gsap.fromTo(
+    timerDigitRef.value,
+    { scale: 2.8, y: 6, opacity: 0, filter: "blur(20px)" },
+    { scale: 1,   y: 0, opacity: 1, filter: "blur(0px)", duration: 0.58, ease: "back.out(2)" }
+  );
+});
+
+// первый показ — тоже анимнём
+onMounted(() => {
+  if (timerDigitRef.value) {
+    gsap.fromTo(
+      timerDigitRef.value,
+      { scale: 2.8, y: 6, opacity: 0, filter: "blur(20px)" },
+      { scale: 1,   y: 0, opacity: 1, filter: "blur(0px)", duration: 0.58, ease: "back.out(2)" }
+    );
+  }
+});
 </script>
 
 <template>
@@ -448,9 +490,18 @@ watch(() => gameStage.value, (v) => {
       <img :src="GameBgSymbolsImage" alt="bg" />
     </div>
 
+    <div class="game-online">
+      <h4>{{ props.GameOnline }} players</h4>
+      <span class="online-dot" aria-hidden="true"></span>
+    </div>
+
+    <div v-if="gameStage === 'loading'" class="game-loading">
+      <div class="spinner" role="status" aria-label="Loading"></div>
+    </div>
+
     <div v-if="gameStage === 'prepare'" class="game-prepare">
       <div class="title">
-        <h4><span>{{ gamePrepareTime }}</span> seconds to go</h4>
+        <span ref="timerDigitRef">{{ gamePrepareTime }}</span>
       </div>
     </div>
 

@@ -4,7 +4,7 @@ import { useModal } from "../../components/common/Modal";
 
 // Components
 import LiveWins from "./Components/LiveWins/LiveWins.vue";
-// import Block from "./Components/Block/Block.vue";
+import Block from "./Components/Block/Block.vue";
 import Tabs from "./Components/Tabs/Tabs.vue";
 import Cases from "./Components/Cases/Cases.vue";
 import Case from "./Components/Modals/Case.vue";
@@ -39,7 +39,7 @@ async function openNotEnough(payload: any) {
 <template>
     <div class="page">
         <LiveWins />
-        <!-- <Block /> -->
+        <Block />
         <Tabs
             @SwitchTab="SwitchTab"
             :ActiveTab="ActiveTab"

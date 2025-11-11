@@ -15,7 +15,7 @@ const BackButton = () => {
       class="button"
       type="button"
     >
-      <h4>Back</h4>
+      <h4>{{ $t('balance.button.back') }}</h4>
     </button>
   </div>
 </template>

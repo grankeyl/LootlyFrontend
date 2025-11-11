@@ -1,292 +1,251 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
-
 import * as APIMarket from "../../../../api/market";
-
-// Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
-// import BasketIcon from "@/assets/icons/basket.svg";
 import { getImgSvg } from "../../../../utils/useApp";
 
 type Gift = any;
 
 const emit = defineEmits<{
   (e: "gifts-count", count: number): void;
-  (e: 'open-modal', payload: Gift): void
+  (e: "open-modal", payload: Gift): void;
 }>();
 
-const props = defineProps<{
-  scrollEl?: any;
-}>();
+const props = defineProps<{ scrollEl?: Element | { value?: Element|null } | null }>();
 
-let io: IntersectionObserver | null = null;
-
+/** --- state --- */
 const skeleton = ref(true);
+const items = ref<Gift[]>(Array.from({ length: 10 }, () => ({
+  id: 1,
+  bg_start: "",
+  bg_center: "",
+  bg_end: "",
+  image: "",
+  name: "",
+  price_nano: 1_000_000_000,
+})));
+const hasMore = ref(true);
+const loading = ref(false);
+const limit = 20;
+const offset = ref(0);
 
-const giftsSentinel = ref<HTMLDivElement|null>(null);
-const giftsLoadingMore = ref(false);
-const giftsHasMore = ref(true);
-const giftsStatus = ref("all");
-const giftsLimit = ref(20);
-const giftsOffset = ref(0);
-const gifts = ref<any[]>(
-  Array.from({ length: 10 }, () => ({
-    id: 1,
-    image: "",
-    name: "",
-    price_nano: 1_000_000_000,
-    bg_start: "",
-    bg_center: "",
-    bg_end: "",
-  }))
-);
+/** гонки и отмена */
+let inFlight = 0;
 
-async function getGifts(initial = false) {
-  if (giftsLoadingMore.value || (!giftsHasMore.value && !initial)) return;
-
-  giftsLoadingMore.value = true;
-  if (initial) {
-    skeleton.value = true;
-    gifts.value = [];
-    giftsOffset.value = 0;
-    giftsHasMore.value = true;
-  }
-
-  const res = await APIMarket.items(
-    giftsStatus.value,
-    giftsLimit.value,
-    giftsOffset.value
-  ).catch(() => null);
-
-  if (!res) {
-    giftsLoadingMore.value = false;
-    skeleton.value = false;
-    return;
-  }
-
-  const items: any[] = res.items ?? [];
-  gifts.value.push(...items);
-  giftsOffset.value += items.length;
-
-  if (res.total_all != null) {
-    giftsHasMore.value = gifts.value.length < res.total_all;
-    emit("gifts-count", res.total_all);
-  } else {
-    // Фоллбек
-    giftsHasMore.value = items.length === giftsLimit.value;
-  }
-
-  giftsLoadingMore.value = false;
-  setTimeout(() => {
-    skeleton.value = false;
-  }, 200);
-}
-
-function resolveRoot(): Element | null {
-  const el = props.scrollEl?.value ?? props.scrollEl ?? null;
-  return el instanceof Element ? el : null;
-}
-
-function setupObserver() {
-  if (!giftsSentinel.value) return;
-  io?.disconnect();
-
-  io = new IntersectionObserver(
-    entries => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        if (giftsLoadingMore.value || !giftsHasMore.value) continue;
-        io?.unobserve(entry.target);
-        (async () => {
-          await getGifts(false);
-          await nextTick();
-          await autoDrainIfStillVisible();
-          if (giftsSentinel.value && giftsHasMore.value) {
-            io?.observe(giftsSentinel.value);
-          }
-        })();
-      }
-    },
-    {
-      root: resolveRoot(),
-      rootMargin: "0px 0px 1200px 0px",
-      threshold: 0,
-    }
-  );
-
-  io.observe(giftsSentinel.value);
-}
-
+/** наблюдатели/отписки */
+const sentinel = ref<HTMLDivElement|null>(null);
+let io: IntersectionObserver | null = null;
 let ro: ResizeObserver | null = null;
 let scrollOff: (() => void) | null = null;
-let resizeOff: (() => void) | null = null;
 
-function nearBottom(gap = 600) {
-  const root = resolveRoot();
+/** утилиты */
+const rootEl = () => {
+  const el = (props.scrollEl as any)?.value ?? props.scrollEl ?? null;
+  return el instanceof Element ? el : null;
+};
+
+function atBottomGap(gap = 600) {
+  const root = rootEl();
   if (root) {
     const el = root as HTMLElement;
     return el.scrollTop + el.clientHeight >= el.scrollHeight - gap;
   }
-  return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - gap;
+  const doc = document.documentElement;
+  return window.scrollY + window.innerHeight >= doc.scrollHeight - gap;
 }
 
-function attachScrollFallback() {
-  const root = resolveRoot();
-  let tick = false;
+function sentinelVisible(): boolean {
+  if (!sentinel.value) return false;
+  const rect = sentinel.value.getBoundingClientRect();
+  const root = rootEl();
+  const bottom = root ? (root as HTMLElement).getBoundingClientRect().bottom : window.innerHeight;
+  return rect.top <= bottom;
+}
+
+/** API */
+async function fetchPage(initial = false) {
+  if (loading.value) return;
+  if (!hasMore.value && !initial) return;
+
+  loading.value = true;
+  const token = ++inFlight;
+  try {
+    if (initial) {
+      skeleton.value = true;
+      offset.value = 0;
+      hasMore.value = true;
+    }
+
+    const res = await APIMarket.items("all", limit, offset.value).catch(() => null);
+    // если прилетела другая, более свежая загрузка — игнорим
+    if (token !== inFlight) return;
+
+    if (!res) {
+      hasMore.value = false;
+      return;
+    }
+
+    const page: Gift[] = res.items ?? [];
+    const withFlags = page.map(g => ({ ...g, _imgLoaded: false }));
+
+    if (initial) items.value = withFlags;
+    else items.value.push(...withFlags);
+
+    offset.value += page.length;
+
+    if (typeof res.total_all === "number") {
+      hasMore.value = items.value.length < res.total_all;
+      emit("gifts-count", res.total_all);
+    } else {
+      hasMore.value = page.length === limit;
+    }
+  } finally {
+    if (token === inFlight) {
+      loading.value = false;
+      // небольшая задержка, чтобы убрать скелетон после отрисовки
+      setTimeout(() => (skeleton.value = false), 120);
+    }
+  }
+}
+
+/** авто-долив: пока низ пустой — подкачиваем страницы */
+async function topUpViewport(maxLoops = 8) {
+  let loops = 0;
+  // сначала доливаем, если контент ниже высоты окна
+  while (hasMore.value && !loading.value && loops < maxLoops) {
+    const need = needsMore();
+    if (!need) break;
+    await fetchPage(false);
+    await nextTick();
+    loops++;
+  }
+  // затем пока виден sentinel — продолжаем подкачку
+  while (hasMore.value && !loading.value && sentinelVisible() && loops < maxLoops) {
+    await fetchPage(false);
+    await nextTick();
+    loops++;
+  }
+}
+
+function needsMore(buffer = 120) {
+  const root = rootEl();
+  if (root) return (root as HTMLElement).scrollHeight < (root as HTMLElement).clientHeight + buffer;
+  const doc = document.documentElement;
+  return doc.scrollHeight < window.innerHeight + buffer;
+}
+
+/** наблюдатели */
+function setupIO() {
+  if (!sentinel.value) return;
+  io?.disconnect();
+
+  io = new IntersectionObserver(async entries => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      if (loading.value || !hasMore.value) continue;
+      await fetchPage(false);
+      await nextTick();
+      topUpViewport(5);
+    }
+  }, { root: rootEl(), rootMargin: "0px 0px 800px 0px", threshold: 0 });
+
+  io.observe(sentinel.value);
+}
+
+function setupResizeAndScrollFallback() {
+  const container = rootEl();
+  // подстраиваемся под изменение размеров списка
+  const list = (container ?? document.querySelector(".gifts .items")) as HTMLElement | null;
+  if (list) {
+    ro?.disconnect();
+    ro = new ResizeObserver(() => topUpViewport(3));
+    ro.observe(list);
+  }
+
+  // фоллбек, если IO не сработал
   const onScroll = () => {
-    if (tick) return;
-    tick = true;
-    requestAnimationFrame(async () => {
-      tick = false;
-      if (!giftsLoadingMore.value && giftsHasMore.value && nearBottom(700)) {
-        await getGifts(false);
-        await nextTick();
-        autoDrainIfStillVisible();
-      }
-    });
+    if (!loading.value && hasMore.value && atBottomGap(700)) {
+      fetchPage(false).then(() => nextTick().then(() => topUpViewport(3)));
+    }
   };
 
-  if (root) {
-    root.addEventListener("scroll", onScroll, { passive: true });
-    scrollOff = () => root.removeEventListener("scroll", onScroll);
+  if (container) {
+    container.addEventListener("scroll", onScroll, { passive: true });
+    scrollOff = () => container.removeEventListener("scroll", onScroll);
   } else {
     window.addEventListener("scroll", onScroll, { passive: true });
     scrollOff = () => window.removeEventListener("scroll", onScroll);
   }
 }
 
-function isSentinelVisible(): boolean {
-  if (!giftsSentinel.value) return false;
-  const root = resolveRoot();
-  const sRect = giftsSentinel.value.getBoundingClientRect();
-
-  if (root) {
-    const rRect = (root as Element).getBoundingClientRect();
-    return sRect.top <= rRect.bottom;
-  }
-  return sRect.top <= window.innerHeight;
-}
-
-function needsMoreToFill(buffer = 200): boolean {
-  const root = resolveRoot();
-  if (root) {
-    const el = root as HTMLElement;
-    return el.scrollHeight < el.clientHeight + buffer;
-  }
-  const doc = document.documentElement;
-  return doc.scrollHeight < window.innerHeight + buffer;
-}
-
-async function topUpViewport(maxPages = 10) {
-  let pages = 0;
-  while (
-    giftsHasMore.value &&
-    !giftsLoadingMore.value &&
-    needsMoreToFill(120) &&
-    pages < maxPages
-  ) {
-    await getGifts(false);
-    await nextTick();
-    pages++;
-  }
-}
-
-async function autoDrainIfStillVisible() {
-  await topUpViewport(10);
-  while (
-    !giftsLoadingMore.value &&
-    giftsHasMore.value &&
-    isSentinelVisible()
-  ) {
-    await getGifts(false);
-    await nextTick();
-    await topUpViewport(5);
-  }
-}
-
+/** публичное */
 function openItem(g: Gift) { emit("open-modal", g); }
+async function reload() { 
+  await fetchPage(true); 
+  await nextTick(); 
+  await topUpViewport(10);
+}
 
 onMounted(async () => {
+  await reload();
+  setupIO();
+  setupResizeAndScrollFallback();
   await nextTick();
-  await getGifts(true);
-  await nextTick();
-  await topUpViewport(12);
-  setupObserver();
-
-  const list = document.querySelector(".gifts .items") as HTMLElement | null;
-  if (list) {
-    ro = new ResizeObserver(() => autoDrainIfStillVisible());
-    ro.observe(list);
-  }
-
-  attachScrollFallback();
-  const onResize = () => {
-    topUpViewport(8);
-  };
-  window.addEventListener('resize', onResize, { passive: true });
-  resizeOff = () => window.removeEventListener('resize', onResize as any);
-
-  await nextTick();
-  autoDrainIfStillVisible();
+  topUpViewport(10);
 });
 
 onBeforeUnmount(() => {
-  if (io && giftsSentinel.value) io.unobserve(giftsSentinel.value);
-  io?.disconnect();
-  io = null;
-
-  ro?.disconnect();
-  ro = null;
-
-  scrollOff?.();
-  scrollOff = null;
-  resizeOff?.();
-  resizeOff = null;
+  io?.disconnect(); io = null;
+  ro?.disconnect(); ro = null;
+  scrollOff?.(); scrollOff = null;
 });
 </script>
 
 <template>
   <div class="gifts">
-    <div class="items" :class="{ skeleton: skeleton }">
-      <div class="item" v-for="(item, index) in gifts" :key="index" @click="openItem(item)">
-        <div
-          class="background upg"
-          :style="{
-            '--start-color': item.bg_start,
-            '--center-color': item.bg_center,
-            '--end-color': item.bg_end,
-          }"
-        ></div>
+    <div class="items" :class="{ skeleton }">
+      <div class="item" v-for="(item, i) in items" :key="item.id ?? i" @click="openItem(item)">
+        <div class="background upg"
+             :style="{ '--start-color': item.bg_start, '--center-color': item.bg_center, '--end-color': item.bg_end }" />
         <div class="sk-load" v-if="skeleton"></div>
         <div class="model">
           <div class="upg">
             <div class="image">
-              <img :src="getImgSvg(item.image)" alt="model" />
+              <img
+                :src="getImgSvg(item.image)"
+                alt="model"
+                @load="item._imgLoaded = true"
+                @error="item._imgLoaded = true"
+                :class="{ 'img-loaded': item._imgLoaded }"
+              />
             </div>
           </div>
         </div>
-        <div class="name">
-          <h4>{{ item.name }}</h4>
-        </div>
+        <div class="name"><h4>{{ item.name }}</h4></div>
         <div class="buttons">
-          <button>
-            <h4>{{ cutNumberNano(item.price_nano) }}</h4>
-            <img :src="TonWhiteIcon" alt="ton" />
-          </button>
-          <!-- <button>
-            <img :src="BasketIcon" alt="basket" />
-          </button> -->
+          <button><h4>{{ cutNumberNano(item.price_nano) }}</h4><img :src="TonWhiteIcon" alt="ton" /></button>
         </div>
       </div>
 
-      <div v-if="!skeleton && giftsLoadingMore" class="loading-more">
-        <div class="sk-load"></div>
-      </div>
-
-      <div ref="inventorySentinel" class="sentinel"></div>
+      <div v-if="!skeleton && loading" class="loading-more"><div class="sk-load"></div></div>
+      <div ref="sentinel" class="sentinel" />
     </div>
   </div>
 </template>
 
 <style lang="scss" src="./Gifts.scss" scoped></style>
+<style>
+.gifts .items .item .model .image img {
+  opacity: 0;
+  transform: translateY(6px);
+  filter: blur(6px);
+  transition: opacity .28s ease, transform .28s ease, filter .32s ease;
+  will-change: opacity, transform, filter;
+}
+.gifts .items .item .model .image img.img-loaded {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+</style>

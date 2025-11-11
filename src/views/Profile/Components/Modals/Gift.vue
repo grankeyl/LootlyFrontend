@@ -26,6 +26,7 @@ const props = defineProps<{
 const useCache = useCacheStore() as any;
 
 function withdraw(data: any) {
+  close();
   emit("open-modal-withdraw-gift", {
     ...data,
   });
@@ -75,8 +76,9 @@ function share(
         <div
           class="background upg"
           :style="{
+            '--start-color': props.data.bg_start,
             '--center-color': props.data.bg_center,
-            '--around-color': props.data.bg_start,
+            '--end-color': props.data.bg_end,
           }"
         ></div>
         <div class="model">

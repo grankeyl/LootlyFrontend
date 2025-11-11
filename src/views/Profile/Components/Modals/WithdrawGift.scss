@@ -36,12 +36,6 @@
       overflow: hidden;
       position: relative;
       container-type: inline-size;
-      transition: transform 0.2s ease-in-out;
-      cursor: pointer;
-
-      &:active {
-        transform: scale(0.94);
-      }
 
       .model {
         width: 76%;
@@ -82,7 +76,7 @@
       font-size: 1.2rem;
       color: var(--color-descr);
 
-      span {
+      :deep(span) {
         font-weight: 600;
         font-size: 1.2rem;
         color: var(--color-white);

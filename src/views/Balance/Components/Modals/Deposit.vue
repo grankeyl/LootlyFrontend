@@ -55,8 +55,6 @@ async function deposit() {
   const nano = (BigInt(i) * 1_000_000_000n) + BigInt(frac);
 
   const res = await APIWallet.deposit(Number(nano));
-  console.log('receiver=', Address.parse(res.address).toRawString(),
-            'me=', Address.parse(tonConnectUI.account!.address).toRawString());
   if (res) {
     await sendPayment(res.address, res.memo, n);
     showSuccessToast('Wallet connected');
@@ -113,10 +111,8 @@ getTonWalletAddress();
     </div>
     <div class="info">
       <img :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
-      <h4>Пополнение баланса</h4>
-      <p>
-        *ВАЖНО! Вы не можете выводить TON с баланса, вывести можно только подарки, выигранные или купленные в маркете
-      </p>
+      <h4>{{ $t('balance.modals.deposit.title') }}</h4>
+      <p>{{ $t('balance.modals.deposit.descr') }}</p>
     </div>
     <div class="input">
       <div class="inner">
@@ -127,9 +123,9 @@ getTonWalletAddress();
         <div class="image">
           <img :src="TonIcon" alt="ton-icon" aria-hidden="true" />
         </div>
-        <div class="max">
-          <h4>МАКС</h4>
-        </div>
+        <!-- <div class="max">
+          <h4>{{ $t('balance.modals.deposit.max') }}</h4>
+        </div> -->
       </div>
     </div>
     <div class="num-pad">
@@ -143,7 +139,7 @@ getTonWalletAddress();
     <div class="buttons">
       <button @click="deposit">
         <img :src="AddBlackIcon" alt="add-black-icon" aria-hidden="true" />
-        <h4>Deposit</h4>
+        <h4>{{ $t('balance.modals.deposit.buttons.deposit') }}</h4>
       </button>
     </div>
   </div>
