@@ -12,15 +12,6 @@ const props = defineProps<{
 }>();
 
 const skeleton = ref(true);
-const users = ref<any[]>(Array.from({ length: 10 }, () => (
-  {
-    rank: 1,
-    username: "leadboy",
-    name: "Leadboy",
-    sum_volume_nano: 100_000_000_000,
-    photo: "",
-  }
-)));
 const bets = computed(() => {
   if (!props.GameBets) return [];
   return [...props.GameBets].reverse();

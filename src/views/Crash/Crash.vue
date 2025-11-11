@@ -3,7 +3,7 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import { msToWholeSec } from "../../utils/useApp";
 import { showErrorToast, showSuccessToast } from "../../utils/toastManager";
 import { useCacheStore } from "../../stores/pinia-store";
-import { cutNumber, tonToNano } from "../../utils/useTon";
+import { tonToNano } from "../../utils/useTon";
 
 import * as APICrash from "./../../api/crash";
 

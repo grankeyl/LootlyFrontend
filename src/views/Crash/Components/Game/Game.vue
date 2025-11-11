@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, defineExpose, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import { gsap } from "gsap";
 import { cutNumber } from "../../../../utils/useTon";
 
@@ -75,7 +75,6 @@ const NOSE_OFFSET = 0; // если нужно сместить нос чуть �
 
 const GROWTH_PER_SEC = 0.08;
 const MAX_DT = 0.12;
-const TWEEN_DUR = 0.28;
 
 const boomRef = ref<HTMLDivElement|null>(null);
 
@@ -114,12 +113,6 @@ function startFlame() {
       .to(innerEl, { rotation: 2, scale: 1,  y: -1.5, duration: 0.45, ease: "sine.inOut" })
       .to(innerEl, { rotation: -2, scale: 1.1, y:  1.5, duration: 0.45, ease: "sine.inOut" });
   }
-}
-
-function sampleCrashAt() {
-  const u = Math.random(); const alpha = 1.6; const xm = 1.01; const house = 0.99;
-  const raw = xm / Math.pow(1 - u, 1 / alpha);
-  return Math.min(200, Math.max(1.01, raw * house));
 }
 
 function startPrepare() {
@@ -191,30 +184,6 @@ function onTick() {
   const now = performance.now(); const dt = Math.min((now - lastTS.value) / 1000, MAX_DT); lastTS.value = now;
   const next = realX.value * Math.exp(GROWTH_PER_SEC * dt);
   realX.value = Math.min(next, crashAt.value);
-  const target = realX.value;
-
-  // if (Math.abs(target - lastTweenTarget) < 1e-4) return;
-  // lastTweenTarget = target;
-
-  // if (playingTween) playingTween.kill();
-  // playingTween = gsap.to(displayObj, {
-  //   v: target,
-  //   duration: TWEEN_DUR,
-  //   overwrite: false,
-  //   onUpdate: () => {
-  //     const rounded = Math.round(displayObj.v * 100) / 100;
-  //     const prev = gamePlayingX.value;
-  //     emit('SetGameX', rounded);
-  //     gamePlayingX.value = rounded >= crashAt.value ? crashAt.value : rounded;
-  //     if (Math.floor(prev * 100) !== Math.floor(gamePlayingX.value * 100)) pulseValue();
-  //   },
-  //   onComplete: () => {
-  //     if (target >= crashAt.value - 1e-6) {
-  //       gamePlayingX.value = Math.round(crashAt.value * 100) / 100;
-  //       crashNow();
-  //     }
-  //   }
-  // });
 }
 
 function placeRocketByMaskWidth() {
