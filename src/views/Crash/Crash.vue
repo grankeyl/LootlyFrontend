@@ -42,10 +42,9 @@ let ws: WebSocket | null = null;
 
 onMounted(() => {
   const initData = TelegramModule.initDataRaw()
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws'
   const qs = new URLSearchParams({ 'init-data': String(initData) }).toString()
 
-  const url = `${proto}://${location.host}/ws/crash?${qs}`
+  const url = `${import.meta.env.VITE_APP_SOCKET_CRASH_API_URL}?${qs}`
   ws = new WebSocket(url)
 
   ws.addEventListener('open', () => {
