@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ModalHost } from './components/common/Modal';
+import { PopupHost } from './components/common/Popup';
 import { onMounted, onBeforeUnmount, nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCacheStore } from './stores/pinia-store';
+
 import * as APIUser from './api/user';
 
 import Header from "./components/common/Header/Header.vue";
@@ -40,11 +42,11 @@ function preloadImage(src: string): Promise<void> {
     const img = new Image();
     img.decoding = 'async';
     img.loading = 'eager';
-    img.referrerPolicy = 'no-referrer'; // безопасно по умолчанию
+    img.referrerPolicy = 'no-referrer';
     img.onload = () => resolve();
-    img.onerror = () => resolve();      // не блокируем старт из-за ошибки
+    img.onerror = () => resolve();
     img.src = src;
-    if (img.complete) resolve();        // мгновенно, если уже в кэше
+    if (img.complete) resolve();
   });
 }
 async function preloadImages(list: string[]) {
@@ -102,11 +104,7 @@ onMounted(async () => {
   if (init) {
     useCache.UserData = { ...init.user };
     initStartApp(initData.start_param);
-
-    // ⬇️ ждём кэш изображений перед показом приложения
     await preloadImages(IMAGES_TO_PRELOAD);
-
-    // маленькая задержка для плавности
     setTimeout(() => { loading.value = false; }, 300);
   }
 });
@@ -117,6 +115,7 @@ onMounted(async () => {
     <div v-if="!loading" class="page">
       <Header />
       <ModalHost />
+      <PopupHost />
       <RouterView />
       <Menu />
     </div>

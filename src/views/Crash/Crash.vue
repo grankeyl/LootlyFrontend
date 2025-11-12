@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { msToWholeSec } from "../../utils/useApp";
 import { showErrorToast, showSuccessToast } from "../../utils/toastManager";
 import { useCacheStore } from "../../stores/pinia-store";
 import { tonToNano } from "../../utils/useTon";
+import { usePopup } from "../../components/common/Popup";
 
 import * as APICrash from "./../../api/crash";
 
@@ -12,12 +13,15 @@ import Tabs from "./Components/Tabs/Tabs.vue";
 import Users from "./Components/Users/Users.vue";
 import Header from "../../components/common/Header/Header.vue";
 import TelegramModule from "../../hooks/useTelegram";
+import AutoXPopup from "./Components/Popups/AutoX.vue";
+
+const { open } = usePopup();
 
 const useCache = useCacheStore() as any;
 const pageRef = ref<HTMLElement | null>(null);
 
 const GameStatus = ref<string>("loading");
-const GameBettingEtaMs = ref<number>(7);
+const GameBettingEtaMs = ref<number>(3);
 const GameX = ref<number>(0);
 const GameBet = ref<number>(0.1);
 const GameBetLoading = ref<boolean>(false);
@@ -29,6 +33,8 @@ const GameOnline = ref<number>(2);
 const GameAutoX = ref<number>(1.1);
 const GameAutoXText = ref<string>('');
 const GameAutoWithdraw = ref(false);
+
+const GameAutoBet = ref(false);
 
 const FastBetList = ref<object>([
   { id: 1, price: 1 },
@@ -57,7 +63,7 @@ onMounted(() => {
     try {
       const msg = JSON.parse(e.data);
       const msgData = msg;
-      // console.log(msg);
+      console.log(msg);
 
       if (msgData.last_crashes) {  GameLastCrashes.value = msgData.last_crashes; }
       if (msgData.bets) {  GameBets.value = msgData.bets; }
@@ -138,6 +144,29 @@ async function placeBit(payload: any) {
 function setGameBetActual(value: number) {
   GameBetActual.value = value;
 }
+
+async function openAutoXPopup() {
+  const choose = open(AutoXPopup, {
+    GameAutoX: GameAutoX.value,
+    OnSetGameAutoX: (x: number) => GameAutoX.value = x,
+  });
+  const dest = await choose.done.catch(() => null);
+  if (!dest) return;
+}
+
+watch(() => GameStatus.value, (v) => {
+  if (!GameAutoBet.value) return;
+  if (v === 'prepare') {
+    setTimeout(() => placeBit({ bet: GameBet.value }), 350);
+  }
+});
+
+watch(() => GameAutoBet.value, (v) => {
+  if (GameStatus.value !== 'prepare') return;
+  if (v) {
+    setTimeout(() => placeBit({ bet: GameBet.value }), 350);
+  }
+});
 </script>
 
 <template>
@@ -152,10 +181,12 @@ function setGameBetActual(value: number) {
         :GameBettingEtaMs="GameBettingEtaMs"
         :GameX="GameX"
         :GameOnline="GameOnline"
+        :GameLastCrashes="GameLastCrashes"
       />
       <Tabs 
         @SetFastBet="GameBet = $event"
         @SetGameBetActual="setGameBetActual"
+        @OpenAutoXPopup="openAutoXPopup"
         @PlaceBit="placeBit"
 
         :GameX="GameX"
@@ -172,9 +203,15 @@ function setGameBetActual(value: number) {
         :GameAutoXText="GameAutoXText"
         :GameAutoWithdraw="GameAutoWithdraw"
 
+        @SetGameAutoBet="GameAutoBet = $event"
+
+        :GameAutoBet="GameAutoBet"
+
         :FastBetList="FastBetList"
       />
       <Users
+        :GameX="GameX"
+        :GameStatus="GameStatus"
         :GameBets="GameBets"
       />
     </div>

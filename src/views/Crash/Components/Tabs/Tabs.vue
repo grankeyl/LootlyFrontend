@@ -15,10 +15,12 @@ type FastBet = { id: number; price: number };
 const emit = defineEmits<{
   (e:'set-fast-bet', payload: number): void
   (e:'set-game-bet-actual', payload: number): void
+  (e:'open-auto-x-popup'): void
   (e:'place-bit', payload: any): void
   (e:'set-game-auto-x', payload: number): void
   (e:'set-game-auto-x-text', payload: string): void
   (e:'set-game-auto-withdraw', payload: boolean): void
+  (e:'set-game-auto-bet', payload: boolean): void
 }>();
 
 const props = defineProps<{
@@ -31,6 +33,8 @@ const props = defineProps<{
   GameAutoX: number;
   GameAutoXText: string;
   GameAutoWithdraw: boolean;
+
+  GameAutoBet: boolean;
   
   FastBetList: FastBet[] | any;
 }>();
@@ -46,10 +50,10 @@ const betList = computed(() => props.FastBetList ?? []);
 const betActual = computed(() => {
   return props.GameBetActual * props.GameX;
 });
-const lastCrashes = computed(() => {
-  if (!props.GameLastCrashes) return [];
-  return [...props.GameLastCrashes].slice(-12).reverse();
-});
+// const lastCrashes = computed(() => {
+//   if (!props.GameLastCrashes) return [];
+//   return [...props.GameLastCrashes].slice(-12).reverse();
+// });
 
 function fastBetUse(
   price: number
@@ -107,9 +111,10 @@ async function useCashout(
   if (props.GameStatus !== 'playing') return;
   const res = await APICrash.cashout(userId).catch(() => null);
   if (res?.status !== 'ok') return;
-
-  showSuccessToast(`Success get cashout ${res.payout} TON!`);
-  emit('set-game-bet-actual', 0);
+  if (res.settled) {
+    showSuccessToast(`Success get cashout ${res.settled.payout} TON!`);
+    emit('set-game-bet-actual', 0);
+  }
 }
 
 async function usePlaceBit() {
@@ -131,7 +136,16 @@ async function usePlaceBit() {
 
 function useAutoWithdraw() {
   if (props.GameStatus !== 'prepare') return;
+  if (props.GameBetActual) return;
   emit('set-game-auto-withdraw', !props.GameAutoWithdraw);
+}
+
+function useAutoBet() {
+  emit('set-game-auto-bet', !props.GameAutoBet);
+}
+
+function useOpenAutoXPopup() {
+  emit('open-auto-x-popup');
 }
 
 const statusBet = computed(() => {
@@ -159,7 +173,7 @@ watch(() => props.GameX, (v: any) => {
 
 <template>
   <div class="tabs">
-    <div class="latests">
+    <!-- <div class="latests">
       <div class="item now">
           <h4 v-if="props.GameX && props.GameX > 0">{{ cutNumber(props.GameX) }}</h4>
           <h4 v-else>Now</h4>
@@ -167,26 +181,24 @@ watch(() => props.GameX, (v: any) => {
       <div class="item" v-for="(item, index) in lastCrashes" :key="index">
           <h4>{{ cutNumber(item) }}</h4>
       </div>
-    </div>
+    </div> -->
     <div class="actions">
-      <div class="tools" :class="{ locked: props.GameStatus !== 'prepare' }">
-        <div class="autowithdraw" @click="useAutoWithdraw()">
+      <div class="tools">
+        <div class="autobet" @click="useAutoBet()">
+          <div class="sel" :class="{ active: props.GameAutoBet }">
+            <div class="kit-icon" v-html="Icon.Done"></div>
+          </div>
+          <h4>Auto-bet</h4>
+        </div>
+        <div class="autowithdraw" :class="{ locked: props.GameStatus !== 'prepare' || props.GameBetActual }" @click="useAutoWithdraw()">
           <div class="sel" :class="{ active: props.GameAutoWithdraw }">
             <div class="kit-icon" v-html="Icon.Done"></div>
           </div>
           <h4>Auto-withdraw</h4>
         </div>
-        <div class="value" :class="{ locked: !props.GameAutoWithdraw }">
-          <input
-            type="text"
-            inputmode="decimal"
-            autocomplete="off"
-            placeholder="Auto x"
-            :value="props.GameAutoX + 'x'"
-            @input="onPriceInput($event, 2, 'auto')"
-            @blur="onPriceBlur($event, 2, 'auto')"
-          />
-          <span class="suffix">x</span>
+        <div class="value" :class="{ locked: !props.GameAutoWithdraw }" @click="useOpenAutoXPopup()">
+          <h4>{{ cutNumber(props.GameAutoX) }}x</h4>
+          <div class="kit-icon" v-html="Icon.Pen"></div>
         </div>
       </div>
       <div class="top">

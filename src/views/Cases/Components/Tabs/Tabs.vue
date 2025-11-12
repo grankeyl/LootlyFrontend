@@ -27,7 +27,7 @@ const SwitchTab = (tab: string) => {
         @click="SwitchTab('nfts')" 
         :class="{ active: CheckActiveTab('nfts') }"
       >
-        <h4>NFTs</h4>
+        <h4>{{ $t('cases.tabs.NFTs') }}</h4>
         <img :src="TelegramIcon" alt="telegram icon" />
       </div>
       <!-- <div 

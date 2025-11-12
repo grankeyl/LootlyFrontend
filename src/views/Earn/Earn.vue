@@ -29,8 +29,7 @@ async function openWithdrawReferrals() {
 }
 
 async function openBalanceAbout() {
-  const choose = open(BalanceAboutModal, {
-  });
+  const choose = open(BalanceAboutModal, {});
   const dest = await choose.done.catch(() => null);
   if (!dest) return;
 }

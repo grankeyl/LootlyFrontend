@@ -5,12 +5,15 @@ export const localization = {
         },
 
         menu: {
-            cases: "Кейсы",
+            cases: "Игры",
             market: "Маркет",
             earn: "Задания",
             profile: "Профиль",
         },
         cases: {
+            tabs: {
+                NFTs: "Кейсы",
+            },
             modals: {
                 case: {
                     congrats: "Поздравляем!",

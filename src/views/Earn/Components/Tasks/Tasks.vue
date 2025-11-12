@@ -14,7 +14,7 @@ const skeleton = ref(true);
 
 setTimeout(() => {
   skeleton.value = false;
-}, 1000);
+}, 0);
 
 function useTask() {
   const link = 'https://t.me/LootlyNews';

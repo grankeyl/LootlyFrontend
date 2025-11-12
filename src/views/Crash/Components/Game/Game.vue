@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed } from "vue";
 import { gsap } from "gsap";
 import { cutNumber } from "../../../../utils/useTon";
 
@@ -18,6 +18,7 @@ const props = defineProps<{
   GameBettingEtaMs: number,
   GameX: number,
   GameOnline: number,
+  GameLastCrashes: any,
 }>();
 
 const gameStage = ref<Stage>(props.GameStatus as Stage);
@@ -80,6 +81,11 @@ const boomRef = ref<HTMLDivElement|null>(null);
 
 let flameTl: gsap.core.Timeline | null = null;
 let swayTl: gsap.core.Timeline | null = null;
+
+const lastCrashes = computed(() => {
+  if (!props.GameLastCrashes) return [];
+  return [...props.GameLastCrashes].slice(-12).reverse();
+});
 
 function startFlame() {
   if (flameTl) { flameTl.kill(); flameTl = null; }
@@ -376,6 +382,9 @@ function stopWind() {
   }
 }
 
+const mountedOnce = ref(false);
+const prevStage = ref<Stage>('loading');
+
 function crashNow() {
   // if (gameStage.value !== 'playing') return;
   if (playingTween) { playingTween.kill(); playingTween = null; }
@@ -392,7 +401,6 @@ function crashNow() {
   if (rocketImgRef.value) {
     gsap.to(rocketImgRef.value, { opacity: 0, duration: 0.3, ease: "power1.out" });
   }
-  // emit('SetGameX', 0);
   window.setTimeout(() => startPrepare(), 2500);
 }
 
@@ -406,34 +414,39 @@ watch(() => gameStage.value, (v) => {
 });
 
 onMounted(() => {
-  if (props.GameStatus === 'prepare') { startPrepare(); }
-  if (props.GameStatus === 'playing') { startPlaying(); }
+  if (props.GameStatus === 'prepare') { startPrepare(); return; }
+  if (props.GameStatus === 'playing') { startPlaying(); return; }
   if (props.GameStatus === 'completed') { 
-    crashNow(); 
+    mountedOnce.value = true;
   }
 });
 
 watch(() => props.GameStatus, (v) => {
+  const from = prevStage.value;
+  prevStage.value = v as Stage;
   gameStage.value = v as Stage;
-  if (v === 'prepare') { startPrepare(); }
-  if (v === 'playing') { startPlaying(); }
-  if (v === 'completed') { 
-    crashNow();
+
+  if (v === 'prepare') { startPrepare(); return; }
+  if (v === 'playing') { startPlaying(); return; }
+  if (v === 'completed') {
+    if (from === 'playing') {
+      crashNow();
+    } else {
+      mountedOnce.value = true;
+    }
   }
 });
 
 watch(() => props.GameX, (v) => {
+  if (!v) return gamePlayingX.value;
   pulseValue();
   gamePlayingX.value = v;
 });
 
-// рядом с другими refs
 const timerDigitRef = ref<HTMLSpanElement|null>(null);
 
-// ...ниже, после startPrepare() или в конце script:
 watch(gamePrepareTime, () => {
   if (!timerDigitRef.value) return;
-  // короткий «вылет» с сильным зумом и блюром
   gsap.fromTo(
     timerDigitRef.value,
     { scale: 2.8, y: 6, opacity: 0, filter: "blur(20px)" },
@@ -441,7 +454,6 @@ watch(gamePrepareTime, () => {
   );
 });
 
-// первый показ — тоже анимнём
 onMounted(() => {
   if (timerDigitRef.value) {
     gsap.fromTo(
@@ -454,14 +466,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="game" :class="{ completed: gameStage === 'completed' }">
+  <div class="game" 
+    :class="{ 
+      completed: gameStage === 'completed',
+    }">
     <div class="game-bg-symbols" :class="{ active: gameStage !== 'prepare' }">
       <img :src="GameBgSymbolsImage" alt="bg" />
     </div>
 
-    <div class="game-online">
-      <h4>{{ props.GameOnline }} players</h4>
-      <span class="online-dot" aria-hidden="true"></span>
+    <div class="game-info">
+      <div class="latests">
+        <div class="item now">
+            <h4 v-if="props.GameX && props.GameX > 0">{{ cutNumber(props.GameX) }}</h4>
+            <h4 v-else>Now</h4>
+        </div>
+        <div class="item" v-for="(item, index) in lastCrashes" :key="index">
+            <h4>{{ cutNumber(item) }}</h4>
+        </div>
+      </div>
+      <div class="game-online">
+        <h4>{{ props.GameOnline }} players</h4>
+        <span class="online-dot" aria-hidden="true"></span>
+      </div>
     </div>
 
     <div v-if="gameStage === 'loading'" class="game-loading">
@@ -476,10 +502,10 @@ onMounted(() => {
 
     <div v-if="gameStage === 'playing' || gameStage === 'completed'" class="game-game">
       <div class="game-value" ref="valueRef" :class="{ completed: gameStage === 'completed' }">
-        <p>{{ cutNumber(gamePlayingX) }}</p>
+        <p>{{ cutNumber(gamePlayingX) || 0.00 }}</p>
         <span>x</span>
       </div>
-      <div class="game-weerh">
+      <div v-if="!mountedOnce" class="game-weerh">
         <div class="wind-viewport">
           <div class="wind-wrap" ref="windWrapRef">
             <svg 
@@ -540,7 +566,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="game-stage" ref="stageRef">
+      <div v-if="!mountedOnce" class="game-stage" ref="stageRef">
         <div class="stage-wobble" ref="wobbleRef">
           <svg ref="svgRef" class="traj" preserveAspectRatio="none">
             <defs>
@@ -683,4 +709,5 @@ onMounted(() => {
 .wind-viewport { position: absolute; inset: 0; overflow: hidden; }
 .wind-wrap { display: flex; width: max-content; will-change: transform; }
 .wind-svg { flex-shrink: 0; width: 313px; height: 132px; }
+
 </style>
