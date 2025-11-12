@@ -63,7 +63,6 @@ onMounted(() => {
     try {
       const msg = JSON.parse(e.data);
       const msgData = msg;
-      console.log(msg);
 
       if (msgData.last_crashes) {  GameLastCrashes.value = msgData.last_crashes; }
       if (msgData.bets) {  GameBets.value = msgData.bets; }
@@ -206,8 +205,8 @@ watch(() => GameAutoBet.value, (v) => {
         @SetGameAutoBet="GameAutoBet = $event"
 
         :GameAutoBet="GameAutoBet"
-
         :FastBetList="FastBetList"
+        :GameBets="GameBets"
       />
       <Users
         :GameX="GameX"

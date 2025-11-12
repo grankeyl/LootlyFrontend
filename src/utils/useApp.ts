@@ -85,4 +85,31 @@ export const getImgSvg = (uri: string) => {
   return `${bucketsLink}${uri}`;
 }
 
+export async function waitForFonts(
+  families: string[] = ['SFRounded'],
+  weights: (number | string)[] = [100,300,400,500,600,700,800,900],
+  styles: string[] = ['normal'],
+  timeoutMs = 4000
+) {
+  if (typeof document === 'undefined' || !('fonts' in document)) {
+    await new Promise(r => setTimeout(r, 600));
+    return;
+  }
+
+  const loads: Promise<FontFace[]>[] = [];
+  for (const fam of families) {
+    for (const w of weights) {
+      for (const st of styles) {
+        loads.push(document.fonts.load(`${st} ${w} 1rem "${fam}"`));
+      }
+    }
+  }
+
+  const all = Promise.allSettled(loads);
+  const t = new Promise<void>(r => setTimeout(r, timeoutMs));
+  await Promise.race([all.then(() => undefined), t]);
+
+  try { await (document.fonts as FontFaceSet).ready; } catch {}
+}
+
 export { msToWholeSec, getUserLanguage, unixToDefault, unixToRelative, randomString, cleanString };

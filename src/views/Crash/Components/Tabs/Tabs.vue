@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { cutNumber } from "../../../../utils/useTon";
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { Icon } from "../../../../components/Icon";
@@ -35,8 +35,8 @@ const props = defineProps<{
   GameAutoWithdraw: boolean;
 
   GameAutoBet: boolean;
-  
   FastBetList: FastBet[] | any;
+  GameBets: any;
 }>();
 
 const skeleton = ref(true);
@@ -50,6 +50,14 @@ const betList = computed(() => props.FastBetList ?? []);
 const betActual = computed(() => {
   return props.GameBetActual * props.GameX;
 });
+
+const checkMyBet = computed(() => {
+  if (!props.GameBets) return false;
+  const initData = TelegramModule.initData() as any;
+  const userId = initData.user.id;
+  return props.GameBets.find((b: any) => b.user_id === userId && b.status === 'active');
+});
+
 // const lastCrashes = computed(() => {
 //   if (!props.GameLastCrashes) return [];
 //   return [...props.GameLastCrashes].slice(-12).reverse();
@@ -169,6 +177,22 @@ watch(() => props.GameX, (v: any) => {
     emit('set-game-bet-actual', 0);
   };
 });
+
+onMounted(() => {
+  const initData = TelegramModule.initData() as any;
+  const userId = initData.user.id;
+  const bet = props.GameBets.find((b: any) => b.user_id === userId && b.status === 'active');
+  console.log(bet);
+  emit('set-game-bet-actual', bet?.amount ?? 0);
+});
+
+watch(() => props.GameBets, (v: any) => {
+  const initData = TelegramModule.initData() as any;
+  const userId = initData.user.id;
+  const bet = v.find((b: any) => b.user_id === userId && b.status === 'active');
+  console.log(bet);
+  emit('set-game-bet-actual', bet?.amount ?? 0);
+});
 </script>
 
 <template>
@@ -190,6 +214,7 @@ watch(() => props.GameX, (v: any) => {
           </div>
           <h4>Auto-bet</h4>
         </div>
+
         <div class="autowithdraw" :class="{ locked: props.GameStatus !== 'prepare' || props.GameBetActual }" @click="useAutoWithdraw()">
           <div class="sel" :class="{ active: props.GameAutoWithdraw }">
             <div class="kit-icon" v-html="Icon.Done"></div>
@@ -226,13 +251,13 @@ watch(() => props.GameX, (v: any) => {
           <button v-if="statusBet === 'none'" class="locked">
             <h4>Place Bit</h4>
           </button>
-          <button v-if="statusBet === 'waiting'">
+          <button v-if="statusBet === 'waiting' && checkMyBet">
             <h4>Waiting</h4>
           </button>
-          <button v-if="statusBet === 'prepare'" @click="usePlaceBit">
+          <button v-if="statusBet === 'prepare' && (GameStatus === 'prepare')" @click="usePlaceBit">
             <h4>Place Bit</h4>
           </button>
-          <button v-if="statusBet === 'playing'" @click="usePlaceBit">
+          <button v-if="statusBet === 'playing' || (checkMyBet && GameStatus === 'playing')" @click="usePlaceBit">
             <h4>Pick up {{ cutNumber(betActual) }}</h4>
             <img :src="TonBlackIcon" alt="ton-icon" aria-hidden="true" />
           </button>

@@ -4,6 +4,7 @@ import { PopupHost } from './components/common/Popup';
 import { onMounted, onBeforeUnmount, nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCacheStore } from './stores/pinia-store';
+import { waitForFonts } from './utils/useApp';
 
 import * as APIUser from './api/user';
 
@@ -104,8 +105,15 @@ onMounted(async () => {
   if (init) {
     useCache.UserData = { ...init.user };
     initStartApp(initData.start_param);
-    await preloadImages(IMAGES_TO_PRELOAD);
-    setTimeout(() => { loading.value = false; }, 300);
+
+    // ЖДЁМ И КАРТИНКИ, И ШРИФТЫ
+    await Promise.all([
+      preloadImages(IMAGES_TO_PRELOAD),
+      waitForFonts(['SFRounded'], [100,300,400,500,600,700,800,900], ['normal'], 4500),
+    ]);
+
+    // небольшой лаг, чтобы исключить рывок макета
+    setTimeout(() => { loading.value = false; }, 120);
   }
 });
 </script>
