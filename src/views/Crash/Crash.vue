@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { msToWholeSec } from "../../utils/useApp";
-import { showErrorToast, showSuccessToast } from "../../utils/toastManager";
+import { showErrorToast } from "../../utils/toastManager";
 import { useCacheStore } from "../../stores/pinia-store";
 import { tonToNano } from "../../utils/useTon";
 import { usePopup } from "../../components/common/Popup";
