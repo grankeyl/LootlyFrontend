@@ -62,8 +62,11 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      min-height: 56px;
+      min-height: 62px;
       width: 100%;
+      border-bottom: 1px solid var(--bg-4);
+
+      &:last-child { border-bottom: none; }
 
       .number, .image { flex: 0 0 auto; }
       .name { flex: 1 1 0; min-width: 0; }
@@ -185,7 +188,7 @@
           margin-left: 6px;
 
           h4 {
-            font-weight: 700;
+            font-weight: 500;
             font-size: 1.4rem;
             color: var(--color-primary);
             line-height: 1;
@@ -230,7 +233,7 @@
           }
 
           h4 {
-            font-weight: 700;
+            font-weight: 500;
             font-size: 1.4rem;
             color: var(--color-white);
             line-height: 1;

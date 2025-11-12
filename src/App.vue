@@ -15,6 +15,7 @@ import TelegramModule from './hooks/useTelegram';
 // Images
 import LogotypeImage from './assets/images/logotype.svg';
 import BlockBgImage from './assets/images/cases-pg/block-bg.png';
+import RocketImage from "./assets/images/crash-pg/rocket.png";
 
 const router = useRouter();
 const loading = ref(true);
@@ -25,6 +26,7 @@ let removeHook: (() => void) | undefined;
 const IMAGES_TO_PRELOAD: string[] = [
   LogotypeImage,
   BlockBgImage,
+  RocketImage,
 
   'https://lootly.codes/s3/rewards/ton.webp',
   'https://lootly.codes/s3/cases/covers/Pink_Case.webp',
