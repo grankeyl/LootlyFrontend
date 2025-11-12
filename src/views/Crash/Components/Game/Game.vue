@@ -414,8 +414,14 @@ watch(() => gameStage.value, (v) => {
 });
 
 onMounted(() => {
-  if (props.GameStatus === 'prepare') { startPrepare(); return; }
-  if (props.GameStatus === 'playing') { startPlaying(); return; }
+  if (props.GameStatus === 'prepare') { 
+    mountedOnce.value = false;
+    startPrepare(); return; 
+  }
+  if (props.GameStatus === 'playing') { 
+    mountedOnce.value = false;
+    startPlaying(); return; 
+  }
   if (props.GameStatus === 'completed') { 
     mountedOnce.value = true;
   }
@@ -426,8 +432,14 @@ watch(() => props.GameStatus, (v) => {
   prevStage.value = v as Stage;
   gameStage.value = v as Stage;
 
-  if (v === 'prepare') { startPrepare(); return; }
-  if (v === 'playing') { startPlaying(); return; }
+  if (v === 'prepare') { 
+    mountedOnce.value = false;
+    startPrepare(); return; 
+  }
+  if (v === 'playing') { 
+    mountedOnce.value = false;
+    startPlaying(); return; 
+  }
   if (v === 'completed') {
     if (from === 'playing') {
       crashNow();

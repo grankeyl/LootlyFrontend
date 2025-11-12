@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
-import { cutNumber } from "../../../../utils/useTon";
+import { cutNumber, tonToNano } from "../../../../utils/useTon";
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { Icon } from "../../../../components/Icon";
+import { useCacheStore } from "../../../../stores/pinia-store";
 
 import * as APICrash from "../../../../api/crash";
 
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
 import TelegramModule from "../../../../hooks/useTelegram";
+
+const useCache = useCacheStore() as any;
 
 type FastBet = { id: number; price: number };
 
@@ -113,6 +116,10 @@ const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
   }
 };
 
+function toBigInt(v: unknown): bigint {
+  return typeof v === 'bigint' ? v : BigInt(String(v ?? 0));
+}
+
 async function useCashout(
   userId: number
 ) {
@@ -120,8 +127,15 @@ async function useCashout(
   const res = await APICrash.cashout(userId).catch(() => null);
   if (res?.status !== 'ok') return;
   if (res.settled) {
-    showSuccessToast(`Success get cashout ${res.settled.payout} TON!`);
-    emit('set-game-bet-actual', 0);
+    res.settled.forEach((s: any) => {
+      showSuccessToast(`Success get cashout ${s.payout} TON!`);
+
+      const betNano = tonToNano(s.payout);
+      const current = toBigInt(useCache.UserData.BalanceNano);
+      useCache.UserData.BalanceNano = current + betNano;
+      
+      emit('set-game-bet-actual', 0);
+    });
   }
 }
 
@@ -174,6 +188,9 @@ watch(() => props.GameX, (v: any) => {
 
   if (v >= props.GameAutoX) {
     showSuccessToast(`Success get cashout ${cutNumber(betActual.value)} TON!`);
+    const betNano = tonToNano(betActual.value);
+    const current = toBigInt(useCache.UserData.BalanceNano);
+    useCache.UserData.BalanceNano = current + betNano;
     emit('set-game-bet-actual', 0);
   };
 });

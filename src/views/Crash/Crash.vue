@@ -119,6 +119,7 @@ async function placeBit(payload: any) {
 
   if (current < betNano) {
     showErrorToast('Not enough TON');
+    GameAutoBet.value = false;
     return;
   }
 
@@ -136,7 +137,6 @@ async function placeBit(payload: any) {
     useCache.UserData.BalanceNano = current - betNano;
     GameBetActual.value += bet;
     GameBetLoading.value = false;
-    showSuccessToast('Placed bit');
   }
 }
 

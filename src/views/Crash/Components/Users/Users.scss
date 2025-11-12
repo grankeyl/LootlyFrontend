@@ -55,14 +55,13 @@
   .items {
     display: flex;
     flex-direction: column;
-    gap: 6px;
     width: 100%;
 
     .item {
       display: flex;
       align-items: center;
       gap: 14px;
-      min-height: 62px;
+      min-height: 66px;
       width: 100%;
       border-bottom: 1px solid var(--bg-4);
 
@@ -242,13 +241,6 @@
 
           svg { width: 18px; height: 18px; display: block; }
           :deep(svg) { width: 18px; height: 18px; display: block; }
-        }
-
-        @media (hover: hover) {
-          .chip:hover {
-            background: rgba(255,255,255,0.08);
-            outline-color: rgba(255,255,255,0.12);
-          }
         }
       }
     }
