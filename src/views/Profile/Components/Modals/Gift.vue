@@ -53,6 +53,7 @@ async function quickSell(
 
   useCache.UserData.BalanceNano = res.new_balance;
   close();
+  TelegramModule.useMediumHaptic();
   emit("quick-sell-success", {
     id: id,
     status: "sold",

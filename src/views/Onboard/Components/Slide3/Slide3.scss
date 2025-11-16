@@ -1,0 +1,285 @@
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    max-width: var(--max-width);
+    pointer-events: none;
+    z-index: 0;
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.slide3 {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: var(--padding-left);
+  gap: 35px;
+  z-index: 11;
+  position: relative;
+  
+  .ticker {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; 
+    overflow: hidden;
+
+    .item {
+      position: relative;
+      height: 100%;
+    }
+
+    .effect {
+      position: absolute;
+      top: -8%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(2.1);
+    }
+
+    .ticker-bg {
+      position: absolute;
+      top: -8%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+      img {
+        width: 100%; height: 100%;
+        animation: rotate 11s linear infinite;
+        object-fit: contain;
+      }
+    }
+
+    .ticker-item {
+      position: absolute;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: fit-content;
+      height: fit-content;
+      object-fit: cover;
+
+      img {
+        width: 170px;
+        height: 197px;
+        object-fit: cover;
+        animation: none;
+        transform: scale(1);
+      }
+    }
+
+    .ticker-bottom{
+      position:absolute; left:0; right:0; bottom:0; z-index:2;
+      max-height: 460px;
+      pointer-events:none;
+
+      /* 1) Маска для БЛЮРА */
+      &::before{
+        content:"";
+        position:absolute; inset:-48px 0 0 0;     /* подними зону вверх как в макете */
+        /* важно: слой должен быть НЕ полностью прозрачным */
+        background: rgba(0, 0, 0, 0.001);        /* микро-альфа, чтобы включить backdrop */
+        -webkit-backdrop-filter: blur(24px);
+                backdrop-filter: blur(24px);
+        /* маска: сверху видим, к низу исчезает */
+        -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 60%,transparent 100%);
+                mask-image: linear-gradient(to bottom,#000 0%,#000 60%,transparent 100%);
+        border-radius: 24px;
+        opacity: .2;
+      }
+
+      /* 2) Отдельный ТЕНЕВОЙ градиент (как в Figma Fill) */
+      &::after{
+        content:"";
+        position:absolute; inset:-48px 0 0 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(13,13,15,0) 0%,
+          rgba(13,13,15,1) 55%,
+          rgba(13,13,15,1) 100%
+        );
+        border-radius: 24px;
+      }
+    }
+  }
+
+  .context {
+    width: 100%;
+    height: fit-content;
+    position: absolute;
+    bottom: 24%;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 10px;
+    z-index: 5;
+    padding: 0 var(--padding-left);
+
+    @media screen and (max-height: 768px) {
+      bottom: 27%;
+    }
+
+    @media screen and (max-height: 679px) {
+      bottom: 29%;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      h4 {
+        max-width: 420px;
+        font-weight: 600;
+        font-size: 37px;
+        line-height: 43px;
+        color: var(--color-white);
+
+        span {
+          width: fit-content;
+          height: 37px;
+          display: inline-flex;
+          background: rgba(#EFBD50, 0.2);
+          border-radius: 30px;
+          padding: 0 14px;
+          align-items: center;
+          rotate: -7deg;
+
+          :deep(svg) {
+            width: 21px;
+            height: 21px;
+            transform: translate(-3px, -2px);
+
+            path {
+              fill: var(--color-gold);
+            }
+          }
+
+          p {
+            font-weight: 600;
+            font-size: 1.8rem;          
+            color: var(--color-gold);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* === ENTRANCE ANIMS === */
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(18px) scale(.98); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes fadeInSoft {
+  0% { opacity: 0; transform: scale(.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* === LOOP ANIMS (subtle, “живые”) === */
+@keyframes floatY {
+  0%,100% { transform: translate(-50%, -50%) translateY(0); }
+  50%     { transform: translate(-50%, -50%) translateY(-8px); }
+}
+@keyframes tiltSoft {
+  0%,100% { transform: rotate(-1deg); }
+  50%     { transform: rotate(1.2deg); }
+}
+@keyframes drift {
+  0%,100% { transform: translateY(0) scale(2.1); }
+  50%     { transform: translateY(-10px) scale(2.14); }
+}
+@keyframes wobbleX {
+  0%,100% { transform: rotate(-7deg) translateZ(0); }
+  50%     { transform: rotate(-4deg) translateZ(0); }
+}
+
+/* уважение к уменьшению движения */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+.slide3 {
+  /* начальные состояния для входа */
+  .ticker .ticker-bg,
+  .ticker .ticker-item,
+  .ticker .ticker-bottom,
+  .context .title h4,
+  .context .title h4 .market {
+    opacity: 0;
+  }
+
+  /* когда добавим класс .is-in – всё красиво входит */
+  &.is-in {
+    .ticker .ticker-bg      { animation: fadeInSoft .6s ease-out forwards; }
+    .ticker .ticker-item    { animation: fadeUp .5s ease-out .08s forwards; }
+    .ticker .ticker-bottom  { animation: fadeUp .55s ease-out .12s forwards; }
+    .context .title h4      { animation: fadeUp .48s ease-out .18s forwards; }
+    .context .title h4 .market { animation: fadeUp .48s ease-out .26s forwards; }
+  }
+
+  .ticker {
+    /* существующий rotate оставляем */
+    .ticker-bg img {
+      will-change: transform;
+      animation: rotate 11s linear infinite;
+    }
+
+    /* мягкий дрейф “эффекта” фона */
+    .effect {
+      will-change: transform;
+      animation: drift 6.4s ease-in-out infinite;
+    }
+
+    /* предмет “дышит” и слегка наклоняется */
+    .ticker-item img {
+      will-change: transform, filter;
+      transform-origin: 50% 55%;
+      animation:
+        floatY 3.8s ease-in-out infinite,
+        glowPulse 2.8s ease-in-out infinite;
+    }
+  }
+
+  .context {
+    .title h4 {
+      will-change: transform, opacity;
+      .market {
+        will-change: transform, opacity;
+        animation: wobbleX 3.6s ease-in-out infinite;
+        /* лёгкая подсветка текста */
+      }
+    }
+  }
+
+  /* лёгкое “дыхание” нижнего блюра */
+  .ticker-bottom::after {
+    will-change: opacity, transform;
+    animation: fadeInSoft .6s ease-out both, 
+               /* тонкая пульсация, почти незаметная */
+               glowPulse 5.5s ease-in-out infinite;
+  }
+}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed, onUnmounted } from "vue";
 import { gsap } from "gsap";
 import { cutNumber } from "../../../../utils/useTon";
 
@@ -7,6 +7,7 @@ import { cutNumber } from "../../../../utils/useTon";
 import GameBgSymbolsImage from "@/assets/images/crash-pg/game-bg-symbols.png";
 import RocketImage from "@/assets/images/crash-pg/rocket.png";
 import Lottie from "../../../../components/Lottie.vue";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 type Stage = 'loading' | 'prepare' | 'playing' | 'completed';
 
@@ -122,7 +123,7 @@ function startFlame() {
 }
 
 function startPrepare() {
-  gamePrepareTime.value = props.GameBettingEtaMs || 7;
+  gamePrepareTime.value = props.GameBettingEtaMs || 3;
 
   if (gamePrepareTimeInterval.value) window.clearInterval(gamePrepareTimeInterval.value);
   gamePrepareTimeInterval.value = window.setInterval(() => {
@@ -133,8 +134,14 @@ function startPrepare() {
       return;
     }
     gamePrepareTime.value--;
+    TelegramModule.useMediumHaptic();
   }, 1000);
 }
+
+onUnmounted(() => {
+  // @ts-ignore
+  gamePrepareTimeInterval.value = null;
+});
 
 function runLineReveal(duration = 2) {
   const w = svgRef.value!.clientWidth || 320;
@@ -442,6 +449,7 @@ watch(() => props.GameStatus, (v) => {
   }
   if (v === 'completed') {
     if (from === 'playing') {
+      TelegramModule.useNotifyErrorHaptic();
       crashNow();
     } else {
       mountedOnce.value = true;

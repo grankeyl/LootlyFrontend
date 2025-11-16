@@ -13,6 +13,7 @@ import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import EmptyImage from "@/assets/images/profile-pg/empty.svg";
 import LogotypeImage from "@/assets/images/logotype.svg";
 import { useRouter } from "vue-router";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 type Gift = any;
 
@@ -284,6 +285,7 @@ function openItem(g: Gift) {
   if (g.status === "sold") return;
   if (g.status === "received") return;
   if (g.status === "reserve") return;
+  TelegramModule.useLightHaptic();
   emit("open-modal", g); 
 }
 </script>

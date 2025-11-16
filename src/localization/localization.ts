@@ -89,6 +89,16 @@ export const localization = {
                     buttons: {
                         ok: "Отлично",
                     }
+                },
+                chooseDestination: {
+                    title: "Куда отправляем?",
+                    descr: "Выводим на игровой баланс Lootly или на внешний TON адрес",
+                    needConnect: "Подключи кошелёк",
+                    wallet: "Кошелёк",
+                    lootlyBalance: "Lootly баланс",
+                    buttons: {
+                        ok: "Отлично",
+                    }
                 }
             }
         },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useModal } from "../../components/common/Modal";
 
 // Components
@@ -9,6 +9,7 @@ import Tabs from "./Components/Tabs/Tabs.vue";
 import Cases from "./Components/Cases/Cases.vue";
 import Case from "./Components/Modals/Case.vue";
 import NotEnoght from "./Components/Modals/NotEnoght.vue";
+import TelegramModule from "../../hooks/useTelegram";
 
 const { open } = useModal();
 
@@ -34,6 +35,10 @@ async function openNotEnough(payload: any) {
   const dest = await choose.done.catch(() => null);
   if (!dest) return;
 }
+
+onMounted(() => {
+  TelegramModule.hideBackButton();
+});
 </script>
 
 <template>

@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useModal } from './../../components/common/Modal';
 import { useCacheStore } from '../../stores/pinia-store';
 import { useRoute } from 'vue-router';
+import { showSuccessToast } from '../../utils/toastManager';
 
 import * as APIUser from './../../api/user';
 
@@ -14,7 +15,7 @@ import GiftModal from './Components/Modals/Gift.vue';
 import WithdrawGiftModal from './Components/Modals/WithdrawGift.vue';
 
 import Backdrop from "@/assets/images/profile-pg/bg-blured.png";
-import { showSuccessToast } from '../../utils/toastManager';
+import TelegramModule from '../../hooks/useTelegram';
 
 const { open } = useModal();
 
@@ -50,6 +51,7 @@ async function openGift(payload: any) {
 }
 
 async function withdrawGiftSuccess(payload: any) {
+  TelegramModule.useMediumHaptic();
   showSuccessToast('Gift successfully withdrawn');
   inventory.value.find(i => i.id === payload.id)!.status = payload.new_status;
 }

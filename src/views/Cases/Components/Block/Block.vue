@@ -6,10 +6,12 @@ import BlockBg from "@/assets/images/cases-pg/block-bg.png";
 
 // Icons
 import ChevroneRight from "@/assets/icons/chevrone-right.svg?raw";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 const router = useRouter();
 
 function openRocketGame() {
+  TelegramModule.useMediumHaptic();
   router.push('/crash');
 }
 </script>

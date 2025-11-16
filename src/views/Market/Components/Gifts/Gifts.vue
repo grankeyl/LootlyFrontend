@@ -4,6 +4,7 @@ import { cutNumberNano } from "../../../../utils/useTon";
 import * as APIMarket from "../../../../api/market";
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import { getImgSvg } from "../../../../utils/useApp";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 type Gift = any;
 
@@ -180,7 +181,11 @@ function setupResizeAndScrollFallback() {
 }
 
 /** публичное */
-function openItem(g: Gift) { emit("open-modal", g); }
+function openItem(g: Gift) { 
+  TelegramModule.useLightHaptic();
+  emit("open-modal", g); 
+}
+
 async function reload() { 
   await fetchPage(true); 
   await nextTick(); 

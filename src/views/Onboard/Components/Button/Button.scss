@@ -1,0 +1,61 @@
+.apriory {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: var(--max-width);
+    height: 100px;
+    padding: 0 var(--padding-left);
+    position: absolute;
+    bottom: 75px;
+    z-index: 1;
+
+    .button {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 60px;
+        border-radius: 1.3rem;
+        background: var(--bg-secondary);
+        box-shadow: none;
+        backdrop-filter: blur(15px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform .2s ease-in-out;
+
+        &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
+        opacity: 0;
+        transition: opacity .45s ease;
+        pointer-events: none;
+        }
+
+        &:active {
+        transform: scale(0.96);
+        }
+
+        &.active::before {
+        opacity: 1;
+        }
+
+        h4 {
+        position: relative;
+        z-index: 1;
+        font-weight: 600;
+        font-size: 1.6rem;
+        color: var(--color-white);
+        transition: color .3s ease;
+        }
+
+        &.active h4 {
+        color: var(--color-black);
+        }
+    }
+}

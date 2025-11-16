@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { obfuscateAddress } from "../../../../utils/useTon";
 import { tonConnectUI } from '../../../../hooks/useTonConnect';
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
@@ -17,6 +17,7 @@ import TelegramModule from "../../../../hooks/useTelegram";
 
 const walletConnected = ref(false);
 const walletAddress = ref('...');
+const walletCheckInterval = ref();
 
 const emit = defineEmits<{
   (e: "open-deposit-modal"): void;
@@ -67,12 +68,19 @@ const disconnectTonWallet = () => {
   tonConnectUI.disconnect();
 }
 
-getTonWalletAddress();
-checkTonWallet();
-
-setInterval(() => {
+walletCheckInterval.value = setInterval(() => {
   checkTonWallet();
-}, 1000);
+}, 1000) as unknown as number;
+
+onMounted(() => {
+  getTonWalletAddress();
+  checkTonWallet();
+});
+
+onBeforeUnmount(() => {
+  clearInterval(walletCheckInterval.value);
+  walletCheckInterval.value = null;
+});
 </script>
 
 <template>

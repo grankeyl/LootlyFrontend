@@ -20,6 +20,7 @@ import Roulette from "@/components/common/Roulette/Roulette.vue";
 
 // Images
 import Ton from "@/assets/icons/ton.svg";
+import TelegramModule from "../../../../hooks/useTelegram";
 
 const useCache = useCacheStore() as any;
 
@@ -99,6 +100,7 @@ async function rollToDemo() {
   const random = Math.floor(Math.random() * rewardCount);
   const reward = itemRewards.value[random];
 
+  TelegramModule.useLightHaptic();
   isRollClicked.value = true;
   isRolling.value = true;
   isWin.value = false;
@@ -127,6 +129,7 @@ async function rollTo() {
   });
   if (!open?.ok) return;
 
+  TelegramModule.useLightHaptic();
   isRolling.value = true;
   useCache.UserData.BalanceNano -= props.data.price_nano;
   isWin.value = false;

@@ -234,7 +234,6 @@ watch(() => props.Items, (v) => {
 watch(() => props.Rolling, (v, old) => {
   if (v && !old) {
     const item = props.NeedItem;
-    console.log(item);
     if (item) {
       rollToById(item.item_id, { loops: LOOPS, duration: SPIN_TIME });
     }

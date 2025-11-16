@@ -64,6 +64,9 @@
     justify-content: center;
     width: fit-content;
     height: fit-content;
+    height: 25px;
+    border-radius: 3.1rem;
+    overflow: hidden;
     gap: 0.4rem;
 
     &.skeleton {

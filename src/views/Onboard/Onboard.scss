@@ -1,0 +1,92 @@
+/* подключается в твоём Onboard.vue уже как src="./Onboard.scss" */
+
+header { display: none; }
+
+.button-host {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  padding: 0 var(--padding-left);
+  z-index: 20;
+}
+
+.progress-host {
+  position: fixed;
+  left: 50%;
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 56px);
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  z-index: 20;
+}
+
+/* «смягчающий» блюр под хедером, если нужен */
+.blur {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + 0px);
+  width: 100%;
+  max-width: var(--max-width);
+  height: 28px;
+  background: var(--bg-progress);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.slides {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+
+    &.anim {
+        transition: transform .35s cubic-bezier(.22,.61,.36,1);
+    }
+
+    // каждый слайд — на весь экран по ширине
+    .slide {
+        flex: 0 0 100%;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+}
+
+/* Onboard.scss */
+.page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.slides {
+  /* гарантированная ширина под все слайды */
+  --count: 1;
+  width: calc(var(--count) * 100%);
+  height: 100%;
+  display: flex;
+  will-change: transform;
+}
+
+.slides.anim {
+  transition: transform .36s cubic-bezier(.22,.61,.36,1);
+}
+
+.slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  height: 100%;
+  /* если контент с absolute внутри, не даём ему вылезти */
+  position: relative;
+  overflow: hidden;
+}
+
+// .page { overflow: hidden; }

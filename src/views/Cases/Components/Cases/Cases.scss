@@ -40,7 +40,10 @@
         background: var(--bg-secondary);
         opacity: .25;
         padding: 0;
-        transition: none;
+
+        .sk-load {
+          margin: 0;
+        }
 
         .image img {
           display: none;

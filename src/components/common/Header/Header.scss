@@ -29,6 +29,22 @@
     }
   }
 
+  .flexed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .support {
+      display: flex;
+
+      .kit-icon {
+        width: 32px;
+        height: 32px;
+        margin-top: -1px;
+      }
+    }
+  }
+
   .balance {
     display: flex;
     align-items: center;

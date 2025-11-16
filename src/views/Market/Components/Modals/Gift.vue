@@ -33,6 +33,7 @@ async function buy(
   id: string
 ) {
   if (useCache.UserData.BalanceNano < props.data.price_nano) {
+    TelegramModule.useNotifyErrorHaptic();
     emit('not-enough', { id: 1 });
     return;
   };
@@ -40,6 +41,7 @@ async function buy(
   const res = await APIMarket.buy(id).catch(() => null);
   if (!res?.ok) return;
 
+  TelegramModule.useMediumHaptic();
   useCache.UserData.BalanceNano = res.new_balance_nano;
   emit("buy-success", { ...res });
   close();

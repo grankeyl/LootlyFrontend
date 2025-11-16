@@ -1,0 +1,326 @@
+.slide1 {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: var(--padding-left);
+  gap: 28px;
+  padding-top: calc(
+    var(--tg-safe-area-inset-top, -10px) + 70px
+  );
+  
+  @media screen and (max-height: 740px) {
+    gap: 20px;
+  }
+
+  @media screen and (max-height: 650px) {
+    gap: 10px;
+  }
+
+  .logotype {
+    width: 100%;
+    height: fit-content;
+
+    img {
+      width: 114px;
+      height: 28px;
+      object-fit: contain;
+    }
+  }
+
+  .context {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      h4 {
+        max-width: 380px;
+        font-weight: 600;
+        font-size: 36px;
+        line-height: 42px;
+        color: var(--color-white);
+
+        @media screen and (max-height: 690px) {
+          font-size: 30px;
+          line-height: 37px;
+        }
+      }
+    }
+  }
+
+  .images {
+    position: relative;
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    position: absolute;
+    left: 50%;
+    bottom: 40%;
+    transform: translateX(-50%);
+
+    @media screen and (max-height: 740px) {
+      bottom: 42%;
+    }
+
+    @media screen and (max-height: 690px) {
+      bottom: 44%;
+    }
+
+    @media screen and (max-height: 650px) {
+      bottom: 45%;
+    }
+
+    .inner {
+      width: 100%;
+      height: 100%;
+    }
+
+    .symbols {
+      width: 100%;
+      height: fit-content;
+      z-index: 1;
+      overflow: hidden;
+      border-radius: 24px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: .16;
+      }
+    }
+
+    .blured {
+      width: 100%;
+      height: fit-content;
+      border-radius: 24px;
+      z-index: 2;
+      border-radius: 24px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        max-height: 400px;
+        filter: blur(14px) brightness(1.25) saturate(1.2);
+        transform-origin: center center;
+
+        @media screen and (max-height: 705px) {
+          max-height: 300px;
+        }
+
+        @media screen and (max-height: 650px) {
+          max-height: 255px;
+        }
+      }
+
+      /* дыхание + перелив цвета */
+      @keyframes glowPulse {
+        0%, 100% {
+          transform: scale(1);
+          filter: blur(14px) brightness(1.25) saturate(1.2) hue-rotate(0deg);
+        }
+        25% {
+          transform: scale(1.05);
+          filter: blur(16px) brightness(1.35) saturate(1.4) hue-rotate(12deg);
+        }
+        50% {
+          transform: scale(0.95);
+          filter: blur(13px) brightness(1.15) saturate(1.1) hue-rotate(-10deg);
+        }
+        75% {
+          transform: scale(1.03);
+          filter: blur(35px) brightness(1.2) saturate(1.1) hue-rotate(7deg);
+        }
+      }
+
+      /* плавный кач и наклоны */
+      @keyframes subtleTilt {
+        0%, 100% {
+          transform: rotate(0deg) scale(1.00);
+        }
+        20% {
+          transform: rotate(3.5deg) translate(1px, -2px) scale(1.05);
+        }
+        40% {
+          transform: rotate(-2.8deg) translate(-1px, 2px) scale(0.96);
+        }
+        60% {
+          transform: rotate(2deg) translate(1px, 1px) scale(1.1);
+        }
+        80% {
+          transform: rotate(-3deg) translate(-1px, -1px);
+        }
+      }
+
+      /* микро-движения, будто “дрожит воздух” */
+      @keyframes microJitter {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(0.6px, -0.5px) scale(1.01); }
+        50% { transform: translate(-0.8px, 0.7px) scale(0.99); }
+        75% { transform: translate(0.4px, 0.3px) scale(1.02); }
+      }
+    }
+
+    .gifts {
+      width: 100%;
+      height: fit-content;
+      position: relative;
+      z-index: 3;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      img {
+        width: 100%;
+        height: 100%;
+        max-height: 270px;
+        object-fit: contain;
+
+        @media screen and (max-height: 705px) {
+          max-height: 245px;
+        }
+
+        @media screen and (max-height: 650px) {
+          max-height: 215px;
+        }
+      }
+    }
+  }
+}
+
+/* Slide1.scss — ДОБАВЬ НИЖЕ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* базовые кейфреймы */
+  @keyframes fadeUp {
+    0% { opacity:0; transform: translateY(14px) scale(.98); filter: blur(4px); }
+    100%{ opacity:1; transform: none; filter: blur(0); }
+  }
+  @keyframes fadeDown {
+    0% { opacity:0; transform: translateY(-10px) scale(.98); filter: blur(3px); }
+    100%{ opacity:1; transform: none; filter: blur(0); }
+  }
+  @keyframes blurIn {
+    0% { opacity:0; transform: scale(1.06); filter: blur(10px); }
+    100%{ opacity:.16; transform: none; filter: blur(0); } /* для symbols */
+  }
+  @keyframes introPop {
+    0% { opacity:0; transform: translateY(12px) scale(1.08) rotate(-2deg); filter: blur(10px); }
+    100%{ opacity:1; transform: none; filter: blur(0); }
+  }
+  @keyframes floatIn {
+    0% { opacity:0; transform: translateY(18px) scale(.94) rotate(1.8deg); filter: blur(6px); }
+    100%{ opacity:1; transform: none; filter: blur(0); }
+  }
+  @keyframes hoverBob {
+    0%,100% { transform: translateY(0) }
+    50% { transform: translateY(-4px) }
+  }
+
+  .slide1 {
+    /* логотип — мягко сверху */
+    .logotype img {
+      animation: fadeDown .55s cubic-bezier(.2,.8,.2,1) .05s both;
+      will-change: transform, opacity, filter;
+    }
+
+    /* заголовок — подъём + дефокус */
+    .title h4 {
+      animation: fadeUp .65s cubic-bezier(.2,.8,.2,1) .14s both;
+      will-change: transform, opacity, filter;
+    }
+
+    .images {
+      /* фоновая «сеточка/символы» — размытый въезд */
+      .symbols img{
+        animation: blurIn .7s ease-out .18s both;
+      }
+
+      /* свечение — вступительный «поп», затем твои живые циклы */
+      .blured img{
+        /* отдельный слой для покачивания */
+        animation: 
+          subtleTilt 8s ease-in-out 1s infinite, 
+          glowPulse 5.4s ease-in-out 1s infinite,
+          floatIn .7s cubic-bezier(.2,.8,.2,1) .42s both;
+        will-change: transform;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        contain: layout paint; /* изолируем перерисовку */
+
+        /* светящееся облако без filter:blur — быстрый градиент */
+        &::before{
+          content:"";
+          position:absolute; inset:0;
+          border-radius:24px;
+          background:
+            radial-gradient(60% 60% at 50% 50%,
+              rgba(255,255,255,.22) 0%,
+              rgba(255,255,255,.12) 40%,
+              rgba(255,255,255,0) 70%);
+          opacity:.8;
+          transform: scale(1);
+          animation: glowPulse 5.4s ease-in-out 1s infinite;
+          pointer-events:none;
+          will-change: transform, opacity;
+          mix-blend-mode: screen;
+        }
+
+        img{
+          /* убираем анимацию filter → статично и легче */
+          filter: blur(8px) brightness(1.22) saturate(1.18);
+          animation:
+            introPop .6s ease-out .26s both,
+            breathe 4.8s ease-in-out 1s infinite; /* только scale */
+          will-change: transform, opacity;
+          backface-visibility: hidden;
+          transform: translateZ(0);
+        }
+      }
+
+      /* подарки — подъём с микроподпрыгом и бесконечным покачиванием */
+      .gifts img{
+        animation:
+          floatIn .7s cubic-bezier(.2,.8,.2,1) .42s both,
+          hoverBob 6s ease-in-out 1.4s infinite;
+        transform-origin: 50% 60%;
+        will-change: transform, opacity, filter;
+      }
+    }
+  }
+}
+
+@keyframes breathe {
+  0%,100% { transform: scale(1.00); opacity:.95; }
+  50%     { transform: scale(0.97); opacity:1; }
+}
+
+/* мягкая волна свечения (псевдо-слой) */
+@keyframes glowWave {
+  0%,100% { transform: scale(1.0); opacity:.75; }
+  30%     { transform: scale(1.06); opacity:.95; }
+  60%     { transform: scale(0.98); opacity:.8; }
+}
+
+/* твои glowPulse / subtleTilt остаются как есть */

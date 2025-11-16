@@ -22,6 +22,12 @@ const menuItems = [
   { id: 'profile', name: t('menu.profile'), icon: ProfileIcon, path: '/profile' },
 ];
 
+const CheckDisabledMenu = () => {
+  if (route.path === '/onboard') return true;
+  if (route.path === '/crash') return true;
+  return false;
+}
+
 const SwitchMenu = (menu: any) => {
   ActiveMenu.value = menu.id;
   router.push(menu.path);
@@ -33,7 +39,7 @@ const CheckActiveMenu = (menu: any) => {
 </script>
 
 <template>
-  <div class="menu">
+  <div v-if="!CheckDisabledMenu()" class="menu">
     <div class="items">
       <div 
         v-for="item in menuItems"

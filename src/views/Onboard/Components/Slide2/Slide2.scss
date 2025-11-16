@@ -1,0 +1,128 @@
+/* === ENTRANCE ANIMS === */
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(-18px) scale(.98); }
+  100% { opacity: 1; transform: none; }
+}
+
+.slide2 {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: var(--padding-left);
+  gap: 35px;
+
+  &.is-in {
+    .context .title h4      { animation: fadeUp .48s ease-out .18s forwards; }
+  }
+  
+  .ticker {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; 
+    overflow: hidden;
+
+    .ticker-top {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%);
+              mask-image: linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%);
+      pointer-events: none;
+
+      .tape {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        height: 100%;
+        animation: scrollDown 50s ease-in-out infinite;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      @keyframes scrollDown {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-5000%); }
+      }
+    }
+
+    .ticker-bottom{
+      position:absolute; left:0; right:0; bottom:0; z-index:2;
+      max-height: 460px;
+      pointer-events:none;
+
+      /* 1) Маска для БЛЮРА */
+      &::before{
+        content:"";
+        position:absolute; inset:-48px 0 0 0;     /* подними зону вверх как в макете */
+        /* важно: слой должен быть НЕ полностью прозрачным */
+        background: rgba(0, 0, 0, 0.001);        /* микро-альфа, чтобы включить backdrop */
+        -webkit-backdrop-filter: blur(24px);
+                backdrop-filter: blur(24px);
+        /* маска: сверху видим, к низу исчезает */
+        -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 60%,transparent 100%);
+                mask-image: linear-gradient(to bottom,#000 0%,#000 60%,transparent 100%);
+        border-radius: 24px;
+        opacity: .2;
+      }
+
+      /* 2) Отдельный ТЕНЕВОЙ градиент (как в Figma Fill) */
+      &::after{
+        content:"";
+        position:absolute; inset:-48px 0 0 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(13,13,15,0) 0%,
+          rgba(13,13,15,1) 55%,
+          rgba(13,13,15,1) 100%
+        );
+        border-radius: 24px;
+      }
+    }
+  }
+
+  .context {
+    width: 100%;
+    height: fit-content;
+    position: absolute;
+    bottom: 24%;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 10px;
+    z-index: 5;
+    padding: 0 var(--padding-left);
+
+    @media screen and (max-height: 768px) {
+      bottom: 27%;
+    }
+
+    @media screen and (max-height: 679px) {
+      bottom: 29%;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      h4 {
+        max-width: 300px;
+        font-weight: 600;
+        font-size: 36px;
+        line-height: 38px;
+        color: var(--color-white);
+        opacity: 0;
+      }
+    }
+  }
+}

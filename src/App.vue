@@ -11,11 +11,17 @@ import * as APIUser from './api/user';
 import Header from "./components/common/Header/Header.vue";
 import Menu from "./components/common/Menu/Menu.vue";
 import TelegramModule from './hooks/useTelegram';
+import Lottie from './components/Lottie.vue';
 
 // Images
 import LogotypeImage from './assets/images/logotype.svg';
 import BlockBgImage from './assets/images/cases-pg/block-bg.png';
 import RocketImage from "./assets/images/crash-pg/rocket.png";
+
+import Slide1LogoImage from "@/assets/images/logo.svg";
+import Slide1Symbols from "@/assets/images/onboard-pg/slide1/symbols.png";
+import Slide1BluredImage from "@/assets/images/onboard-pg/slide1/blured.png";
+import Slide1GiftsImage from "@/assets/images/onboard-pg/slide1/gifts.png";
 
 const router = useRouter();
 const loading = ref(true);
@@ -27,6 +33,11 @@ const IMAGES_TO_PRELOAD: string[] = [
   LogotypeImage,
   BlockBgImage,
   RocketImage,
+
+  Slide1LogoImage,
+  Slide1Symbols,
+  Slide1BluredImage,
+  Slide1GiftsImage,
 
   'https://lootly.codes/s3/rewards/ton.webp',
   'https://lootly.codes/s3/cases/covers/Pink_Case.webp',
@@ -67,6 +78,7 @@ function miniAppTransport(dtx: any) {
   if (dtx && dtx !== 'debug') {
     if (dtx.startsWith('m_')) router.push(`/market/item/${dtx.split('m_')[1]}`);
     if (dtx.startsWith('p_')) router.push(`/profile/item/${dtx.split('p_')[1]}`);
+    if (dtx === 'onboard') router.push('/onboard');
     if (dtx === 'cases') router.push('/cases');
     if (dtx === 'market') router.push('/market');
     if (dtx === 'earn') router.push('/earn');
@@ -74,6 +86,7 @@ function miniAppTransport(dtx: any) {
     if (dtx === 'balance') router.push('/balance');
     if (dtx === 'leaderboard') router.push('/leaderboard');
     if (dtx === 'crash') router.push('/crash');
+    if (dtx === 'crash1') router.push('/crash1');
   }
 }
 
@@ -108,14 +121,14 @@ onMounted(async () => {
     useCache.UserData = { ...init.user };
     initStartApp(initData.start_param);
 
-    // ЖДЁМ И КАРТИНКИ, И ШРИФТЫ
+    // router.push('/onboard');
+
     await Promise.all([
       preloadImages(IMAGES_TO_PRELOAD),
       waitForFonts(['SFRounded'], [100,300,400,500,600,700,800,900], ['normal'], 4500),
     ]);
 
-    // небольшой лаг, чтобы исключить рывок макета
-    setTimeout(() => { loading.value = false; }, 120);
+    setTimeout(() => { loading.value = false; }, 470);
   }
 });
 </script>
@@ -133,11 +146,18 @@ onMounted(async () => {
     <div v-else class="page load">
       <div class="center">
         <div class="logotype">
-          <img :src="LogotypeImage" alt="logotype">
+          <Lottie
+            path="/animations/logotype.json"
+            :loop="true"
+            renderer="svg"
+            width="100%"
+            height="100%"
+          />
+          <!-- <img :src="LogotypeImage" alt="logotype"> -->
         </div>
-        <div class="context">
+        <!-- <div class="context">
           <div class="spinner" role="status" aria-label="Loading"></div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

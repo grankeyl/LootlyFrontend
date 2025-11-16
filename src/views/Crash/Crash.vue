@@ -5,6 +5,7 @@ import { showErrorToast } from "../../utils/toastManager";
 import { useCacheStore } from "../../stores/pinia-store";
 import { tonToNano } from "../../utils/useTon";
 import { usePopup } from "../../components/common/Popup";
+import { useRouter } from "vue-router";
 
 import * as APICrash from "./../../api/crash";
 
@@ -17,6 +18,8 @@ import AutoXPopup from "./Components/Popups/AutoX.vue";
 
 const { open } = usePopup();
 
+const router = useRouter();
+
 const useCache = useCacheStore() as any;
 const pageRef = ref<HTMLElement | null>(null);
 
@@ -27,7 +30,116 @@ const GameBet = ref<number>(0.1);
 const GameBetLoading = ref<boolean>(false);
 const GameBetActual = ref<number>(0);
 const GameLastCrashes = ref<object>([]);
-const GameBets = ref<object>([]);
+const GameBets = ref<object>([
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  },
+  {
+    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+    "user_id": 2106187940,
+    "user_first_name": "Test",
+    "user_photo": "",
+    "amount": 0.1,
+    "auto_cashout": null,
+    "status": "active",
+    "settled_mult": null,
+    "value": 0.1,
+    "index": 1
+  }
+]);
 const GameOnline = ref<number>(2);
 
 const GameAutoX = ref<number>(1.1);
@@ -47,6 +159,9 @@ const FastBetList = ref<object>([
 let ws: WebSocket | null = null;
 
 onMounted(() => {
+  TelegramModule.useBackButton(() => {
+    router.push('/');
+  });
   const initData = TelegramModule.initDataRaw()
   const qs = new URLSearchParams({ 'init-data': String(initData) }).toString()
 
@@ -63,9 +178,8 @@ onMounted(() => {
     try {
       const msg = JSON.parse(e.data);
       const msgData = msg;
-
       if (msgData.last_crashes) {  GameLastCrashes.value = msgData.last_crashes; }
-      if (msgData.bets) {  GameBets.value = msgData.bets; }
+      // if (msgData.bets) {  GameBets.value = msgData.bets; }
       if (msgData.online) {  GameOnline.value = msgData.online; }
 
       if (msgData.phase && msgData.multiplier) {

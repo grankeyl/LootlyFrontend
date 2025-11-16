@@ -64,6 +64,10 @@ const TelegramModule = {
       }
     },
 
+    useRigidHaptic() {
+      WebApp.HapticFeedback?.impactOccurred?.('rigid');
+    },
+
     useSoftHaptic() {
       WebApp.HapticFeedback?.impactOccurred?.('soft');
     },
@@ -78,6 +82,10 @@ const TelegramModule = {
 
     useHeavyHaptic() {
       WebApp.HapticFeedback?.impactOccurred?.('heavy');
+    },
+
+    useNotifyErrorHaptic() {
+      WebApp.HapticFeedback?.notificationOccurred?.('error');
     },
 
     useLink(link: string) {
@@ -95,6 +103,7 @@ const TelegramModule = {
       return new Promise((resolve, reject) => {
         WebApp.shareMessage(id, (success) => {
           if (success) {
+            TelegramModule.useLightHaptic();
             resolve();
           } else {
             reject();

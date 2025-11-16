@@ -55,6 +55,12 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
           <h4 v-else>{{ item.user_first_name }}</h4>
         </div>
 
+        <div v-if="props.GameStatus === 'loading'" class="placing">
+          <span class="chip">
+            <div class="spinner"></div>
+          </span>
+        </div>
+
         <!-- active -->
         <div v-if="item.status === 'active' && props.GameStatus === 'prepare'" class="placing">
           <span class="chip">
