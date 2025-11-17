@@ -24,7 +24,6 @@ const menuItems = [
 
 const CheckDisabledMenu = () => {
   if (route.path === '/onboard') return true;
-  if (route.path === '/crash') return true;
   return false;
 }
 

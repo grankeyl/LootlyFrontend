@@ -86,7 +86,6 @@ function miniAppTransport(dtx: any) {
     if (dtx === 'balance') router.push('/balance');
     if (dtx === 'leaderboard') router.push('/leaderboard');
     if (dtx === 'crash') router.push('/crash');
-    if (dtx === 'crash1') router.push('/crash1');
   }
 }
 

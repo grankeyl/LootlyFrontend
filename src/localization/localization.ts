@@ -163,6 +163,32 @@ export const localization = {
                     }
                 }
             }
+        },
+        crash: {
+            game: {
+                now: "Ожидание",
+                players: "игроков",
+            },
+            bet: {
+                placeBit: "Сделать ставку",
+                waiting: "Ожидание",
+                pickUp: "Забрать {{price}}",
+
+                successGetCashout: "Вы получили {{price}} TON!",
+            },
+            modals: {
+                bet: {
+                    autobet: "Авто-ставка",
+                    autocashout: "Авто-вывод",
+
+                    successGetCashout: "Вы получили {{price}} TON!",
+                    toastPlaceBitErrorPrepare: "Сделать ставку невозможно в этом состоянии",
+
+                    placeBit: "Сделать ставку",
+                    waiting: "Ожидание",
+                    pickUp: "Забрать {{price}}",
+                }
+            }
         }
     }
 };

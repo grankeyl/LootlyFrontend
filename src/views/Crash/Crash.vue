@@ -5,20 +5,19 @@ import { showErrorToast } from "../../utils/toastManager";
 import { useCacheStore } from "../../stores/pinia-store";
 import { tonToNano } from "../../utils/useTon";
 import { usePopup } from "../../components/common/Popup";
-import { useRouter } from "vue-router";
 
 import * as APICrash from "./../../api/crash";
 
 import Game from "./Components/Game/Game.vue";
-import Tabs from "./Components/Tabs/Tabs.vue";
 import Users from "./Components/Users/Users.vue";
 import Header from "../../components/common/Header/Header.vue";
 import TelegramModule from "../../hooks/useTelegram";
 import AutoXPopup from "./Components/Popups/AutoX.vue";
+import Bet from "./Components/Bet/Bet.vue";
+import BetModal from "./Components/Modals/Bet.vue";
+import { useModal } from "../../components/common/Modal";
 
 const { open } = usePopup();
-
-const router = useRouter();
 
 const useCache = useCacheStore() as any;
 const pageRef = ref<HTMLElement | null>(null);
@@ -34,8 +33,8 @@ const GameBets = ref<object>([
   {
     "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
     "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
+    "user_first_name": "Grankeyl",
+    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
     "amount": 0.1,
     "auto_cashout": null,
     "status": "active",
@@ -46,8 +45,8 @@ const GameBets = ref<object>([
   {
     "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
     "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
+    "user_first_name": "Grankeyl",
+    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
     "amount": 0.1,
     "auto_cashout": null,
     "status": "active",
@@ -58,8 +57,8 @@ const GameBets = ref<object>([
   {
     "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
     "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
+    "user_first_name": "Grankeyl",
+    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
     "amount": 0.1,
     "auto_cashout": null,
     "status": "active",
@@ -70,68 +69,8 @@ const GameBets = ref<object>([
   {
     "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
     "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Test",
-    "user_photo": "",
+    "user_first_name": "Grankeyl",
+    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
     "amount": 0.1,
     "auto_cashout": null,
     "status": "active",
@@ -149,19 +88,16 @@ const GameAutoWithdraw = ref(false);
 const GameAutoBet = ref(false);
 
 const FastBetList = ref<object>([
-  { id: 1, price: 1 },
-  { id: 2, price: 3 },
-  { id: 3, price: 10 },
-  { id: 4, price: 30 },
-  { id: 5, price: 50 },
+  { id: 1, price: 0.1, type: "amount" },
+  { id: 2, price: 1, type: "amount" },
+  { id: 3, price: 3, type: "amount" },
+  { id: 4, price: 5, type: "amount" },
+  { id: 5, price: "MAX", type: "max" },
 ]);
 
 let ws: WebSocket | null = null;
 
 onMounted(() => {
-  TelegramModule.useBackButton(() => {
-    router.push('/');
-  });
   const initData = TelegramModule.initDataRaw()
   const qs = new URLSearchParams({ 'init-data': String(initData) }).toString()
 
@@ -258,6 +194,39 @@ function setGameBetActual(value: number) {
   GameBetActual.value = value;
 }
 
+async function openBetModal() {
+  const { open } = useModal();
+
+  const choose = open(BetModal, {
+        onSetFastBet: (p: number) => GameBet.value = p,
+        onSetGameBetActual: (p: number) => setGameBetActual(p),
+        onOpenAutoXPopup: () => openAutoXPopup(),
+        onPlaceBit: (p: any) => placeBit(p),
+
+        onSetGameAutoX: (p: number) => GameAutoX.value = p,
+        onSetGameAutoXText: (p: string) => GameAutoXText.value = p,
+        onSetGameAutoWithdraw: (p: boolean) => GameAutoWithdraw.value = p,
+
+        onSetGameAutoBet: (p: boolean) => GameAutoBet.value = p,
+
+        GameX: GameX,
+        GameBet: GameBet,
+        GameBetActual: GameBetActual,
+        GameStatus: GameStatus,
+        GameLastCrashes: GameLastCrashes,
+
+        GameAutoX: GameAutoX,
+        GameAutoXText: GameAutoXText,
+        GameAutoWithdraw: GameAutoWithdraw,
+
+        GameAutoBet: GameAutoBet,
+        FastBetList: FastBetList,
+        GameBets: GameBets
+  });
+  const dest = await choose.done.catch(() => null);
+  if (!dest) return;
+}
+
 async function openAutoXPopup() {
   const choose = open(AutoXPopup, {
     GameAutoX: GameAutoX.value,
@@ -296,11 +265,26 @@ watch(() => GameAutoBet.value, (v) => {
         :GameOnline="GameOnline"
         :GameLastCrashes="GameLastCrashes"
       />
-      <Tabs 
+      <Bet
+        @SetGameBetActual="setGameBetActual"
+        @OpenBetModal="openBetModal"
+
+        :GameX="GameX"
+        :GameBetActual="GameBetActual"
+        :GameStatus="GameStatus"
+        :GameBets="GameBets"
+      />
+      <!-- <Tabs 
         @SetFastBet="GameBet = $event"
         @SetGameBetActual="setGameBetActual"
         @OpenAutoXPopup="openAutoXPopup"
         @PlaceBit="placeBit"
+
+        @SetGameAutoX="GameAutoX = $event"
+        @SetGameAutoXText="GameAutoXText = $event"
+        @SetGameAutoWithdraw="GameAutoWithdraw = $event"
+
+        @SetGameAutoBet="GameAutoBet = $event"
 
         :GameX="GameX"
         :GameBet="GameBet"
@@ -308,20 +292,14 @@ watch(() => GameAutoBet.value, (v) => {
         :GameStatus="GameStatus"
         :GameLastCrashes="GameLastCrashes"
 
-        @SetGameAutoX="GameAutoX = $event"
-        @SetGameAutoXText="GameAutoXText = $event"
-        @SetGameAutoWithdraw="GameAutoWithdraw = $event"
-
         :GameAutoX="GameAutoX"
         :GameAutoXText="GameAutoXText"
         :GameAutoWithdraw="GameAutoWithdraw"
 
-        @SetGameAutoBet="GameAutoBet = $event"
-
         :GameAutoBet="GameAutoBet"
         :FastBetList="FastBetList"
         :GameBets="GameBets"
-      />
+      /> -->
       <Users
         :GameX="GameX"
         :GameStatus="GameStatus"

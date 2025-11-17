@@ -496,16 +496,16 @@ onMounted(() => {
 
     <div class="game-info">
       <div class="latests">
-        <div class="item now">
+        <div class="item now" :class="{ notnow: props.GameX && props.GameX > 0 }">
             <h4 v-if="props.GameX && props.GameX > 0">{{ cutNumber(props.GameX) }}</h4>
-            <h4 v-else>Now</h4>
+            <h4 v-else>{{ $t('crash.game.now') }}</h4>
         </div>
         <div class="item" v-for="(item, index) in lastCrashes" :key="index">
             <h4>{{ cutNumber(item) }}</h4>
         </div>
       </div>
       <div class="game-online">
-        <h4>{{ props.GameOnline }} players</h4>
+        <h4>{{ props.GameOnline }} {{ $t('crash.game.players') }}</h4>
         <span class="online-dot" aria-hidden="true"></span>
       </div>
     </div>

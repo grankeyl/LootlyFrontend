@@ -2,7 +2,7 @@
 import { computed, ref, reactive } from "vue";
 import { cutNumber } from "../../../../utils/useTon";
 
-import TonWhiteRawIcon from "@/assets/icons/ton-white.svg?raw";
+import TonOutlineRawIcon from "@/assets/icons/ton-outline.svg?raw";
 
 const props = defineProps<{
   GameX: number;
@@ -55,17 +55,17 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
           <h4 v-else>{{ item.user_first_name }}</h4>
         </div>
 
-        <div v-if="props.GameStatus === 'loading'" class="placing">
+        <!-- active -->
+        <div v-if="item.status === 'active' && props.GameStatus === 'loading'" class="placing">
           <span class="chip">
             <div class="spinner"></div>
           </span>
         </div>
-
-        <!-- active -->
+        
         <div v-if="item.status === 'active' && props.GameStatus === 'prepare'" class="placing">
           <span class="chip">
             <h4>{{ cutNumber(item.amount) }}</h4>
-            <div class="kit-icon" v-html="TonWhiteRawIcon"></div>
+            <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
 
@@ -73,7 +73,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         <div v-if="item.status === 'active' && props.GameStatus === 'playing'" class="placing">
           <span class="chip -muted">
             <h4>{{ cutNumber(item.amount) }}</h4>
-            <div class="kit-icon" v-html="TonWhiteRawIcon"></div>
+            <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
           <div class="marker">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -82,13 +82,13 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
           </div>
           <span class="chip">
             <h4>{{ cutNumber(item.value) }}</h4>
-            <div class="kit-icon" v-html="TonWhiteRawIcon"></div>
+            <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
         <div v-if="item.status === 'active' && props.GameStatus === 'completed'" class="placing">
           <span class="chip -lose">
             <h4>{{ cutNumber(item.amount) }}</h4>
-            <div class="kit-icon" v-html="TonWhiteRawIcon"></div>
+            <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
 
@@ -96,7 +96,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         <div v-else-if="item.status === 'cashed' || item.status === 'autocashed'" class="placing">
           <span class="chip -primary">
             <h4>{{ cutNumber(item.value) }}</h4>
-            <div class="kit-icon" v-html="TonWhiteRawIcon"></div>
+            <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
           <span class="badge"><h4>{{ item.settled_mult }}x</h4></span>
         </div>

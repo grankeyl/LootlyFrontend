@@ -1,0 +1,83 @@
+.bet {
+    display: block;
+    width: 100%;
+    background: var(--bg-2);
+    border-radius: 24px;
+    padding: 0 var(--padding-left);
+    margin-top: 16px;
+    margin-bottom: 12px;
+
+          button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            width: 100%;
+            height: 52px;
+            border-radius: 1.3rem;
+            background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
+            box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
+            backdrop-filter: blur(15px);
+            transition: background .2s ease-in-out, transform .2s ease-in-out;
+            transform: scale(1);
+
+            &.waiting {
+              background: var(--bg-secondary);
+              box-shadow: none;
+              backdrop-filter: blur(15px);
+              span {
+                div {
+                  color: var(--color-white);
+                }
+              }
+            }
+
+            &:active {
+              transform: scale(0.96);
+            }
+
+            &.locked {
+              opacity: .5;
+              pointer-events: none;
+            }
+
+            span {
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+
+              div {
+                font-weight: 600;
+                font-size: 16px;
+                justify-content: center;
+                display: flex;
+                width: fit-content;
+                margin: auto;
+                text-align: center;
+                white-space: nowrap;
+                color: var(--color-black);
+              }
+
+              p {
+                font-weight: 600;
+                font-size: 16px;
+                justify-content: center;
+                display: flex;
+                width: fit-content;
+                margin: auto;
+                text-align: center;
+                white-space: nowrap;
+                color: var(--color-black);
+              }
+            }
+
+            img {
+              width: 18px;
+              height: 18px;
+              object-fit: contain;
+            }
+          }
+
+}

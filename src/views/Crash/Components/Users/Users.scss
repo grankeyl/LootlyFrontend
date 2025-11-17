@@ -18,7 +18,7 @@
     rgba(255,255,255,.06) 63%);
   background-size: 400% 100%;
   animation: shimmer 1.3s ease-in-out infinite;
-  // margin-top: 6px;
+  margin-top: 6px;
   padding-bottom: max(10px, var(--menu-height) + 10px);
 }
 @keyframes shimmer {
@@ -37,6 +37,9 @@
   z-index: 1;
   padding: 0 var(--padding-left);
   padding-bottom: calc(var(--menu-height) + 20px);
+  // background: var(--bg-4);
+  // margin-top: 16px;
+  // border-radius: 24px 24px 0 0;
   margin-top: -8px;
 
   &.skeleton {
@@ -62,7 +65,7 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      min-height: 69px;
+      min-height: 68px;
       width: 100%;
       border-bottom: 1px solid var(--bg-4);
 
@@ -190,10 +193,20 @@
           h4 {
             font-weight: 500;
             font-size: 1.4rem;
-            color: var(--color-primary);
+            color: var(--color-white);
             line-height: 1;
             transition: color .2s ease;
           }
+        }
+
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid var(--bg-10);
+          border-top-color: var(--color-white);
+          border-radius: 50%;
+          animation: spin .8s linear infinite;
+          opacity: .4;
         }
 
         .chip {
@@ -232,7 +245,6 @@
             :deep(path) { fill: var(--color-primary); }
           }
 
-
           h4 {
             font-weight: 500;
             font-size: 1.4rem;
@@ -241,19 +253,8 @@
             transition: color .2s ease;
           }
 
-          .spinner{
-            width: 14px;
-            height: 14px;
-            display: inline-block;
-            border: 1px solid var(--bg-10);
-            border-top-color: var(--color-white);
-            border-radius: 50%;
-            opacity: .4;
-            animation: spin .8s linear infinite;
-          }
-
-          svg { width: 18px; height: 18px; display: block; }
-          :deep(svg) { width: 18px; height: 18px; display: block; }
+          svg { width: 11px; height: 11px; display: block; margin-right: 1px; transform: translateY(0.5px); }
+          :deep(svg) { width: 11px; height: 11px; display: block; margin-right: 1px; transform: translateY(0.5px); }
         }
       }
     }
