@@ -2,10 +2,10 @@
 import { ref, watch, nextTick, onMounted } from "vue";
 
 import StoreIcon from "@/assets/icons/market.svg?raw";
-import TickerBottom from "@/assets/images/onboard-pg/slide2/ticker-bottom.png";
-import BgEffect from "@/assets/images/onboard-pg/slide3/bg-effect.png";
-import Item from "@/assets/images/onboard-pg/slide3/item.png";
-import Backdrop from "@/assets/images/onboard-pg/slide3/blur.png";
+import TickerBottom from "@/assets/images/onboard-pg/slide2/ticker-bottom.webp";
+import BgEffect from "@/assets/images/onboard-pg/slide3/bg-effect.webp";
+import Item from "@/assets/images/onboard-pg/slide3/item.webp";
+import Backdrop from "@/assets/images/onboard-pg/slide3/blur.webp";
 
 const props = defineProps<{ active: boolean }>();
 

@@ -54,13 +54,15 @@ const hasSrc = (src?: string) => {
   return Boolean(s && typeof s === "string");
 };
 
-
 function armWatchdog(it: LiveItem) {
   clearWatchdog(it.id);
   const tid = window.setTimeout(() => {
-    const found = items.value.find(x => x.id === it.id);
-    if (found && !found.loaded) found.failed = true;
+    const idx = items.value.findIndex(x => x.id === it.id);
+    if (idx === -1) return;
+    // items.value.splice(idx, 1);
+    clearWatchdog(it.id);
   }, WATCHDOG_MS) as unknown as number;
+
   imgWatchdogs.set(it.id, tid);
 }
 
@@ -73,18 +75,25 @@ function clearWatchdog(id: number) {
 }
 
 function onImgLoad(it: LiveItem) {
-  it.loaded = true;
-  it.failed = false;
+  const found = items.value.find(x => x.id === it.id);
+  if (!found) return;
+  found.loaded = true;
+  found.failed = false;
   clearWatchdog(it.id);
 }
 
 function onImgError(it: LiveItem) {
-  it.loaded = false;
-  it.failed = true;
+  const idx = items.value.findIndex(x => x.id === it.id);
+  if (idx === -1) return;
+
+  const found = items.value[idx];
+  found.loaded = false;
+  found.failed = true;
   clearWatchdog(it.id);
+
   setTimeout(() => {
-    const i = items.value.findIndex(x => x.id === it.id);
-    if (i !== -1) items.value.splice(i, 1);
+    items.value.findIndex(x => x.id === it.id);
+    // if (i !== -1) items.value.splice(i, 1);
   }, 1000);
 }
 
@@ -270,7 +279,15 @@ onBeforeUnmount(() => {
           '--end-color': item.BGEnd || '#000',
         }"
       >
-        <div class="img-skeleton" v-if="!item.loaded || (!item.failed && !getImgSvg(item.image))"></div>
+        <div
+          class="img-skeleton"
+          v-if="!item.loaded && !item.failed"
+        ></div>
+
+        <div
+          class="img-fallback"
+          v-else-if="item.failed"
+        ></div>
 
         <div class="image">
           <img
@@ -345,12 +362,9 @@ onBeforeUnmount(() => {
   inset: 0;
   border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.1));
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: pulse 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.12), rgba(255,255,255,.06));
+  background-size: 200% 100%;
+  animation: shimmer 1.1s linear infinite;
   z-index: 1;
 }
 

@@ -4,8 +4,14 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const BackButton = () => {
-  router.back();
-}
+  const state = window.history.state || {};
+
+  if (state.back === "/balance/onboard") {
+    router.go(-2);
+  } else {
+    router.back();
+  }
+};
 </script>
 
 <template>

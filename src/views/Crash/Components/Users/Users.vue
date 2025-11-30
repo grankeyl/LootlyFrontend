@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from "vue";
-import { cutNumber } from "../../../../utils/useTon";
+import { cutNumberNano } from "../../../../utils/useTon";
 
 import TonOutlineRawIcon from "@/assets/icons/ton-outline.svg?raw";
 
@@ -64,7 +64,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         
         <div v-if="item.status === 'active' && props.GameStatus === 'prepare'" class="placing">
           <span class="chip">
-            <h4>{{ cutNumber(item.amount) }}</h4>
+            <h4>{{ cutNumberNano(item.amount) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
@@ -72,7 +72,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         <!-- active -->
         <div v-if="item.status === 'active' && props.GameStatus === 'playing'" class="placing">
           <span class="chip -muted">
-            <h4>{{ cutNumber(item.amount) }}</h4>
+            <h4>{{ cutNumberNano(item.amount) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
           <div class="marker">
@@ -81,13 +81,13 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
             </svg>
           </div>
           <span class="chip">
-            <h4>{{ cutNumber(item.value) }}</h4>
+            <h4>{{ cutNumberNano(item.value) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
         <div v-if="item.status === 'active' && props.GameStatus === 'completed'" class="placing">
           <span class="chip -lose">
-            <h4>{{ cutNumber(item.amount) }}</h4>
+            <h4>{{ cutNumberNano(item.amount) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
@@ -95,10 +95,12 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         <!-- cashed / autocashed -->
         <div v-else-if="item.status === 'cashed' || item.status === 'autocashed'" class="placing">
           <span class="chip -primary">
-            <h4>{{ cutNumber(item.value) }}</h4>
+            <h4>{{ item.settled_mult }}x</h4>
+          </span>
+          <span class="badge -primary">
+            <h4>{{ cutNumberNano(item.value) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
-          <span class="badge"><h4>{{ item.settled_mult }}x</h4></span>
         </div>
       </div>
     </transition-group>

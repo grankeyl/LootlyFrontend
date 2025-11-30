@@ -5,6 +5,7 @@ import { onMounted, onBeforeUnmount, nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCacheStore } from './stores/pinia-store';
 import { waitForFonts } from './utils/useApp';
+import { useTranslation } from 'i18next-vue';
 
 import * as APIUser from './api/user';
 
@@ -19,9 +20,11 @@ import BlockBgImage from './assets/images/cases-pg/block-bg.png';
 import RocketImage from "./assets/images/crash-pg/rocket.png";
 
 import Slide1LogoImage from "@/assets/images/logo.svg";
-import Slide1Symbols from "@/assets/images/onboard-pg/slide1/symbols.png";
-import Slide1BluredImage from "@/assets/images/onboard-pg/slide1/blured.png";
-import Slide1GiftsImage from "@/assets/images/onboard-pg/slide1/gifts.png";
+import Slide1Symbols from "@/assets/images/onboard-pg/slide1/symbols.webp";
+import Slide1BluredImage from "@/assets/images/onboard-pg/slide1/blured.webp";
+import Slide1GiftsImage from "@/assets/images/onboard-pg/slide1/gifts.webp";
+
+const { i18next } = useTranslation();
 
 const router = useRouter();
 const loading = ref(true);
@@ -118,9 +121,14 @@ onMounted(async () => {
   const init = await APIUser.init(initDataRaw);
   if (init) {
     useCache.UserData = { ...init.user };
+    useCache.UserDataMeta = { ...init.meta };
     initStartApp(initData.start_param);
 
-    // router.push('/onboard');
+    i18next.changeLanguage(init.user.Language);
+
+    if (!init.user.OnBoarding) {
+      router.push('/onboard');
+    }
 
     await Promise.all([
       preloadImages(IMAGES_TO_PRELOAD),

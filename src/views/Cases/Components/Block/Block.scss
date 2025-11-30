@@ -1,91 +1,220 @@
 .block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - var(--padding-left) * 2);
+  height: 100px;
+  min-height: 100px;
+  margin-left: var(--padding-left);
+  background: linear-gradient(95deg, #3C0038 -50.53%, #0D0D0F 50.55%, #3C0038 149.7%);
+  border-radius: 18px;
+  box-shadow: inset 0px -1px 24px 0px rgba(102, 9, 94, 0.84);
+  margin-top: 28px;
+  position: relative;
+  overflow: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+
+  // мягкий общий флоат карточки
+  animation: blockFloat 10s ease-in-out infinite;
+
+  // световой блик, который иногда «проезжает» по карточке
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.081) 40%,
+      rgba(255, 110, 219, 0.2) 50%,
+      transparent 60%
+    );
+    transform: translateX(-120%);
+    opacity: 0;
+    animation: shine 5s ease-in-out infinite;
+    overflow: hidden;
+    border-radius: 18px;
+  }
+
+  .bg {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translateX(-20%);
+      // лёгкое «дыхание» фона
+      animation: bgDrift 8s ease-in-out infinite;
+      will-change: transform;
+    }
+  }
+
+  .title {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: calc(100% - var(--padding-left) * 2);
-    height: 100px;
-    min-height: 100px;
-    margin-left: var(--padding-left);
-    background: linear-gradient(95deg, #3C0038 -50.53%, #0D0D0F 50.55%, #3C0038 149.7%);
-    border-radius: 27px;
-    box-shadow: inset 0px -1px 24px 0px rgba(102, 9, 94, 0.84);
-    margin-top: 28px;
-    border-radius: 18px;
-    position: relative;
-    overflow: hidden;
+    width: fit-content;
+    height: fit-content;
+    margin-top: auto;
+    gap: 8px;
+    padding: 16px;
+    z-index: 1;
+    position: absolute;
+    left: 1px;
+    top: -4px;
 
-    .bg {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 0;
-        
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: translateX(-20%);
-        }
+    // появление + лёгкий флоат текста
+    animation: fadeIn 0.2s ease-in-out,
+               titleFloat 6s ease-in-out 0.2s infinite;
+
+    h4 {
+      text-align: left;
+      line-height: 27px;
+      max-width: 80px;
+      font-weight: 800;
+      font-size: 24px;
+      color: var(--color-white);
+      background: linear-gradient(155deg, #ffffff 0%, #ff6edbe3 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
+  }
 
-    .title {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: fit-content;
-        height: fit-content;
-        margin-top: auto;
-        gap: 8px;
-        padding: 16px;
-        z-index: 1;
-        animation: fadeIn 0.2s ease-in-out;
-        position: absolute;
-        left: 1px;
-        top: -4px;
+  .chevrone {
+    position: absolute;
+    top: 50%;
+    right: var(--padding-left);
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    height: fit-content;
+    gap: 8px;
 
-        h4 {
-            text-align: left;
-            line-height: 27px;
-            max-width: 80px;
-            font-weight: 800;
-            font-size: 24px;
-            color: var(--color-white);
-            background: linear-gradient(155deg, #ffffff 0%, #ff6edbe3 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    }
+    .kit-icon {
+      width: 1.6em;
+      height: 1.6em;
 
-    .chevrone {
-      position: absolute;
-      top: 50%;
-      right: var(--padding-left);
-      transform: translateY(-50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: fit-content;
-      height: fit-content;
-      gap: 8px;
+      // лёгкий пульс стрелки
+      animation: chevronPulse 2.4s ease-in-out infinite;
 
-      .kit-icon {
-        width: 1.6em;
-        height: 1.6em;
+      :deep(svg) {
+        width: 2.6em;
+        height: 2.6em;
+        margin-top: -4px;
+        margin-left: -6px;
 
-        :deep(svg) {
-          width: 2.6em;
-          height: 2.6em;
-          margin-top: -4px;
-          margin-left: -6px;
-
-          path {
-            fill: var(--color-white);
-          }
+        path {
+          fill: var(--color-white);
         }
       }
-    } 
-} 
+    }
+  }
+}
+
+/* === Анимации === */
+
+@keyframes bgDrift {
+  0% {
+    transform: translateX(-20%) translateY(4px);
+  }
+  25% {
+    transform: translateX(-18.5%) translateY(2px);
+  }
+  50% {
+    transform: translateX(-19%) translateY(6px);
+  }
+  75% {
+    transform: translateX(-21%) translateY(1px);
+  }
+  100% {
+    transform: translateX(-20%) translateY(4px);
+  }
+}
+
+@keyframes titleFloat {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes chevronPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  30% {
+    transform: scale(1.08) translateX(2px);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1) translateX(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes blockFloat {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  40% {
+    opacity: 0.35;
+  }
+  70% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* на всякий, если fadeIn нигде не определён */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

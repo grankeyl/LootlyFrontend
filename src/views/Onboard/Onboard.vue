@@ -2,6 +2,8 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 
+import * as APIUser from '../../api/user';
+
 import Slide1 from './Components/Slide1/Slide1.vue';
 import Slide2 from './Components/Slide2/Slide2.vue';
 import Slide3 from './Components/Slide3/Slide3.vue';
@@ -22,9 +24,13 @@ let io: IntersectionObserver | null = null;
 
 function updateIsLast(){ isLast.value = currentSlide.value >= slidesCount.value; }
 
-function goTo(index: number){
+async function goTo(index: number){
   if (isLast.value) {
-    router.push('/');
+    const res = await APIUser.onboarding();
+    if (!res?.ok) return;
+    if (res.ok) {
+      router.push('/');
+    }
     return;
   };
 

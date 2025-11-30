@@ -2,8 +2,8 @@
 import { nextTick, onMounted, ref, watch } from "vue";
 
 // Images
-import TickerTop from "@/assets/images/onboard-pg/slide2/ticker-top.png";
-import TickerBottom from "@/assets/images/onboard-pg/slide2/ticker-bottom.png";
+import TickerTop from "@/assets/images/onboard-pg/slide2/ticker-top.webp";
+import TickerBottom from "@/assets/images/onboard-pg/slide2/ticker-bottom.webp";
 
 const props = defineProps<{ active: boolean }>();
 
@@ -26,7 +26,7 @@ onMounted(() => { if (props.active) fireEnter(); });
   <div class="slide slide2" ref="root">
     <div class="ticker">
       <div class="ticker-top">
-          <img :src="TickerTop" alt="" />
+        <img :src="TickerTop" alt="" />
       </div>
       <div class="ticker-bottom">
         <img :src="TickerBottom" alt="" />

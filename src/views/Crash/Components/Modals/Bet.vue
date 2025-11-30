@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { cutNumber, cutNumberNano, tonToNano } from "../../../../utils/useTon";
-import { computed, ref } from "vue";
+import { cutNumber, cutNumberNano } from "../../../../utils/useTon";
+import { computed, ref, watch } from "vue";
 import { Icon } from "../../../../components/Icon";
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { useCacheStore } from "../../../../stores/pinia-store";
@@ -11,11 +11,11 @@ import * as APICrash from "../../../../api/crash";
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
-import TelegramModule from "../../../../hooks/useTelegram";
 
 const { t } = useTranslation();
 
 const emit = defineEmits<{
+  (e:'set-bet-modal-opened', payload: boolean): void
   (e:'set-fast-bet', payload: number): void
   (e:'set-game-bet-actual', payload: number): void
   (e:'open-auto-x-popup'): void
@@ -59,7 +59,7 @@ const statusBet = computed(() => {
 
 // --- state ---
 const bet = ref<number>(props.GameBet);
-const betText = ref<string>(props.GameBet.toString());
+const betText = computed(() => props.GameBet.toString());
 
 const betList = computed(() => props.FastBetList ?? []);
 const betActual = computed(() => {
@@ -68,8 +68,7 @@ const betActual = computed(() => {
 
 const checkMyBet = computed(() => {
   if (!props.GameBets) return false;
-  const initData = TelegramModule.initData() as any;
-  const userId = initData.user.id;
+  const userId = useCache.UserData.Tld;
   return props.GameBets.find((b: any) => b.user_id === userId && b.status === 'active');
 });
 
@@ -93,7 +92,6 @@ const onPriceInput = (e: any, maxDecimals = 2, kind: 'bet'|'auto' = 'bet') => {
   const s = sanitizePrice(e.target.value, maxDecimals);
   e.target.value = s;
   if (kind === 'bet') {
-    betText.value = s;                                // показываем ровно то, что ввёл юзер
     bet.value = (s === '' || s === '.') ? 0 : Number(s);
     emit('set-fast-bet', bet.value);
   } else {
@@ -107,7 +105,6 @@ const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
   const normalized = s ? cutNumber(s, decimals) : '';
   e.target.value = normalized;
   if (kind === 'bet') {
-    betText.value = normalized;                       // на блюре аккуратно форматируем
     bet.value = normalized === '' ? 0 : Number(normalized);
     emit('set-fast-bet', bet.value);
   } else {
@@ -119,15 +116,12 @@ const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
 function fastBetUse(
   item: any
 ) {
-  console.log(item);
   if (!item) return;
   if (item.type === 'amount') {
-    bet.value = item.price;
-    emit('set-fast-bet', bet.value);
+    emit('set-fast-bet', item.price);
     return;
   } else if (item.type === 'max') {
     const max = cutNumberNano(useCache.UserData.BalanceNano) as any || 0;
-    bet.value = max;
     emit('set-fast-bet', max);
     return;
   }
@@ -151,18 +145,17 @@ function toBigInt(v: unknown): bigint {
   return typeof v === 'bigint' ? v : BigInt(String(v ?? 0));
 }
 
-async function useCashout(
-  userId: number
-) {
+async function useCashout() {
   if (props.GameStatus !== 'playing') return;
-  const res = await APICrash.cashout(userId).catch(() => null);
+  const res = await APICrash.cashout().catch(() => null);
   if (res?.status !== 'ok') return;
   if (res.settled) {
     res.settled.forEach((s: any) => {
-      showSuccessToast(t('crash.modals.bet.successGetCashout', { price: cutNumber(s.payout) }));
+      showSuccessToast(t('crash.modals.bet.successGetCashout', { price: cutNumberNano(s.payout) }));
 
-      const betNano = tonToNano(s.payout);
       const current = toBigInt(useCache.UserData.BalanceNano);
+      const betNano = toBigInt(s.payout);
+
       useCache.UserData.BalanceNano = current + betNano;
       
       emit('set-game-bet-actual', 0);
@@ -175,11 +168,8 @@ function close() {
 }
 
 async function usePlaceBit() {
-  const initData = TelegramModule.initData() as any;
-
   if (props.GameStatus === 'playing') {
-    const userId = initData.user.id;
-    await useCashout(userId);
+    await useCashout();
     return;
   }
 
@@ -191,6 +181,10 @@ async function usePlaceBit() {
   close();
   emit('place-bit', { bet: bet.value });
 }
+
+watch(() => props.GameBet, (v) => {
+  bet.value = v;
+});
 </script>
 
 <template>
@@ -220,19 +214,19 @@ async function usePlaceBit() {
       </div>
 
       <div class="summary">
-        <div class="input" :class="{ locked: props.GameStatus !== 'prepare' }">
+        <div class="input">
           <input
             type="text"
             inputmode="decimal"
             autocomplete="off"
             placeholder="Your Price"
-            :value="bet"
+            :value="betText"
             @input="onPriceInput($event, 2, 'bet')"
             @blur="onPriceBlur($event, 2, 'bet')"
           />
           <img :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
         </div>
-        <div class="select" :class="{ locked: props.GameStatus !== 'prepare' }">
+        <div class="select">
           <div 
             class="item" 
             v-for="(bet, index) in betList" 
@@ -265,6 +259,9 @@ async function usePlaceBit() {
           <h4 v-if="statusBet === 'playing' && (checkMyBet && GameStatus === 'playing')" @click="usePlaceBit">
             {{ $t('crash.modals.bet.pickUp', { price: cutNumber(betActual) }) }}
             <img :src="TonBlackIcon" alt="ton-icon" aria-hidden="true" />
+          </h4>
+          <h4 v-if="statusBet === 'playing' && !(checkMyBet && GameStatus === 'playing')" @click="usePlaceBit">
+            {{ $t('crash.modals.bet.waiting') }}
           </h4>
         </button>
       </div>

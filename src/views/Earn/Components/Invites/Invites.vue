@@ -12,6 +12,7 @@ import FriendsIcon from "@/assets/icons/friends.svg";
 import PercentIcon from "@/assets/icons/percent.svg";
 import TonLineIcon from "@/assets/icons/ton-line.svg";
 import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
+import { cutNumberNano } from "../../../../utils/useTon";
 
 const useCache = useCacheStore() as any;
 
@@ -79,7 +80,6 @@ async function getReferrals(initial = false) {
 }
 
 function resolveRoot(): Element | null {
-  // Поддержка: передали ref, сам элемент, или вообще ничего (тогда корень = null => window)
   const el = props.scrollEl?.value ?? props.scrollEl ?? null;
   return el instanceof Element ? el : null; // null = viewport/window
 }
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
         <p>{{ $t('earn.invites.balance.descr') }}</p>
       </div>
       <div class="amount">
-        <h1>{{ useCache.UserData.AllSum }}</h1>
+        <h1>{{ cutNumberNano(useCache.UserData.RSBalance) }}</h1>
         <img :src="TonIcon" alt="ton-icon" />
       </div>
       <div class="button" @click="handleClick">
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="stat">
         <div class="title">
-          <h4>{{ useCache.UserData.AllSum }}</h4>
+          <h4>{{ cutNumberNano(useCache.UserData.AllSum) }}</h4>
           <img :src="TonIcon" alt="friends-icon" />
         </div>
         <div class="descr">
@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="referrals && referrals.length > 0" class="friends">
+    <div class="friends">
       <div class="filters">
         <div class="item">
           <h4>@</h4>
@@ -265,7 +265,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div class="list">
+      <div v-if="referrals && referrals.length > 0" class="list">
         <div class="sk-load" v-if="skeleton"></div>
         <div
           v-for="(item, index) in referrals"
@@ -293,7 +293,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-
+      
       <div ref="sentinel" class="sentinel"></div>
 
       <div v-if="!skeleton && loadingMore" class="loading-more">

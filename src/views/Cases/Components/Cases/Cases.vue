@@ -84,6 +84,30 @@ onMounted(getCases);
 <template>
     <div class="cases-block">
         <div v-if="props.ActiveTab === 'nfts'" class="items" :class="{ skeleton: skeleton }">
+            <!-- <div 
+                class="item" 
+                @click="openCase({})"
+                :style="{ 
+                    '--case-start-color': `#251823`,
+                    '--case-center-color': `#251823`,
+                    '--case-end-color': `#251823`
+                }"
+            >
+                <div class="sk-load" v-if="skeleton"></div>
+                <div class="image">
+                    <img :src="getImgSvg('https://lootly.codes/s3/cases/covers/Pink_Case.webp')" alt="image" />
+                </div>
+                <div class="context">
+                    <div class="title">
+                        <h4>Free Case</h4>
+                    </div>
+                    <div class="button">
+                        <button>
+                            <p>Open</p>
+                        </button>
+                    </div>
+                </div>
+            </div> -->
             <div 
                 v-for="(item, index) in cases" 
                 :key="index"

@@ -24,6 +24,7 @@ const menuItems = [
 
 const CheckDisabledMenu = () => {
   if (route.path === '/onboard') return true;
+  if (route.path === '/balance/onboard') return true;
   return false;
 }
 
@@ -48,7 +49,7 @@ const CheckActiveMenu = (menu: any) => {
         :class="{ active: CheckActiveMenu(item) }"
       >
         <img :src="item.icon" alt="icon" />
-        <h4>{{ item.name }}</h4>
+        <h4>{{ $t('menu.' + item.id) }}</h4>
       </div>
     </div>
   </div>

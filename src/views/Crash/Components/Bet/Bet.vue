@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { cutNumber, tonToNano } from '../../../../utils/useTon';
+import { computed, ref, watch } from 'vue';
+import { cutNumberNano, tonToNano } from '../../../../utils/useTon';
 import { showSuccessToast } from '../../../../utils/toastManager';
 import { useCacheStore } from '../../../../stores/pinia-store';
 import { useTranslation } from 'i18next-vue';
 
 import * as APICrash from '../../../../api/crash';
-
-// Components
-import TelegramModule from '../../../../hooks/useTelegram';
 
 // Icons
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
@@ -25,29 +22,47 @@ const props = defineProps<{
   GameBetActual: number;
   GameStatus: string;
   GameBets: any;
+
+  GameAutoX: number;
+  GameAutoXText: string;
+  GameAutoWithdraw: boolean;
 }>();
 
 const useCache = useCacheStore() as any;
 
 const betActual = computed(() => {
-  const bet = Number(props.GameBetActual) || 0;
-  const x   = Number(props.GameX) || 0;
-  return bet * x;
+  const fallbackBet = checkMyBet.value ? Number(checkMyBet.value.amount ?? 0) : 0;
+  const bet = Number(props.GameBetActual || fallbackBet || 0); // тут пусть будет TON
+  const x = Number(props.GameX || 1);
+  return bet * x; // TON
+});
+
+const betActualNano = computed(() => {
+  return tonToNano(betActual.value);
 });
 
 const statusBet = computed(() => {
   if (props.GameStatus === 'prepare' && props.GameBetActual >= 0.1) return 'waiting';
   if (props.GameStatus === 'prepare') return 'prepare';
+  if (checkMyBet.value && props.GameStatus === 'playing') return 'playing';
   if (props.GameStatus === 'playing' && betActual.value >= 0.1) return 'playing';
   return 'none';
 });
 
 const checkMyBet = computed(() => {
-  if (!props.GameBets) return false;
-  const initData = TelegramModule.initData() as any;
-  const userId = initData.user.id;
-  return props.GameBets.find((b: any) => b.user_id === userId && b.status === 'active');
+  if (!props.GameBets || !Array.isArray(props.GameBets)) return null;
+
+  const userId = Number(useCache.UserData.Tld);
+
+  return (
+    props.GameBets.find((b: any) => {
+      const betUserId = Number(b.user_id || b.userId || 0);
+      return betUserId === userId && b.status === 'active';
+    }) || null
+  );
 });
+
+const cashoutLoading = ref(false);
 
 function openBetModal() {
   emit('open-bet-modal');
@@ -57,77 +72,99 @@ function toBigInt(v: unknown): bigint {
   return typeof v === 'bigint' ? v : BigInt(String(v ?? 0));
 }
 
-async function useCashout(
-  userId: number
-) {
-  if (props.GameStatus !== 'playing') return;
-  const res = await APICrash.cashout(userId).catch(() => null);
-  if (res?.status !== 'ok') return;
+async function useCashout() {
+  if (cashoutLoading.value) return;
+  cashoutLoading.value = true;
+
+  if (props.GameStatus !== 'playing') { 
+    cashoutLoading.value = false; 
+    return; 
+  }
+
+  const res = await APICrash.cashout().catch(() => null);
+
+  if (res?.status !== 'ok') { 
+    cashoutLoading.value = false; 
+    return; 
+  }
+
   if (res.settled) {
     res.settled.forEach((s: any) => {
-      showSuccessToast(t('crash.bet.successGetCashout', { price: cutNumber(s.payout) }));
+      cashoutLoading.value = false;
+      showSuccessToast(
+        t('crash.bet.successGetCashout', { price: cutNumberNano(s.payout) })
+      );
 
-      const betNano = tonToNano(s.payout);
       const current = toBigInt(useCache.UserData.BalanceNano);
+      const betNano = toBigInt(s.payout);
+
       useCache.UserData.BalanceNano = current + betNano;
-      
+
       emit('set-game-bet-actual', 0);
     });
   }
 }
 
 function onButtonClick() {
-  if (statusBet.value === 'none') {
+  if (statusBet.value === 'none' || !props.GameStatus) {
     openBetModal();
     return;
   }
-
-  if (!props.GameStatus) {
-    openBetModal();
-    return;
-  }
-
-  const initData = TelegramModule.initData() as any;
 
   if (statusBet.value === 'playing' || (checkMyBet.value && props.GameStatus === 'playing')) {
-    useCashout(initData.user.id);
+    useCashout();
   } else {
     openBetModal();
   }
 }
+
+watch(() => props.GameX, (v) => {
+  if (props.GameAutoWithdraw) {
+    if (v === props.GameAutoX) {
+      showSuccessToast(`Success get cashout ${cutNumberNano(betActualNano.value)} TON!`);
+      useCashout();
+    }
+  }
+});
 </script>
 
 <template>
   <div class="bet">
-        <button @click="onButtonClick"
-          :class="{ 
-            waiting: statusBet === 'waiting',
-            prepare: statusBet === 'prepare',
-            playing: statusBet === 'playing',
-          }"
-        >
-          <span v-if="statusBet === 'none'" class="locked">
-            <div>
-              {{ $t('crash.bet.placeBit') }}
-            </div>
-          </span>
-          <span v-if="statusBet === 'waiting' && checkMyBet">
-            <div>
-              {{ $t('crash.bet.waiting') }}
-            </div>
-          </span>
-          <span v-if="statusBet === 'prepare' && (GameStatus === 'prepare')" @click="onButtonClick">
-            <div>
-              {{ $t('crash.bet.placeBit') }}
-            </div>
-          </span>
-          <span v-if="statusBet === 'playing' && (checkMyBet && GameStatus === 'playing')" @click="onButtonClick">
-            <div>
-              <p>{{ $t('crash.bet.pickUp', { price: cutNumber(betActual) }) }}</p>
-              <img :src="TonBlackIcon" alt="ton-icon" aria-hidden="true" />
-            </div>
-          </span>
-        </button>
+    <button
+      @click="onButtonClick"
+      :class="{
+        waiting: statusBet === 'waiting',
+        prepare: statusBet === 'prepare',
+        playing: statusBet === 'playing',
+      }"
+    >
+      <span class="label">
+        <template v-if="statusBet === 'none'">
+          {{ $t('crash.bet.placeBit') }}
+        </template>
+
+        <template v-else-if="statusBet === 'waiting'">
+          {{ $t('crash.bet.waiting') }}
+        </template>
+
+        <template v-else-if="statusBet === 'prepare'">
+          {{ $t('crash.bet.placeBit') }}
+        </template>
+
+        <template v-else-if="statusBet === 'playing' || checkMyBet && GameStatus === 'playing'">
+          <p>{{ $t('crash.bet.pickUp', { price: cutNumberNano(betActualNano) }) }}</p>
+          <img :src="TonBlackIcon" alt="ton-icon" aria-hidden="true" />
+        </template>
+      </span>
+    </button>
+
+    <!-- дебаг, можешь оставить/удалить -->
+    <!--
+    <div class="debug">
+      statusBet: {{ statusBet }} |
+      hasActiveBet: {{ hasActiveBet ? 'yes' : 'no' }}
+    </div>
+    -->
   </div>
 </template>
 

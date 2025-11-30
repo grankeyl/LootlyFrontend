@@ -1,16 +1,27 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { useCacheStore } from "../../../../stores/pinia-store";
 
 import * as APITasks from "../../../../api/tasks";
 
 // Icons
 import LootcoinIcon from "@/assets/icons/lootcoin.svg";
+import LootcoinRawIcon from "@/assets/icons/lootcoin.svg?raw";
+import ProfileIcon from "@/assets/icons/profile.svg";
 // import TonWhite from "@/assets/icons/ton-white.svg";
 import ChevroneRight from "@/assets/icons/chevrone-right.svg";
+import DoneRawIcon from "@/assets/icons/done.svg?raw";
+import TelegramIcon from "@/assets/icons/telegram.svg";
+import TelegramRawIcon from "@/assets/icons/telegram.svg?raw";
+import TonWhiteIcon from "@/assets/icons/ton-white.svg";
+import CaseIcon from "@/assets/icons/case.svg";
+import RepostIcon from "@/assets/icons/repost.svg";
 
 // Images
 // import Gifted from "@/assets/images/earn-pg/gifted.png";
 import TelegramModule from "../../../../hooks/useTelegram";
+import { showSuccessToast } from "../../../../utils/toastManager";
+import { shootConfetti } from "../../../../utils/useConfetti";
 
 type Task = any;
 
@@ -18,12 +29,92 @@ const props = defineProps<{
   scrollEl?: Element | null 
 }>();
 
+const useCache = useCacheStore() as any;
+
 const skeleton = ref(true);
 const items = ref<Task[]>(Array.from({ length: 10 }));
 const hasMore = ref(true);
 const loading = ref(false);
 const limit = 20;
 const offset = ref(0);
+
+const swipersTasksTypes = ['invite', 'volume', 'open', 'createStory'];
+
+const swipersTasksApplied = ref(false);
+const swipersTasks = computed(() => {
+  const array = items.value || [];
+
+  const filtered = array
+    .map((t, idx) => ({ t, idx }))
+    .filter(x => x.t && x.t.type && swipersTasksTypes.includes(x.t.type));
+
+  // если уже сортировали один раз — больше порядок не трогаем
+  // if (swipersTasksApplied.value) {
+  //   return filtered.map(x => x.t);
+  // }
+
+  const getProgress = (task: Task): number => {
+    if (!task) return 0;
+
+    if (typeof task.current === 'number' && typeof task.need === 'number' && task.need > 0) {
+      return Math.min(Math.max(task.current / task.need, 0), 1);
+    }
+    if (typeof task.progress === 'number') {
+      return Math.min(Math.max(task.progress, 0), 1);
+    }
+
+    if (task.type === 'invite') {
+      const need = 3;
+      const current = useCache.UserDataMeta?.ref_count ?? 0;
+      const ratio = need > 0 ? current / need : 0;
+      return Math.min(Math.max(ratio, 0), 1);
+    }
+
+    return 0;
+  };
+
+  const canClaim = (task: Task): boolean => {
+    if (!task) return false;
+    if (task.user_status === 'success') return true;
+
+    if (task.type === 'invite') {
+      const current = useCache.UserDataMeta?.ref_count ?? 0;
+      if (current >= 3) return true;
+    }
+
+    if (getProgress(task) >= 1) return true;
+    return false;
+  };
+
+  filtered.sort((a, b) => {
+    const ta = a.t;
+    const tb = b.t;
+
+    const claimA = canClaim(ta);
+    const claimB = canClaim(tb);
+    if (claimA !== claimB) return claimA ? -1 : 1;         // Claim вверх
+
+    const doneA = ta.user_status === 'claim';
+    const doneB = tb.user_status === 'claim';
+    if (doneA !== doneB) return doneA ? 1 : -1;            // Done вниз
+
+    const pA = getProgress(ta);
+    const pB = getProgress(tb);
+    if (pA !== pB) return pB - pA;                         // больше прогресс — выше
+
+    return a.idx - b.idx;
+  });
+
+  swipersTasksApplied.value = true;
+
+  return filtered.map(x => x.t);
+});
+const otherTasks = computed(() => {
+  const array = items.value || [];
+  return array.filter(t => 
+    t && t.type && !swipersTasksTypes.includes(t.type)
+  );
+});
 
 /** гонки и отмена */
 let inFlight = 0;
@@ -62,6 +153,11 @@ function sentinelVisible(): boolean {
 async function fetchPage(initial = false) {
   if (loading.value) return;
   if (!hasMore.value && !initial) return;
+  if (useCache.TasksData && useCache.TasksData.length) {
+    skeleton.value = false;
+    items.value = useCache.TasksData;
+    return;
+  };
 
   loading.value = true;
   const token = ++inFlight;
@@ -81,10 +177,12 @@ async function fetchPage(initial = false) {
     }
 
     const page: Task[] = res.data ?? [];
-    const withFlags = page.map(g => ({ ...g, _imgLoaded: false }));
+    const withFlags = page.map(g => ({ ...g, _imgLoaded: false, _loading: false }));
 
     if (initial) items.value = withFlags;
     else items.value.push(...withFlags);
+
+    useCache.TasksData = withFlags;
 
     offset.value += page.length;
 
@@ -96,7 +194,6 @@ async function fetchPage(initial = false) {
   } finally {
     if (token === inFlight) {
       loading.value = false;
-      // небольшая задержка, чтобы убрать скелетон после отрисовки
       setTimeout(() => (skeleton.value = false), 120);
     }
   }
@@ -172,6 +269,123 @@ function setupResizeAndScrollFallback() {
   }
 }
 
+const checkReferralsTask = (need: number) => {
+  const referrals = useCache.UserDataMeta.ref_count ?? 0;
+  return referrals >= need;
+}
+
+const checkOpenedCases = (current: number, need: number) => {
+  return current >= need;
+}
+ 
+const taskCurrentInfo = (current: number, need: number) => {
+  const currentClear = Math.min(Math.max(current, 0), need);
+  return currentClear;
+};
+
+async function claimTask(task: Task) {
+  if (!task) return;
+  if (task._loading) return;
+
+  items.value.find(i => i.id === task.id)!._loading = true;
+
+  const res = await APITasks.taskClaim(task.id);
+  if (!res) { items.value.find(i => i.id === task.id)!._loading = false; return; };
+  if (res.ok) {
+    if (res.data.status === "success") {
+      items.value.find(i => i.id === task.id)!._loading = false;
+      items.value.find(i => i.id === task.id)!.user_status = "success";
+      shootConfetti();
+    } else if (res.data.status === "claimed") {
+      items.value.find(i => i.id === task.id)!._loading = false;
+      items.value.find(i => i.id === task.id)!.user_status = "claimed";
+      useCache.UserData.BonusBalance += res.data.amount;
+      showSuccessToast('Task successfully claimed');
+      shootConfetti();
+    }
+  }
+}
+
+
+async function postStory(task: Task) {
+  if (!task) return;
+  if (task._loading) return;
+
+  if (task.user_status === "claimed") return;
+  if (task.user_status === "success") {
+    claimTask(task);
+    return;
+  };
+
+  items.value.find(i => i.id === task.id)!._loading = true;
+
+  const storyMedia = task.config.StoryMedia;
+  if (!storyMedia) return;
+
+  TelegramModule.useLightHaptic();
+  TelegramModule.useStory(storyMedia);
+
+  setTimeout(() => {
+    items.value.find(i => i.id === task.id)!._loading = false;
+    items.value.find(i => i.id === task.id)!.user_status = "success";
+    shootConfetti();
+  }, 7000);
+}
+
+
+const tasksCheckSubcriptions = ref<Record<string, number>>({});
+
+async function startCheckSubscription(task: Task) {
+  if (!task) return;
+  if (task._loading) return;
+
+  if (task.user_status === "claimed") return;
+  if (task.user_status === "success") {
+    claimTask(task);
+    return;
+  };
+
+  const taskId = task.id as string;
+
+  if (tasksCheckSubcriptions.value[taskId]) return;
+
+  TelegramModule.useLink(task.config.ChannelLink);
+
+  items.value.find(i => i.id === taskId)!._loading = true;
+
+  const first = await APITasks.taskCheckSubscription(taskId).catch(() => null);
+  if (first && first.ok) {
+    if(first.status === "success") {
+      items.value.find(i => i.id === taskId)!._loading = false;
+      items.value.find(i => i.id === taskId)!.user_status = first.status;
+      return;
+    }
+  }
+
+  const intervalId = window.setInterval(async () => {
+    const res = await APITasks.taskCheckSubscription(taskId).catch(() => null);
+    if (!res) return;
+    if (res && res.ok) {
+      if (res.status === "success") {
+        items.value.find(i => i.id === taskId)!._loading = false;
+        items.value.find(i => i.id === taskId)!.user_status = res.status;
+        stopCheckSubscription(taskId);
+      }
+    }
+  }, 2000);
+
+  tasksCheckSubcriptions.value[taskId] = intervalId;
+}
+
+function stopCheckSubscription(taskId: string) {
+  const intervals = tasksCheckSubcriptions.value;
+  const intervalId = intervals[taskId];
+  if (intervalId) {
+    clearInterval(intervalId);
+    delete intervals[taskId];
+  }
+}
+
 /** публичное */
 async function reload() { 
   await fetchPage(true); 
@@ -191,12 +405,10 @@ onBeforeUnmount(() => {
   io?.disconnect(); io = null;
   ro?.disconnect(); ro = null;
   scrollOff?.(); scrollOff = null;
-});
 
-function useTask() {
-  const link = 'https://t.me/LootlyNews';
-  TelegramModule.useLink(link);
-}
+  Object.values(tasksCheckSubcriptions.value).forEach(id => clearInterval(id));
+  tasksCheckSubcriptions.value = {};
+});
 </script>
 
 <template>
@@ -229,21 +441,219 @@ function useTask() {
       </div>
     </div> -->
 
+    <div class="swipers">
+      <div class="swipers-scroll">
+        <div v-if="skeleton" class="swiper skeleton" v-for="_ in 6">
+          <div class="sk-load"></div>
+          <div class="swiper-block">
+            <div class="amount">
+              <div class="glow"></div>
+              <h4>100</h4>
+              <div class="kit-icon" v-html="LootcoinRawIcon"></div>
+            </div>
+            <div class="context">
+              <h4>
+                Loading
+                <img :src="TelegramIcon" alt="profile-icon" />
+              </h4>
+            </div>
+            <div class="button"></div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!skeleton" class="swipers-scroll">
+        <div 
+          class="swiper" 
+          v-for="(item, index) in swipersTasks" 
+          :key="index"
+        >
+          <div v-if="item.type && item.type === 'invite'" class="swiper-block">
+            <div class="amount">
+              <div class="glow"></div>
+              <h4>{{ item.amount }}</h4>
+              <div class="kit-icon" v-html="LootcoinRawIcon"></div>
+            </div>
+            <div class="context">
+              <h4>
+                {{ $t('earn.tasks.swipers.invite') }} {{ item.config.TaskNeedFriends }}
+                <img :src="ProfileIcon" alt="profile-icon" />
+                {{ $t('earn.tasks.swipers.friends') }}
+              </h4>
+            </div>
+            <div v-if="item._loading" class="button loading">
+              <div class="spinner"></div>
+            </div>
+            <div v-else-if="item.user_status && ['new', 'success'].includes(item.user_status) && !checkReferralsTask(item.config.TaskNeedFriends)" class="button">
+              <h4>{{ $t('earn.tasks.swipers.invite') }}</h4>
+              <span class="proccess">
+                <p>{{ taskCurrentInfo(useCache.UserDataMeta.ref_count, item.config.TaskNeedFriends) }}/{{ item.config.TaskNeedFriends }}</p>
+                <img :src="ProfileIcon" alt="profile-icon" />
+              </span>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'success' || checkReferralsTask(3) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
+              <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">
+              <div class="done">
+                <div class="kit-icon" v-html="DoneRawIcon"></div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="item.type && item.type === 'volume'" class="swiper-block">
+            <div class="amount">
+              <div class="glow"></div>
+              <h4>{{ item.amount }}</h4>
+              <div class="kit-icon" v-html="LootcoinRawIcon"></div>
+            </div>
+            <div class="context">
+              <h4>
+                {{ $t('earn.tasks.swipers.achieveAVolume') }} 100
+                <img :src="TonWhiteIcon" alt="profile-icon" />
+                {{ $t('earn.tasks.swipers.inGame') }}
+              </h4>
+            </div>
+            <div v-if="item.user_status && ['new', 'success'].includes(item.user_status)" class="button">
+              <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
+              <span class="proccess">
+                <p>0/3</p>
+                <img :src="ProfileIcon" alt="profile-icon" />
+              </span>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'success'" class="button claim">
+              <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">
+              <div class="done">
+                <div class="kit-icon" v-html="DoneRawIcon"></div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="item.type && item.type === 'open'" class="swiper-block">
+            <div class="amount">
+              <div class="glow"></div>
+              <h4>{{ item.amount }}</h4>
+              <div class="kit-icon" v-html="LootcoinRawIcon"></div>
+            </div>
+            <div class="context">
+              <h4>
+                {{ $t('earn.tasks.swipers.open') }} {{ item.config.TaskNeedCaseOpened }}
+                <img :src="CaseIcon" alt="profile-icon" class="case" />
+                {{ $t('earn.tasks.swipers.cases') }}
+              </h4>
+            </div>
+
+            <div v-if="item._loading" class="button loading">
+              <div class="spinner"></div>
+            </div>
+            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened)" class="button">
+              <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
+              <span class="proccess">
+                <p>{{ taskCurrentInfo(item.opens, item.config.TaskNeedCaseOpened) }}/{{ item.config.TaskNeedCaseOpened }}</p>
+                <img :src="ProfileIcon" alt="profile-icon" />
+              </span>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'success' || checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
+              <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">
+              <div class="done">
+                <div class="kit-icon" v-html="DoneRawIcon"></div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="item.type && item.type === 'createStory'" class="swiper-block">
+            <div class="amount">
+              <div class="glow"></div>
+              <h4>{{ item.amount }}</h4>
+              <div class="kit-icon" v-html="LootcoinRawIcon"></div>
+            </div>
+            <div class="context">
+              <h4>
+                {{ $t('earn.tasks.swipers.postStory') }}
+                <img :src="TelegramIcon" alt="profile-icon" />
+              </h4>
+            </div>
+
+            <div v-if="item._loading" class="button loading">
+              <div class="spinner"></div>
+            </div>
+            <div v-else-if="item.user_status && ['new'].includes(item.user_status)" class="button" @click="postStory(item)">
+              <h4>{{ $t('earn.tasks.swipers.repost') }}</h4>
+              <span><img :src="RepostIcon" alt="repost-icon" class="repost" /></span>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'success'" class="button claim" @click="claimTask(item)">
+              <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">
+              <div class="done">
+                <div class="kit-icon" v-html="DoneRawIcon"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="others">
-      <div class="other" v-for="_ in items" @click="useTask">
-        <div class="sk-load" v-if="skeleton"></div>
-        <div class="image">
-          <img src="https://i.ibb.co/3593Cj84/telegram-peer-photo-size-2-5190691857137530605-1-0-0.jpg" alt="">
+      <div v-if="skeleton" class="others-inner skeleton">
+        <div 
+          class="other"
+          v-for="_ in 6"
+        >
+          <div class="sk-load"></div>
+          <div class="image">
+            <div class="kit-icon" v-html="TelegramRawIcon"></div>
+          </div>
+          <div class="context">
+            <h4>{{ $t('earn.tasks.others.taskTitle') }}</h4>
+            <span>
+              <p>100</p>
+              <img :src="LootcoinIcon" alt="lootcoin-icon" />
+            </span>
+          </div>
+          <div class="mark notactive">
+            <img :src="ChevroneRight" alt="chevrone-right-icon">
+          </div>
         </div>
-        <div class="context">
-          <h4>{{ $t('earn.tasks.others.taskTitle') }}</h4>
-          <span>
-            <p>250</p>
-            <img :src="LootcoinIcon" alt="lootcoin-icon" />
-          </span>
-        </div>
-        <div class="mark notactive">
-          <img :src="ChevroneRight" alt="chevrone-right-icon">
+      </div>
+      
+      <div v-if="!skeleton" class="others-inner">
+        <div 
+          class="other" 
+          v-for="(item, index) in otherTasks" 
+          :key="index"
+        >
+          <div v-if="item.type && item.type === 'subscribe'" @click="() => { startCheckSubscription(item); }" class="other-inner">
+            <div class="image">
+              <div class="kit-icon" v-html="TelegramRawIcon"></div>
+            </div>
+            <div class="context">
+              <h4>{{ $t('earn.tasks.others.taskTitle') }}</h4>
+              <span>
+                <p>{{ item.amount }}</p>
+                <img :src="LootcoinIcon" alt="lootcoin-icon" />
+              </span>
+            </div>
+            <div v-if="item._loading" class="mark loading">
+              <div class="spinner"></div>
+            </div>
+            <div v-else-if="item.user_status && ['new'].includes(item.user_status)" class="mark notactive">
+              <img :src="ChevroneRight" alt="chevrone-right-icon">
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'success'" class="mark claim">
+              <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
+            </div>
+            <div v-else-if="item.user_status && item.user_status === 'claimed'" class="mark done">
+              <div class="done">
+                <div class="kit-icon" v-html="DoneRawIcon"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -35,7 +35,7 @@
   gap: 16px;
   position: relative;
   z-index: 1;
-  padding: 0 var(--padding-left);
+  padding: 0 14px;
   padding-bottom: calc(var(--menu-height) + 20px);
   // background: var(--bg-4);
   // margin-top: 16px;
@@ -190,6 +190,11 @@
           transition: background .2s ease, outline-color .2s ease;
           margin-left: 6px;
 
+          &.-primary {
+            background: var(--color-primary);
+            outline: 1px solid var(--color-primary);
+          }
+
           h4 {
             font-weight: 500;
             font-size: 1.4rem;
@@ -197,6 +202,9 @@
             line-height: 1;
             transition: color .2s ease;
           }
+
+          svg { width: 11px; height: 11px; display: block; margin-right: 1px; transform: translateY(0.5px); }
+          :deep(svg) { width: 11px; height: 11px; display: block; margin-right: 1px; transform: translateY(0.5px); }
         }
 
         .spinner {

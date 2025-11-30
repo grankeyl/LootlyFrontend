@@ -3,6 +3,9 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { tonConnectUI } from '../../../../hooks/useTonConnect';
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { toUserFriendlyAddress } from "ton-ui-vue";
+import { obfuscateAddress } from '../../../../utils/useTon';
+import { useCacheStore } from '../../../../stores/pinia-store';
+import { useTranslation } from 'i18next-vue';
 
 import * as APIWallet from '../../../../api/wallet';
 
@@ -15,18 +18,42 @@ import TonLineIcon from "@/assets/icons/ton-line.svg";
 // Images
 import LootlyBalanceBlur from "@/assets/images/earn-pg/bg-blured-lootly-balance.png";
 import TelegramModule from '../../../../hooks/useTelegram';
-import { obfuscateAddress } from '../../../../utils/useTon';
 
 const emit = defineEmits<{
   (e: "open-modal-withdraw-balance"): void;
+  (e: "close"): void;
 }>();
 
+const { t } = useTranslation();
+
+const useCache = useCacheStore() as any;
 const walletConnected = ref(false);
 const walletAddress = ref('...');
 const walletCheckInterval = ref();
 
 function chooseWallet() {
   emit('open-modal-withdraw-balance');
+}
+
+async function chooseLootlyBalance(
+  type: string
+) {
+  if (type === 'wallet') {
+    if (!walletConnected.value) return;
+  }
+
+  const res = await APIWallet.withdrawRef(type);
+  if (!res || !res.ok) {
+    showErrorToast(t('extra.errorGetWithdraw'));
+    return;
+  };
+  if (res && res.ok) {
+    useCache.UserData.AllSum += useCache.UserData.RSBalance;
+    useCache.UserData.RSBalance = 0;
+    useCache.UserData.BalanceNano = res.balance_nano;
+    showSuccessToast(t('extra.successGetWithdraw'));
+    emit('close');
+  }
 }
 
 const openTonWallet = () => {
@@ -39,12 +66,10 @@ const openTonWallet = () => {
       walletConnected.value = true;
       setTimeout(async () => {
         const response = await APIWallet.connect(walletAddress.value);
-        console.log('response', response);
         if (response) {
-          showSuccessToast('Wallet connected');
+          showSuccessToast(t('extra.walletConnected'));
         } else {
-          clearInterval(interval);
-          showErrorToast('Wallet not connected');
+          showErrorToast(t('extra.walletNotConnected'));
         }
       }, 1000);
     }
@@ -54,6 +79,7 @@ const openTonWallet = () => {
 const checkTonWallet = () => {
   const isTonWallet = tonConnectUI.connected;
   walletConnected.value = isTonWallet;
+  getTonWalletAddress();
 }
 
 const getTonWalletAddress = async () => {
@@ -61,7 +87,12 @@ const getTonWalletAddress = async () => {
   const rawAddress = tonConnectUI.account.address;
   const walletAddressString = toUserFriendlyAddress(rawAddress);
   walletAddress.value = walletAddressString;
-  if (tonConnectUI.connected) { await APIWallet.connect(walletAddress.value); }
+  if (tonConnectUI.connected) { 
+    const response = await APIWallet.connect(walletAddress.value);
+    if (response) {
+      clearInterval(walletCheckInterval.value);
+    }
+  }
   return walletAddressString;
 }
 
@@ -113,7 +144,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
-    <div class="selectors">
+    <div class="selectors" :class="{ disabled: !useCache.UserData?.RSBalance || 0 }">
       <div class="item" @click="chooseWallet" :class="{ disabled: !walletConnected }">
         <div class="top">
           <p v-if="walletConnected">{{ obfuscateAddress(walletAddress) }}</p>
@@ -124,7 +155,7 @@ onBeforeUnmount(() => {
           <h4>{{ $t('earn.modals.chooseDestination.wallet') }}</h4>
         </div>
       </div>
-      <div class="item">
+      <div @click="chooseLootlyBalance('balance')" class="item">
         <div class="blur">
           <img :src="LootlyBalanceBlur" alt="blur" />
         </div>

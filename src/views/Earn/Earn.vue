@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useModal } from './../../components/common/Modal';
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router"; // ← добавили
 
 import Balance from "./Components/Balance/Balance.vue";
 import Tabs from "./Components/Tabs/Tabs.vue";
@@ -16,7 +17,17 @@ import Header from '../../components/common/Header/Header.vue';
 
 const { open } = useModal();
 
-const ActiveTab = ref('tasks');
+const route = useRoute();
+const allowedTabs = ['tasks', 'invites'] as const;
+const defaultTab = 'tasks';
+
+const initialSection = route.query.section;
+const ActiveTab = ref<string>(
+  typeof initialSection === 'string' && allowedTabs.includes(initialSection as any)
+    ? initialSection
+    : defaultTab
+);
+
 const PageRef = ref<HTMLElement|null>(null);
 const SwitchTab = (tab: string) => { ActiveTab.value = tab; }
 

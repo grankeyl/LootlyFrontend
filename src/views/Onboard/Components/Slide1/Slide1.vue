@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Images
 import LogoImage from "@/assets/images/logo.svg";
-import Symbols from "@/assets/images/onboard-pg/slide1/symbols.png";
-import BluredImage from "@/assets/images/onboard-pg/slide1/blured.png";
-import GiftsImage from "@/assets/images/onboard-pg/slide1/gifts.png";
+import Symbols from "@/assets/images/onboard-pg/slide1/symbols.webp";
+import BluredImage from "@/assets/images/onboard-pg/slide1/blured.webp";
+import GiftsImage from "@/assets/images/onboard-pg/slide1/gifts.webp";
 </script>
 
 <template>

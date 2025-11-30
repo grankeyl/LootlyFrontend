@@ -1,7 +1,7 @@
-.page {
-    overflow: auto;
-    overflow-x: hidden;
-}
+// .page {
+//     overflow: auto;
+//     overflow-x: hidden;
+// }
 
 .header {
   display: flex;
@@ -26,4 +26,8 @@
     z-index: 1;
     width: 100%;
     height: 100%;
+}
+
+.page, .content, * {
+  opacity: 1 !important;
 }

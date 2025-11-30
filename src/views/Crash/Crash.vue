@@ -5,6 +5,8 @@ import { showErrorToast } from "../../utils/toastManager";
 import { useCacheStore } from "../../stores/pinia-store";
 import { tonToNano } from "../../utils/useTon";
 import { usePopup } from "../../components/common/Popup";
+import { useModal } from "../../components/common/Modal";
+import { useTranslation } from "i18next-vue";
 
 import * as APICrash from "./../../api/crash";
 
@@ -15,7 +17,8 @@ import TelegramModule from "../../hooks/useTelegram";
 import AutoXPopup from "./Components/Popups/AutoX.vue";
 import Bet from "./Components/Bet/Bet.vue";
 import BetModal from "./Components/Modals/Bet.vue";
-import { useModal } from "../../components/common/Modal";
+
+const { t } = useTranslation();
 
 const { open } = usePopup();
 
@@ -30,54 +33,54 @@ const GameBetLoading = ref<boolean>(false);
 const GameBetActual = ref<number>(0);
 const GameLastCrashes = ref<object>([]);
 const GameBets = ref<object>([
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Grankeyl",
-    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Grankeyl",
-    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Grankeyl",
-    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  },
-  {
-    "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-    "user_id": 2106187940,
-    "user_first_name": "Grankeyl",
-    "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-    "amount": 0.1,
-    "auto_cashout": null,
-    "status": "active",
-    "settled_mult": null,
-    "value": 0.1,
-    "index": 1
-  }
+  // {
+  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+  //   "user_id": 2106187940,
+  //   "user_first_name": "Grankeyl",
+  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
+  //   "amount": 0.1,
+  //   "auto_cashout": null,
+  //   "status": "active",
+  //   "settled_mult": null,
+  //   "value": 0.1,
+  //   "index": 1
+  // },
+  // {
+  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+  //   "user_id": 2106187940,
+  //   "user_first_name": "Grankeyl",
+  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
+  //   "amount": 0.1,
+  //   "auto_cashout": null,
+  //   "status": "active",
+  //   "settled_mult": null,
+  //   "value": 0.1,
+  //   "index": 1
+  // },
+  // {
+  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+  //   "user_id": 2106187940,
+  //   "user_first_name": "Grankeyl",
+  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
+  //   "amount": 0.1,
+  //   "auto_cashout": null,
+  //   "status": "active",
+  //   "settled_mult": null,
+  //   "value": 0.1,
+  //   "index": 1
+  // },
+  // {
+  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
+  //   "user_id": 2106187940,
+  //   "user_first_name": "Grankeyl",
+  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
+  //   "amount": 0.1,
+  //   "auto_cashout": null,
+  //   "status": "active",
+  //   "settled_mult": null,
+  //   "value": 0.1,
+  //   "index": 1
+  // }
 ]);
 const GameOnline = ref<number>(2);
 
@@ -92,7 +95,7 @@ const FastBetList = ref<object>([
   { id: 2, price: 1, type: "amount" },
   { id: 3, price: 3, type: "amount" },
   { id: 4, price: 5, type: "amount" },
-  { id: 5, price: "MAX", type: "max" },
+  { id: 5, price: t('crash.modals.bet.max') || "MAX", type: "max" },
 ]);
 
 let ws: WebSocket | null = null;
@@ -115,7 +118,7 @@ onMounted(() => {
       const msg = JSON.parse(e.data);
       const msgData = msg;
       if (msgData.last_crashes) {  GameLastCrashes.value = msgData.last_crashes; }
-      // if (msgData.bets) {  GameBets.value = msgData.bets; }
+      if (msgData.bets) {  GameBets.value = msgData.bets; }
       if (msgData.online) {  GameOnline.value = msgData.online; }
 
       if (msgData.phase && msgData.multiplier) {
@@ -152,9 +155,7 @@ onBeforeUnmount(() => {
 function toBigInt(v: unknown): bigint {
   return typeof v === 'bigint' ? v : BigInt(String(v ?? 0));
 }
-
 async function placeBit(payload: any) {
-  const initData = TelegramModule.initData() as any;
 
   if (!payload) return;
   const bet = Number(payload.bet);
@@ -177,17 +178,17 @@ async function placeBit(payload: any) {
   GameBetLoading.value = true;
 
   const autoCashout = GameAutoWithdraw.value ? GameAutoX.value : 0;
-  const res = await APICrash.bet(
-    initData.user.id,
-    bet,
-    autoCashout
-  );
+  const res = await APICrash.bet(bet, autoCashout);
   if (res?.status !== 'ok') return;
   if (res.bet) {
     useCache.UserData.BalanceNano = current - betNano;
     GameBetActual.value += bet;
     GameBetLoading.value = false;
   }
+}
+
+function setGameBet(value: number) {
+  GameBet.value = value;
 }
 
 function setGameBetActual(value: number) {
@@ -198,7 +199,7 @@ async function openBetModal() {
   const { open } = useModal();
 
   const choose = open(BetModal, {
-        onSetFastBet: (p: number) => GameBet.value = p,
+        onSetFastBet: (p: number) => setGameBet(p),
         onSetGameBetActual: (p: number) => setGameBetActual(p),
         onOpenAutoXPopup: () => openAutoXPopup(),
         onPlaceBit: (p: any) => placeBit(p),
@@ -273,6 +274,10 @@ watch(() => GameAutoBet.value, (v) => {
         :GameBetActual="GameBetActual"
         :GameStatus="GameStatus"
         :GameBets="GameBets"
+
+        :GameAutoX="GameAutoX"
+        :GameAutoXText="GameAutoXText"
+        :GameAutoWithdraw="GameAutoWithdraw"
       />
       <!-- <Tabs 
         @SetFastBet="GameBet = $event"

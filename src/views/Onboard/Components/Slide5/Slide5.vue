@@ -2,7 +2,7 @@
 import { ref, watch, nextTick, onMounted } from "vue";
 
 import Backdrop from "@/assets/images/earn-pg/bg-blured.png";
-import Earn from "@/assets/images/onboard-pg/slide5/earn.png";
+import Earn from "@/assets/images/onboard-pg/slide5/earn.webp";
 
 // Icons
 import FriendsIcon from "@/assets/icons/friends.svg?raw";

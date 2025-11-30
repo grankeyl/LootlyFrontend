@@ -115,3 +115,56 @@ export async function itemWithdraw(
     return false;
   }
 }
+
+export async function onboarding() {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.post(
+      `/onboarding`,
+      { },
+      { headers: { "X-init-data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export async function onbalance() {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.post(
+      `/onbalance`,
+      { },
+      { headers: { "X-init-data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export async function langue(
+  language: string
+) {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.post(
+      `/langue`,
+      { language: language },
+      { headers: { "X-init-data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}

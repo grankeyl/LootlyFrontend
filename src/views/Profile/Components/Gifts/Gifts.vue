@@ -18,17 +18,17 @@ import TelegramModule from "../../../../hooks/useTelegram";
 type Gift = any;
 
 const emit = defineEmits<{
-  (e: 'open-modal', payload: Gift): void
-  (e: 'inventory-set', value: any[]): void
-  (e: 'inventory-count', value: number): void
+  (e: "open-modal", payload: Gift): void;
+  (e: "inventory-set", value: any[]): void;
+  (e: "inventory-count", value: number): void;
 }>();
 
 const props = defineProps<{
-  scrollEl?: any;         // HTMLElement | Ref<HTMLElement|null>
-  inventory?: any[];      // начальные данные (опционально)
-  inventoryCount?: number; // начальные данные (опционально)
-  status?: string;        // фильтр, по умолчанию 'all'
-  pageSize?: number;      // лимит на страницу, по умолчанию 20
+  scrollEl?: any;          // не используем, но оставляем для совместимости
+  inventory?: any[];       // начальные данные (скелетоны)
+  inventoryCount?: number; // начальные данные
+  status?: string;         // фильтр
+  pageSize?: number;       // лимит
 }>();
 
 const router = useRouter();
@@ -37,135 +37,98 @@ const router = useRouter();
 const status = computed(() => props.status ?? "all");
 const limit  = computed(() => Math.max(1, props.pageSize ?? 20));
 
-const items = ref<any[]>(props.inventory ?? Array.from({ length: 9 }, () => ({
-  skeleton: true,
-})));
-
-const total = ref<number | null>(null);
-const offset = ref(0);
+const items   = ref<any[]>(props.inventory ?? Array.from({ length: 9 }, () => ({ skeleton: true })));
+const total   = ref<number | null>(props.inventoryCount ?? null);
+const offset  = ref(0);
 const hasMore = ref(true);
 const loading = ref(false);
 const skeleton = ref(true);
 
-const sentinel = ref<HTMLDivElement|null>(null);
-const containerEl = ref<HTMLElement|null>(null); // .gifts .items
+const itemsEl   = ref<HTMLElement | null>(null);
+const sentinel  = ref<HTMLDivElement | null>(null);
+
 let io: IntersectionObserver | null = null;
-let ro: ResizeObserver | null = null;
-let scrollOff: (() => void) | null = null;
+let reqId = 0;
 
-let reqId = 0; // защита от гонок
-
-/* ================== HELPERS ================== */
-function getPassedEl(): HTMLElement | null {
-  const passed = props.scrollEl && ('value' in props.scrollEl ? props.scrollEl.value : props.scrollEl);
-  return passed instanceof Element ? (passed as HTMLElement) : null;
-}
-
-function getScrollable(el: Element | null): HTMLElement | null {
-  const isScrollable = (n: Element | null) => {
-    if (!n) return false;
-    const cs = getComputedStyle(n);
-    const oy = cs.overflowY;
-    return (oy === 'auto' || oy === 'scroll') && (n as HTMLElement).scrollHeight > (n as HTMLElement).clientHeight;
-  };
-
-  // сначала проверяем сам элемент
-  if (isScrollable(el)) return el as HTMLElement;
-
-  // затем поднимаемся вверх
-  let node: Element | null = el?.parentElement ?? null;
-  while (node && node !== document.body) {
-    if (isScrollable(node)) return node as HTMLElement;
-    node = node.parentElement;
-  }
-  return null;
-}
-
-const root = ref<HTMLElement | null>(null);
-function pickRoot() {
-  root.value =
-    getPassedEl() ??
-    getScrollable(containerEl.value) ??
-    getScrollable(sentinel.value) ??   // 👈 если скроллер — сама .items
-    null;
-}
-
-function nearBottom(gap = 600) {
-  const r = root.value;
-  if (r) return r.scrollTop + r.clientHeight >= r.scrollHeight - gap;
-  return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - gap;
-}
-
-/* ================== DATA ================== */
+/* ================== DATA LOAD ================== */
 async function load(initial = false) {
-  if (loading.value || (!hasMore.value && !initial)) return;
+  if (loading.value) return;
+  if (!hasMore.value && !initial) return;
 
   const my = ++reqId;
   loading.value = true;
+
   if (initial) {
-    skeleton.value = true;
-    offset.value = 0;
+    offset.value  = 0;
     hasMore.value = true;
-    total.value = null;
+    total.value   = null;
+    skeleton.value = true;
+    // оставляем текущие items как скелетоны
     emit("inventory-set", items.value);
+    emit("inventory-count", 0);
   }
 
-  const res = await APICases
-    .inventory(status.value, limit.value, offset.value)
-    .catch(() => null);
-
-  if (my !== reqId) return; // пришёл устаревший ответ
-
-  if (!res) {
+  let res: any = null;
+  try {
+    res = await APICases.inventory(status.value, limit.value, offset.value);
+  } catch (e) {
+    if (my !== reqId) return;
     loading.value = false;
     skeleton.value = false;
-    items.value = [];
+    hasMore.value = false;
     return;
   }
 
-  if (res && res.total_all === 0) {
+  if (my !== reqId) return;
+
+  const batch: any[] = res?.items ?? [];
+  const totalFromApi = (res?.total_all ?? res?.total ?? null) as number | null;
+
+  // вообще ничего нет
+  if ((batch.length === 0 && offset.value === 0) || totalFromApi === 0) {
     items.value = [];
+    total.value = 0;
+    hasMore.value = false;
+    skeleton.value = false;
+    loading.value = false;
     emit("inventory-set", items.value);
     emit("inventory-count", 0);
     return;
   }
 
-  const batch: any[] = res.items ?? [];
-  items.value.push(...batch.map(i => ({ ...i, skeleton: false })));
+  // закончились элементы
+  if (batch.length === 0) {
+    hasMore.value = false;
+    loading.value = false;
+    skeleton.value = false;
+    return;
+  }
+
+  const mapped = batch.map((i) => ({ ...i, skeleton: false }));
+
+  if (initial || offset.value === 0 || items.value[0]?.skeleton) {
+    items.value = mapped;
+  } else {
+    items.value.push(...mapped);
+  }
+
   emit("inventory-set", items.value);
 
   offset.value += batch.length;
 
-  const t = (res.total_all ?? res.total ?? null) as number | null;
-  if (t != null) {
-    total.value = t;
-    hasMore.value = items.value.length < t;
-    emit("inventory-count", t);
+  if (totalFromApi != null) {
+    total.value = totalFromApi;
+    hasMore.value = items.value.length < totalFromApi;
+    emit("inventory-count", totalFromApi);
   } else {
     hasMore.value = batch.length === limit.value;
   }
 
-  loading.value = false;
   skeleton.value = false;
+  loading.value = false;
 }
 
-/* ================== AUTOFILL ================== */
-function needsMoreToFill(buffer = 120) {
-  const r = root.value;
-  if (r) return r.scrollHeight < r.clientHeight + buffer;
-  return document.documentElement.scrollHeight < window.innerHeight + buffer;
-}
-
-async function fillViewport(maxPages = 10) {
-  let pages = 0;
-  while (!loading.value && hasMore.value && needsMoreToFill() && pages < maxPages) {
-    await load(false);
-    await nextTick();
-    pages++;
-  }
-}
-
-/* ================== OBSERVERS ================== */
+/* ================== INTERSECTION OBSERVER ================== */
 function teardownIO() {
   if (io && sentinel.value) io.unobserve(sentinel.value);
   io?.disconnect();
@@ -176,118 +139,61 @@ function setupIO() {
   teardownIO();
   if (!sentinel.value) return;
 
-  io = new IntersectionObserver(async entries => {
-    for (const e of entries) {
-      if (!e.isIntersecting) continue;
-      if (loading.value || !hasMore.value) continue;
-      io?.unobserve(e.target);
-      await load(false);
-      await nextTick();
-      await fillViewport(5);
-      if (sentinel.value && hasMore.value) io?.observe(sentinel.value);
+  // root: null => всегда относительно окна, без scrollEl, без поиска скроллера
+  io = new IntersectionObserver(
+    async (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        if (loading.value || !hasMore.value) continue;
+        await load(false);
+        // после подгрузки sentinel уйдёт ниже экрана, следующая подгрузка будет только
+        // когда пользователь снова доскроллит до самого низа
+      }
+    },
+    {
+      root: null,
+      rootMargin: "0px 0px 0px 0px", // строго когда sentinel реально попал в окно
+      threshold: 0,
     }
-  }, {
-    root: root.value ?? null,
-    rootMargin: "0px 0px 800px 0px",
-    threshold: 0,
-  });
+  );
 
   io.observe(sentinel.value);
 }
 
-function teardownScroll() {
-  scrollOff?.();
-  scrollOff = null;
-}
-
-function setupScroll() {
-  teardownScroll();
-  const target: HTMLElement | Window = root.value ?? window;
-  let ticking = false;
-  const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(async () => {
-      ticking = false;
-      if (!loading.value && hasMore.value && nearBottom(700)) {
-        await load(false);
-        await nextTick();
-        await fillViewport(5);
-      }
-    });
-  };
-  target.addEventListener("scroll", onScroll, { passive: true });
-  scrollOff = () => target.removeEventListener("scroll", onScroll);
-}
-
-function rebindAll() {
-  pickRoot();
-  setupIO();
-  setupScroll();
-}
-
+/* ================== NAVIGATION ================== */
 function openCases() {
-  router.push('/');
+  router.push("/");
 }
 
-/* ================== LIFECYCLE ================== */
-const itemsEl = ref<HTMLElement|null>(null);
-onMounted(async () => {
-  await nextTick();
-  containerEl.value = itemsEl.value;
-
-  rebindAll();
-
-  await load(true);
-  await nextTick();
-  await fillViewport(12);
-
-  // следим за изменением размеров списка — при «раскрытии» root может появиться
-  if (containerEl.value) {
-    ro = new ResizeObserver(() => {
-      pickRoot();
-      setupIO(); // обновить root у IO
-      // скролл-таргет, как правило, не меняется после появления, но на всякий — перевесим
-      setupScroll();
-    });
-    ro.observe(containerEl.value);
-  }
-
-  // на resize тоже переопределим root + дольём
-  const onWinResize = async () => {
-    rebindAll();
-    await fillViewport(8);
-  };
-  window.addEventListener("resize", onWinResize, { passive: true });
-  // сохраним для снятия:
-  scrollOff = ((oldOff => {
-    return () => {
-      oldOff?.();
-      window.removeEventListener("resize", onWinResize as any);
-    };
-  })(scrollOff)) as any;
-});
-
-onBeforeUnmount(() => {
-  teardownIO();
-  teardownScroll();
-  ro?.disconnect();
-  ro = null;
-});
-
-watch(() => props.inventory, (v) => {
-  if (!v) return;
-  items.value = v;
-});
-
-function openItem(g: Gift) { 
+function openItem(g: Gift) {
   if (!g) return;
   if (g.status === "sold") return;
   if (g.status === "received") return;
   if (g.status === "reserve") return;
   TelegramModule.useLightHaptic();
-  emit("open-modal", g); 
+  emit("open-modal", g);
 }
+
+/* ================== LIFECYCLE ================== */
+onMounted(async () => {
+  await nextTick();
+  // itemsEl.value есть, но сейчас он нам не нужен
+  await load(true);       // ОДИН стартовый запрос
+  await nextTick();
+  setupIO();              // инициализируем наблюдение за sentinel
+});
+
+onBeforeUnmount(() => {
+  teardownIO();
+});
+
+// смена фильтра / лимита — полный ресет
+watch(
+  () => [status.value, limit.value],
+  () => {
+    load(true);
+  }
+);
 </script>
 
 <template>
@@ -298,16 +204,16 @@ function openItem(g: Gift) {
       </div>
       <div class="context">
         <div class="title">
-          <h4>You have no gifts(</h4>
+          <h4>{{ $t('profile.gifts.noGifts') }}</h4>
         </div>
         <div class="descr">
           <h4>
-            Go to
+            {{ $t('profile.gifts.noGiftsGoTo') }}
             <span class="cases" @click="openCases">
               <img :src="LogotypeImage" alt="logotype" />
-              <p>Cases</p>
+              <p>{{ $t('profile.gifts.cases') }}</p>
             </span>
-            and win some
+            {{ $t('profile.gifts.andWinSome') }}
           </h4>
         </div>
       </div>
@@ -356,7 +262,7 @@ function openItem(g: Gift) {
             <div class="kit-icon" v-html="Icon.Done"></div>
           </button>
           <button v-if="item.status && item.status === 'reserve'">
-            <h5>Ожидание</h5>
+            <h5>{{ $t('profile.gifts.statusReserve') }}</h5>
             <div class="spinner"></div>
           </button>
         </div>

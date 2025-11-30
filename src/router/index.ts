@@ -6,6 +6,7 @@ import MarketView from "../views/Market/Market.vue";
 import EarnView from "../views/Earn/Earn.vue";
 import ProfileView from "../views/Profile/Profile.vue";
 import BalanceView from "../views/Balance/Balance.vue";
+import BalanceOnboardView from "../views/Balance/Onboard/Onboard.vue";
 import LeaderboardView from "../views/Leaderboard/Leaderboard.vue";
 import CrashView from "../views/Crash/Crash.vue";
 
@@ -18,6 +19,7 @@ const routes = [
   { path: "/profile", component: ProfileView },
   { path: "/profile/item/:id", component: ProfileView },
   { path: "/balance", component: BalanceView },
+  { path: "/balance/onboard", component: BalanceOnboardView },
   { path: "/leaderboard", component: LeaderboardView },
   { path: "/crash", component: CrashView },
 ];

@@ -1,6 +1,7 @@
 .tabs {
   display: block;
   margin-top: 20px;
+  padding: 0 var(--padding-left);
 
   .items {
     display: flex;

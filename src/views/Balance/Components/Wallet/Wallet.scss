@@ -130,7 +130,11 @@
     }
 
     .button {
-      width: 40%;
+      width: 80%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       
       button {
         display: flex;
@@ -140,12 +144,20 @@
         width: 100%;
         height: 52px;
         border-radius: 1.3rem;
-        background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
-        box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
+        background: linear-gradient(95deg, #421637 -0.53%, #421637 50.55%, #421637 99.7%);
         backdrop-filter: blur(15px);
 
+        &.primary {
+          background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
+          box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
+          backdrop-filter: blur(15px);
+          h4 {
+            color: var(--color-black);
+          }
+        }
+
         &:disabled {
-          opacity: .5;
+          opacity: .4;
         }
 
         &:active {
@@ -161,7 +173,28 @@
         h4 {
           font-weight: 600;
           font-size: 1.6rem;
-          color: var(--color-black);
+          color: var(--color-white);
+        }
+
+        svg {
+          width: 20px;
+          height: 20px;
+          margin-top: -1px;
+
+          path {
+            fill: var(--color-white);
+          }
+        }
+
+        :deep(svg) {
+          width: 20px;
+          height: 20px;
+          margin-top: 2px;
+
+          path {
+            fill: var(--color-white);
+            fill-opacity: 1;
+          }
         }
       }
     }

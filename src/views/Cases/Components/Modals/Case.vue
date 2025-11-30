@@ -120,6 +120,8 @@ async function rollTo() {
     return;
   };
 
+  useCache.TasksData = [];
+
   isRollClicked.value = true;
 
   const open = await APICases.open(props.data.ID).catch(() => {

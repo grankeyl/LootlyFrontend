@@ -17,6 +17,7 @@
   justify-content: space-between;
   width: 100%;
   margin-top: 24px;
+  padding: 0 var(--padding-left);
   padding-bottom: calc(var(--menu-height) + 110px);
 
   &.skeleton {
@@ -253,7 +254,7 @@
       justify-content: space-between;
       width: 100%;
       height: fit-content;
-      margin-top: 8px;
+      margin-top: 0px;
 
       .item {
         display: flex;
@@ -347,7 +348,7 @@
       height: 67px;
       gap: 8px;
       opacity: .2;
-      margin-top: 13px;
+      margin-top: 24px;
       position: relative;
         
       h4 {

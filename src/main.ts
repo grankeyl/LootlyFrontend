@@ -28,7 +28,8 @@ i18next.init({
   },
   fallbackLng: 'en',
   resources: {
-    en: { translation: localization.ru },
+    ru: { translation: localization.ru },
+    en: { translation: localization.en },
   },
 });
 

@@ -2,13 +2,14 @@ import { defineStore } from 'pinia';
 
 export const useCacheStore = defineStore('cache', {
   state: () => ({
-    UserData: {
-      Rank: 0,
-    },
+    UserData: { Rank: 0 },
+    UserDataMeta: {},
 
     LiveWinsData: null,
     CasesData: {},
     CasesRewardsData: {},
+
+    TasksData: {},
 
     Market: {
       Basket: {

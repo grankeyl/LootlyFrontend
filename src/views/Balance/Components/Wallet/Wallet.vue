@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { obfuscateAddress } from "../../../../utils/useTon";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { cutNumberNano, obfuscateAddress } from "../../../../utils/useTon";
 import { tonConnectUI } from '../../../../hooks/useTonConnect';
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { toUserFriendlyAddress } from "ton-ui-vue";
+import { useCacheStore } from "../../../../stores/pinia-store";
+import { useTranslation } from "i18next-vue";
 
 import * as APIWallet from '../../../../api/wallet';
 
@@ -15,9 +17,15 @@ import AddBlackIcon from "@/assets/icons/add-black.svg";
 import WalletPrimaryIcon from "@/assets/icons/wallet-primary.svg";
 import TelegramModule from "../../../../hooks/useTelegram";
 
+const { t } = useTranslation();
+
 const walletConnected = ref(false);
 const walletAddress = ref('...');
 const walletCheckInterval = ref();
+
+const useCache = useCacheStore() as any;
+
+const balance = computed(() => cutNumberNano(useCache.UserData.BalanceNano, 2)) as any;
 
 const emit = defineEmits<{
   (e: "open-deposit-modal"): void;
@@ -39,10 +47,10 @@ const openTonWallet = () => {
         const response = await APIWallet.connect(walletAddress.value);
         console.log('response', response);
         if (response) {
-          showSuccessToast('Wallet connected');
+          showSuccessToast(t('extra.walletConnected'));
         } else {
           clearInterval(interval);
-          showErrorToast('Wallet not connected');
+          showErrorToast(t('extra.walletNotConnected'));
         }
       }, 1000);
     }
@@ -103,14 +111,14 @@ onBeforeUnmount(() => {
     </div>
     <div class="wallet-blocker">
       <div class="descr">
-        <p>Lootly balance</p>
+        <p>Lootly {{ $t('balance.wallet.balance') }}</p>
       </div>
       <div class="amount">
-        <h4>0</h4>
+        <h4>{{ balance }}</h4>
         <img :src="TonIcon" alt="ton-icon" />
       </div>
       <div class="button">
-        <button @click="openDeposit" :disabled="!walletConnected">
+        <button class="primary" @click="openDeposit">
           <img :src="AddBlackIcon" alt="add-black-icon" aria-hidden="true" />
           <h4>{{ $t('balance.wallet.deposit') }}</h4>
         </button>

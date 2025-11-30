@@ -4,16 +4,18 @@ import { cutNumber, tonToNano } from "../../../../utils/useTon";
 import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
 import { Icon } from "../../../../components/Icon";
 import { useCacheStore } from "../../../../stores/pinia-store";
+import { useTranslation } from "i18next-vue";
 
 import * as APICrash from "../../../../api/crash";
 
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
-import TelegramModule from "../../../../hooks/useTelegram";
 
 const useCache = useCacheStore() as any;
 
 type FastBet = { id: number; price: number };
+
+const { t } = useTranslation();
 
 const emit = defineEmits<{
   (e:'set-fast-bet', payload: number): void
@@ -56,8 +58,7 @@ const betActual = computed(() => {
 
 const checkMyBet = computed(() => {
   if (!props.GameBets) return false;
-  const initData = TelegramModule.initData() as any;
-  const userId = initData.user.id;
+  const userId = useCache.UserData.Tld;
   return props.GameBets.find((b: any) => b.user_id === userId && b.status === 'active');
 });
 
@@ -120,17 +121,15 @@ function toBigInt(v: unknown): bigint {
   return typeof v === 'bigint' ? v : BigInt(String(v ?? 0));
 }
 
-async function useCashout(
-  userId: number
-) {
+async function useCashout() {
   if (props.GameStatus !== 'playing') return;
-  const res = await APICrash.cashout(userId).catch(() => null);
+  const res = await APICrash.cashout().catch(() => null);
   if (res?.status !== 'ok') return;
   if (res.settled) {
     res.settled.forEach((s: any) => {
       showSuccessToast(`Success get cashout ${s.payout} TON!`);
 
-      const betNano = tonToNano(s.payout);
+      const betNano = toBigInt(s.payout);
       const current = toBigInt(useCache.UserData.BalanceNano);
       useCache.UserData.BalanceNano = current + betNano;
       
@@ -140,16 +139,13 @@ async function useCashout(
 }
 
 async function usePlaceBit() {
-  const initData = TelegramModule.initData() as any;
-
   if (props.GameStatus === 'playing') {
-    const userId = initData.user.id;
-    await useCashout(userId);
+    await useCashout();
     return;
   }
 
   if (props.GameStatus === 'completed') {
-    showErrorToast('Place Bit is available only in prepare state');
+    showErrorToast(t('crash.modals.bet.placeBitAlert'));
     return;
   }
 
@@ -196,16 +192,14 @@ watch(() => props.GameX, (v: any) => {
 });
 
 onMounted(() => {
-  const initData = TelegramModule.initData() as any;
-  const userId = initData.user.id;
+  const userId = useCache.UserData.Tld;
   const bet = props.GameBets.find((b: any) => b.user_id === userId && b.status === 'active');
   console.log(bet);
   emit('set-game-bet-actual', bet?.amount ?? 0);
 });
 
 watch(() => props.GameBets, (v: any) => {
-  const initData = TelegramModule.initData() as any;
-  const userId = initData.user.id;
+  const userId = useCache.UserData.Tld;
   const bet = v.find((b: any) => b.user_id === userId && b.status === 'active');
   console.log(bet);
   emit('set-game-bet-actual', bet?.amount ?? 0);
