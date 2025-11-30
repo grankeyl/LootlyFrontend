@@ -59,7 +59,7 @@ const statusBet = computed(() => {
 
 // --- state ---
 const bet = ref<number>(props.GameBet);
-const betText = computed(() => props.GameBet.toString());
+const betText = ref(props.GameBet ? String(props.GameBet) : '');
 
 const betList = computed(() => props.FastBetList ?? []);
 const betActual = computed(() => {
@@ -91,9 +91,9 @@ const sanitizePrice = (str: any, maxDecimals = 2) => {
 const onPriceInput = (e: any, maxDecimals = 2, kind: 'bet'|'auto' = 'bet') => {
   const s = sanitizePrice(e.target.value, maxDecimals);
   e.target.value = s;
+
   if (kind === 'bet') {
-    bet.value = (s === '' || s === '.') ? 0 : Number(s);
-    emit('set-fast-bet', bet.value);
+    betText.value = s;
   } else {
     emit('set-game-auto-x-text', s);
     emit('set-game-auto-x', (s === '' || s === '.') ? 0 : Number(s));
@@ -104,7 +104,9 @@ const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
   const s = sanitizePrice(e.target.value, decimals);
   const normalized = s ? cutNumber(s, decimals) : '';
   e.target.value = normalized;
+
   if (kind === 'bet') {
+    betText.value = normalized;
     bet.value = normalized === '' ? 0 : Number(normalized);
     emit('set-fast-bet', bet.value);
   } else {
@@ -184,6 +186,7 @@ async function usePlaceBit() {
 
 watch(() => props.GameBet, (v) => {
   bet.value = v;
+  betText.value = v ? String(v) : '';
 });
 </script>
 
@@ -233,7 +236,7 @@ watch(() => props.GameBet, (v) => {
             :key="index"
             @click="fastBetUse(bet)"
           >
-            <h4>{{  bet.price }}</h4>
+            <h4>{{ bet.price }}</h4>
             <img v-if="bet.type && bet.type === 'amount'" :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
           </div>
         </div>
