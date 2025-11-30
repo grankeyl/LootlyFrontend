@@ -64,7 +64,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         
         <div v-if="item.status === 'active' && props.GameStatus === 'prepare'" class="placing">
           <span class="chip">
-            <h4>{{ cutNumberNano(item.amount) }}</h4>
+            <h4>{{ cutNumberNano(item?.amount ?? 0n) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
@@ -72,7 +72,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
         <!-- active -->
         <div v-if="item.status === 'active' && props.GameStatus === 'playing'" class="placing">
           <span class="chip -muted">
-            <h4>{{ cutNumberNano(item.amount) }}</h4>
+            <h4>{{ cutNumberNano(item?.amount ?? 0n) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
           <div class="marker">
@@ -81,13 +81,13 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
             </svg>
           </div>
           <span class="chip">
-            <h4>{{ cutNumberNano(item.value) }}</h4>
+            <h4>{{ cutNumberNano(item?.value ?? 0n) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
         <div v-if="item.status === 'active' && props.GameStatus === 'completed'" class="placing">
           <span class="chip -lose">
-            <h4>{{ cutNumberNano(item.amount) }}</h4>
+            <h4>{{ cutNumberNano(item?.amount ?? 0n) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>
@@ -98,7 +98,7 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
             <h4>{{ item.settled_mult }}x</h4>
           </span>
           <span class="badge -primary">
-            <h4>{{ cutNumberNano(item.value) }}</h4>
+            <h4>{{ cutNumberNano(item?.value ?? 0n) }}</h4>
             <div class="kit-icon" v-html="TonOutlineRawIcon"></div>
           </span>
         </div>

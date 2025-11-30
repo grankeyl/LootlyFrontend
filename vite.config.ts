@@ -1,6 +1,6 @@
 // vite.config.ts
 import vue from '@vitejs/plugin-vue'
-import mkcert from 'vite-plugin-mkcert'
+// import mkcert from 'vite-plugin-mkcert'
 
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'url'
@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [
     vue(),
     nodePolyfills({ protocolImports: true, globals: { Buffer: true, process: true } }),
-    mkcert({ hosts: ['localhost', '192.168.0.128'] })
+    // mkcert({ hosts: ['localhost', '192.168.0.128'] })
   ],
   resolve: {
     alias: {
@@ -23,8 +23,8 @@ export default defineConfig({
   optimizeDeps: { include: ['buffer', 'process'] },
 
   server: {
-    host: true,
+    // host: true,
     port: 2400,
-    hmr: { protocol: 'wss', host: '192.168.0.128', port: 2400 },
+    // hmr: { protocol: 'wss', host: '192.168.0.128', port: 2400 },
   },
 })

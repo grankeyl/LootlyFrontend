@@ -152,7 +152,7 @@ watch(() => props.GameX, (v) => {
         </template>
 
         <template v-else-if="statusBet === 'playing' || checkMyBet && GameStatus === 'playing'">
-          <p>{{ $t('crash.bet.pickUp', { price: cutNumberNano(betActualNano) }) }}</p>
+          <p>{{ $t('crash.bet.pickUp', { price: cutNumberNano(betActualNano ?? 0n) }) }}</p>
           <img :src="TonBlackIcon" alt="ton-icon" aria-hidden="true" />
         </template>
       </span>

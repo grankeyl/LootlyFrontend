@@ -129,7 +129,7 @@ onMounted(getCases);
                     </div>
                     <div class="button">
                         <button>
-                            <p>{{ cutNumberNano(item.price_nano) }}</p>
+                            <p>{{ cutNumberNano(item?.price_nano ?? 0n) }}</p>
                             <img :src="Ton" alt="ton">
                         </button>
                     </div>

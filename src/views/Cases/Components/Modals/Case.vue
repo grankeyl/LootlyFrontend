@@ -231,7 +231,7 @@ onMounted(() => {
     <div class="case-root" v-bind="attrs">
       <div class="balance">
         <div class="context">
-          <h4>{{ cutNumberNano(useCache.UserData.BalanceNano, 2) }}</h4>
+          <h4>{{ cutNumberNano(useCache?.UserData?.BalanceNano ?? 0n, 2) }}</h4>
           <img :src="Ton" alt="ton" />
         </div>
         <div class="action">
@@ -342,7 +342,7 @@ onMounted(() => {
               <div class="top">
                 <h4>{{ props.data.Name }}</h4>
                 <button>
-                  <h4>{{ cutNumberNano(props.data.price_nano) }}</h4>
+                  <h4>{{ cutNumberNano(props?.data?.price_nano ?? 0n) }}</h4>
                   <img :src="TonWhiteIcon" alt="ton-icon" />
                 </button>
               </div>

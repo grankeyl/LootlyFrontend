@@ -83,7 +83,7 @@ async function SetLang() {
       </div>
       <div @click="OpenBalance()" class="balance">
         <div class="context">
-          <h4>{{ cutNumberNano(useCache.UserData.BalanceNano, 2) }}</h4>
+          <h4>{{ cutNumberNano(useCache?.UserData?.BalanceNano ?? 0n, 2) }}</h4>
           <img :src="Ton" alt="ton" />
         </div>
         <div class="action">

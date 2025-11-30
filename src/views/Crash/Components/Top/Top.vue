@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
           <div class="image">
             <img :src="item.photo" alt="image">
             <div class="mark">
-              <p>{{ cutNumberNano(item.sum_volume_nano) }}</p>
+              <p>{{ cutNumberNano(item?.sum_volume_nano ?? 0n) }}</p>
               <img :src="TonWhiteIcon" alt="ton-white-icon" />
             </div>
           </div>
@@ -277,7 +277,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="button">
           <button>
-            <h4>{{ cutNumberNano(item.sum_volume_nano) }}</h4>
+            <h4>{{ cutNumberNano(item?.sum_volume_nano ?? 0n) }}</h4>
             <img :src="TonWhiteIcon" alt="">
           </button>
         </div>
