@@ -633,13 +633,13 @@ onBeforeUnmount(() => {
     <div class="game-info">
       <div class="latests">
         <div class="item now" :class="{ notnow: props.GameX && props.GameX > 0 }">
-          <h4 v-if="props.GameX && props.GameX > 0">
+          <h4 v-if="(props.GameX && props.GameX > 0) && props.GameStatus !== 'completed'">
             {{ cutNumber(props.GameX) }}
           </h4>
           <h4
             v-if="
-              props.GameStatus !== 'loading' &&
-              (!props.GameX || props.GameX === 0)
+              (props.GameStatus !== 'loading' &&
+              (!props.GameX || props.GameX === 0)) || props.GameStatus === 'completed'
             "
           >
             {{ $t("crash.game.now") }}

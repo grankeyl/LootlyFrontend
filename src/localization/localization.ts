@@ -11,6 +11,12 @@ export const localization = {
             minBet: "Minimum bet is {{min}} TON",
             notEnoughTon: "Not enough TON",
             placeBitAlert: "Place Bit is available only in prepare state",
+            waitingForPayment: "Waiting for payment",
+            connectWallet: "Connect wallet",
+            successGetCashout: "Success get cashout {{price}} TON!",
+            taskSuccessClaimed: "Task successfully claimed",
+            successPurchase: "Successful purchase of the “{{name}}”",
+            successGiftWithdrawn: "Gift successfully withdrawn",
         },
 
         menu: {
@@ -223,6 +229,8 @@ export const localization = {
                     waiting: "Waiting",
                     pickUp: "Collect {{price}}",
 
+                    yourPrice: "Your Price",
+
                     max: "MAX",
                 }
             }
@@ -241,6 +249,12 @@ export const localization = {
             minBet: "Минимальная ставка {{min}} TON",
             notEnoughTon: "Недостаточно TON",
             placeBitAlert: "Сделать ставку невозможно на этом этапе",
+            waitingForPayment: "Ожидание оплаты",
+            connectWallet: "Подключи кошелёк!",
+            successGetCashout: "Успешно получено {{price}} TON!",
+            taskSuccessClaimed: "Задание выполнено!",
+            successPurchase: "Успешно покупка «{{name}}»",
+            successGiftWithdrawn: "Подарок успешно выведен",
         },
 
         menu: {
@@ -452,6 +466,8 @@ export const localization = {
                     placeBit: "Сделать ставку",
                     waiting: "Ожидание",
                     pickUp: "Забрать {{price}}",
+
+                    yourPrice: "Ваша ставка",
 
                     max: "МАКС",
                 }

@@ -113,3 +113,22 @@ export async function withdrawRef(
     return false;
   }
 }
+
+export async function priceQuote(
+  amount: number,
+) {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.post(
+      `/price/quote`,
+      { amount: amount },
+      { headers: { "X-init-data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}

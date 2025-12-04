@@ -19,7 +19,6 @@ import Bet from "./Components/Bet/Bet.vue";
 import BetModal from "./Components/Modals/Bet.vue";
 
 const { t } = useTranslation();
-
 const { open } = usePopup();
 
 const useCache = useCacheStore() as any;
@@ -161,7 +160,7 @@ async function placeBit(payload: any) {
   const bet = Number(payload.bet);
 
   if (!Number.isFinite(bet) || bet < 0.1) {
-    showErrorToast('Minimum bet is 0.1');
+    showErrorToast(t('extra.minBet', { min: 0.1 }));
     return;
   }
 
@@ -169,7 +168,7 @@ async function placeBit(payload: any) {
   const current = toBigInt(useCache.UserData.BalanceNano);
 
   if (current < betNano) {
-    showErrorToast('Not enough TON');
+    showErrorToast(t('extra.notEnoughTon'));
     GameAutoBet.value = false;
     return;
   }

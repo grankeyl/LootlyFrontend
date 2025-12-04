@@ -222,7 +222,7 @@ watch(() => props.GameBet, (v) => {
             type="text"
             inputmode="decimal"
             autocomplete="off"
-            placeholder="Your Price"
+            :placeholder="$t('crash.modals.bet.yourPrice')"
             :value="betText"
             @input="onPriceInput($event, 2, 'bet')"
             @blur="onPriceBlur($event, 2, 'bet')"

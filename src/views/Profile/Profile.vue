@@ -4,6 +4,7 @@ import { useModal } from './../../components/common/Modal';
 import { useCacheStore } from '../../stores/pinia-store';
 import { useRoute } from 'vue-router';
 import { showSuccessToast } from '../../utils/toastManager';
+import { useTranslation } from 'i18next-vue';
 
 import * as APIUser from './../../api/user';
 
@@ -18,6 +19,7 @@ import Backdrop from "@/assets/images/profile-pg/bg-blured.png";
 import TelegramModule from '../../hooks/useTelegram';
 
 const { open } = useModal();
+const { t } = useTranslation();
 
 const route = useRoute()
 const useCache = useCacheStore() as any;
@@ -52,7 +54,7 @@ async function openGift(payload: any) {
 
 async function withdrawGiftSuccess(payload: any) {
   TelegramModule.useMediumHaptic();
-  showSuccessToast('Gift successfully withdrawn');
+  showSuccessToast(t('extra.successGiftWithdrawn'));
   inventory.value.find(i => i.id === payload.id)!.status = payload.new_status;
 }
 

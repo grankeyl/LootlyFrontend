@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { cutNumberNano, tonToNano } from '../../../../utils/useTon';
+import { cutNumber, cutNumberNano, tonToNano } from "../../../../utils/useTon";
 import { showSuccessToast } from '../../../../utils/toastManager';
 import { useCacheStore } from '../../../../stores/pinia-store';
 import { useTranslation } from 'i18next-vue';
@@ -28,17 +28,36 @@ const props = defineProps<{
   GameAutoWithdraw: boolean;
 }>();
 
+
 const useCache = useCacheStore() as any;
 
+function nanoToTon(v: unknown): number {
+  if (typeof v === "bigint") {
+    return Number(v) / 1e9;
+  }
+  const n = Number(v ?? 0);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return n / 1e9;
+}
+
 const betActual = computed(() => {
-  const fallbackBet = checkMyBet.value ? Number(checkMyBet.value.amount ?? 0) : 0;
-  const bet = Number(props.GameBetActual || fallbackBet || 0); // тут пусть будет TON
+  const propBetTon = Number(props.GameBetActual || 0);
+
+  const fallbackNano = checkMyBet.value ? (checkMyBet.value.amount ?? 0) : 0;
+  const fallbackBetTon = nanoToTon(fallbackNano);
+
+  const betTon = propBetTon || fallbackBetTon || 0;
   const x = Number(props.GameX || 1);
-  return bet * x; // TON
+
+  return betTon * x; // TON
 });
 
 const betActualNano = computed(() => {
   return tonToNano(betActual.value);
+});
+
+const betActualText = computed(() => {
+  return cutNumber(betActual.value, 2);
 });
 
 const statusBet = computed(() => {
@@ -118,14 +137,22 @@ function onButtonClick() {
   }
 }
 
-watch(() => props.GameX, (v) => {
-  if (props.GameAutoWithdraw) {
-    if (v === props.GameAutoX) {
-      showSuccessToast(`Success get cashout ${cutNumberNano(betActualNano.value)} TON!`);
-      useCashout();
-    }
+watch(
+  () => props.GameX,
+  (v) => {
+    if (!props.GameAutoWithdraw) return;
+    if (v !== props.GameAutoX) return;
+
+    showSuccessToast(
+      t('crash.bet.successGetCashout', { price: cutNumberNano(betActualNano.value) })
+    );
+
+    const current = toBigInt(useCache.UserData.BalanceNano);
+    useCache.UserData.BalanceNano = current + betActualNano.value;
+
+    emit('set-game-bet-actual', 0);
   }
-});
+);
 </script>
 
 <template>
@@ -152,7 +179,7 @@ watch(() => props.GameX, (v) => {
         </template>
 
         <template v-else-if="statusBet === 'playing' || checkMyBet && GameStatus === 'playing'">
-          <p>{{ $t('crash.bet.pickUp', { price: cutNumberNano(betActualNano ?? 0n) }) }}</p>
+          <p>{{ $t('crash.bet.pickUp', { price: betActualText }) }}</p>
           <img :src="TonBlackIcon" alt="ton-icon" aria-hidden="true" />
         </template>
       </span>

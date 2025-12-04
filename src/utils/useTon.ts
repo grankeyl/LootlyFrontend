@@ -19,12 +19,17 @@ export const cutNumber = (num: any, decimals = 2) => {
 }
 
 export const cutNumberNano = (num: any, decimals = 2) => {
+  // если прилетает ref/computed из Vue — аккуратно берём .value
+  if (num && typeof num === "object" && "value" in num) {
+    num = (num as any).value;
+  }
+
   // нормализуем количество знаков после запятой
   if (decimals < 0) decimals = 0;
   if (decimals > 9) decimals = 9;
 
   // BigInt обрабатываем без преобразования в float
-  if (typeof num === 'bigint') {
+  if (typeof num === "bigint") {
     const s = num.toString();
     const len = s.length;
 
@@ -32,14 +37,14 @@ export const cutNumberNano = (num: any, decimals = 2) => {
     let fracPart: string;
 
     if (len <= 9) {
-      intPart = '0';
-      fracPart = s.padStart(9, '0');
+      intPart = "0";
+      fracPart = s.padStart(9, "0");
     } else {
       intPart = s.slice(0, len - 9);
       fracPart = s.slice(len - 9);
     }
 
-    const frac = fracPart.slice(0, decimals).padEnd(decimals, '0');
+    const frac = fracPart.slice(0, decimals).padEnd(decimals, "0");
     return decimals > 0 ? `${intPart}.${frac}` : intPart;
   }
 

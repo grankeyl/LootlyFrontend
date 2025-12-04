@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, useAttrs, defineOptions } from "vue";
+import { onMounted, ref, useAttrs, defineOptions, nextTick } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { useCacheStore } from "../../../../stores/pinia-store";
 import { Icon } from "../../../../components/Icon";
@@ -118,10 +118,9 @@ async function rollTo() {
   if (useCache.UserData.BalanceNano < props.data.price_nano) {
     emit('not-enough', { id: 1 });
     return;
-  };
+  }
 
   useCache.TasksData = [];
-
   isRollClicked.value = true;
 
   const open = await APICases.open(props.data.ID).catch(() => {
@@ -129,13 +128,17 @@ async function rollTo() {
     isRolling.value = false;
     return null;
   });
+
   if (!open?.ok) return;
+
+  itemRolling.value = open;
+
+  await nextTick();
 
   TelegramModule.useLightHaptic();
   isRolling.value = true;
   useCache.UserData.BalanceNano -= props.data.price_nano;
   isWin.value = false;
-  itemRolling.value = open;
 }
 
 async function quickSell(

@@ -34,6 +34,8 @@ const walletAddress = ref('...');
 const method = ref<string>('ton');
 const status = ref<string>('');
 
+const priceQuote = ref<any>(null);
+
 const isReversed = ref(false);
 const loadingButton = ref(false);
 const depositSbpItem = ref<any>(null);
@@ -199,9 +201,9 @@ async function deposit() {
 
 function iAmPaid() {
   if (!depositSbpItem.value) return false;
-  clearQrTimer();                  // NEW — останавливаем таймер, если юзер нажал «Я оплатил»
+  clearQrTimer();
   TelegramModule.useMediumHaptic();
-  showSuccessToast('Waiting for payment');
+  showSuccessToast(t('extra.waitingForPayment'));
   close();
 }
 
@@ -211,7 +213,7 @@ function isSelf(addr: string) {
 }
 
 async function sendPayment(receiver: string, memo: string, amountTon: number) {
-  if (!tonConnectUI.account) { showErrorToast('Подключи кошелёк'); return; }
+  if (!tonConnectUI.account) { showErrorToast(t('extra.connectWallet')); return; }
 
   if (isSelf(receiver)) {
     showErrorToast(t('extra.selfTransferBlocked'));
@@ -240,7 +242,14 @@ const getTonWalletAddress = async () => {
   return walletAddressString;
 }
 
+const getPriceQuote = async () => {
+  const res = await APIWallet.priceQuote(1).catch(() => null);
+  if (!res) return;
+  priceQuote.value = res;
+}
+
 getTonWalletAddress();
+getPriceQuote();
 
 watch(() => method.value, (v) => {
   if (v === 'sbp') status.value = '';

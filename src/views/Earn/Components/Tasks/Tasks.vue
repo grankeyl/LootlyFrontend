@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useCacheStore } from "../../../../stores/pinia-store";
+import { showSuccessToast } from "../../../../utils/toastManager";
+import { shootConfetti } from "../../../../utils/useConfetti";
+import { useTranslation } from "i18next-vue";
 
 import * as APITasks from "../../../../api/tasks";
 
@@ -20,10 +23,10 @@ import RepostIcon from "@/assets/icons/repost.svg";
 // Images
 // import Gifted from "@/assets/images/earn-pg/gifted.png";
 import TelegramModule from "../../../../hooks/useTelegram";
-import { showSuccessToast } from "../../../../utils/toastManager";
-import { shootConfetti } from "../../../../utils/useConfetti";
 
 type Task = any;
+
+const { t } = useTranslation();
 
 const props = defineProps<{ 
   scrollEl?: Element | null 
@@ -300,7 +303,7 @@ async function claimTask(task: Task) {
       items.value.find(i => i.id === task.id)!._loading = false;
       items.value.find(i => i.id === task.id)!.user_status = "claimed";
       useCache.UserData.BonusBalance += res.data.amount;
-      showSuccessToast('Task successfully claimed');
+      showSuccessToast(t('extra.taskSuccessClaimed'));
       shootConfetti();
     }
   }

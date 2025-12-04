@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useModal } from './../../components/common/Modal'
 import { showSuccessToast } from '../../utils/toastManager'
+import { useTranslation } from 'i18next-vue'
 
 import * as APIMarket from './../../api/market'
 
@@ -12,8 +13,10 @@ import Gifts from "./Components/Gifts/Gifts.vue"
 import Backdrop from "@/assets/images/profile-pg/bg-blured.png"
 import NotEnoght from './Components/Modals/NotEnoght.vue'
 
-const route = useRoute()
 const { open } = useModal()
+const { t } = useTranslation()
+
+const route = useRoute()
 
 const pageRef = ref<HTMLElement | null>(null)
 const loaded = ref(false)
@@ -41,7 +44,7 @@ async function openNotEnoght(payload: any) {
 
 function buySuccess(payload: any) {
   console.log('buy success', payload);
-  showSuccessToast(`Successful purchase of the “${payload.purchase.item_name}”`)
+  showSuccessToast(`${t('extra.successPurchase', { name: payload.name })}`);
 }
 
 watch(

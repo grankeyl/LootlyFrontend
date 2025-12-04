@@ -127,7 +127,7 @@ async function useCashout() {
   if (res?.status !== 'ok') return;
   if (res.settled) {
     res.settled.forEach((s: any) => {
-      showSuccessToast(`Success get cashout ${s.payout} TON!`);
+      showSuccessToast(t('crash.modals.bet.successGetCashout', { price: s.payout }));
 
       const betNano = toBigInt(s.payout);
       const current = toBigInt(useCache.UserData.BalanceNano);
@@ -183,7 +183,7 @@ watch(() => props.GameX, (v: any) => {
   if (betActual.value < 0.1) return;
 
   if (v >= props.GameAutoX) {
-    showSuccessToast(`Success get cashout ${cutNumber(betActual.value)} TON!`);
+    showSuccessToast(t('crash.modals.bet.successGetCashout', { price: cutNumber(betActual.value) }));
     const betNano = tonToNano(betActual.value);
     const current = toBigInt(useCache.UserData.BalanceNano);
     useCache.UserData.BalanceNano = current + betNano;
