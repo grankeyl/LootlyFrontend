@@ -86,8 +86,8 @@ onBeforeUnmount(() => { io?.disconnect(); io = null; });
   <div class="onb-page" ref="PageRef">
     <div class="head">
       <img :src="LogoImage" alt="logotype">
-      <h4>Баланс</h4>
-      <div class="close" @click="close">
+      <h4>{{ $t('balance.onboard.balance') }}</h4>
+      <div class="close" @click="close()">
         <div class="kit-icon" v-html="CloseIcon"></div>
       </div>
     </div>
@@ -130,6 +130,7 @@ onBeforeUnmount(() => { io?.disconnect(); io = null; });
     );
     padding-left: var(--padding-left);
     padding-right: var(--padding-left);
+    z-index: 111;
 
 
     img {

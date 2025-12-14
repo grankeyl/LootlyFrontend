@@ -13,7 +13,7 @@ import GiftsImage from "@/assets/images/onboard-pg/slide1/gifts.webp";
     </div>
     <div class="context">
       <div class="title">
-        <h4>Привет! Мы игровая платформа, где ты можешь выиграть Telegram NFT</h4>
+        <h4>{{ $t('onboard.slide1.title') }}</h4>
       </div>
       <div class="images">
         <div class="inner">

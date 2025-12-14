@@ -62,9 +62,9 @@ onBeforeUnmount(() => { stopX(); });
     <div class="context">
       <div class="title">
         <h4>
-          Запускай <br>
+          {{ $t('onboard.slide4.launch') }}
           <span class="market">Rocket Game</span> <br>
-          и лови удачу
+          {{ $t('onboard.slide4.andCatchYourLuck') }}
         </h4>
       </div>
     </div>

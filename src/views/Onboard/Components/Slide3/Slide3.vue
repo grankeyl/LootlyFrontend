@@ -52,10 +52,10 @@ onMounted(() => { if (props.active) fireEnter(); });
     <div class="context">
       <div class="title">
         <h4>
-          Забирай приз, продай его или купи любой в
+          {{ $t('onboard.slide3.title') }}
           <span class="market">
             <div class="kit-icon" v-html="StoreIcon"></div>
-            <p>Market</p>
+            <p>{{ $t('onboard.slide3.market') }}</p>
           </span>
         </h4>
       </div>

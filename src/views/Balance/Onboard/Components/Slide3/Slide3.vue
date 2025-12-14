@@ -27,7 +27,7 @@ onMounted(() => { if (props.active) fireEnter(); });
     </div>
     <div class="context">
       <h4>
-        Подарки можно вывести на свой аккаунт и продать в любом из маркетплейсов
+        {{ $t('balance.onboard.slide3.title1') }}
       </h4>
     </div>
   </div>

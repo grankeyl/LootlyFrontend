@@ -30,13 +30,13 @@ onMounted(() => { if (props.active) fireEnter(); });
     </div>
     <div class="context">
       <h4>
-        Можно вывести выигранный подарок, либо купленный в 
+        {{ $t('balance.onboard.slide2.title1') }}
         <span class="market">
           <div class="kit-icon" v-html="StoreIcon"></div>
-          <p>Market</p>
+          <p>{{ $t('balance.onboard.slide2.market') }}</p>
         </span>
         <br>
-        Вывод в TON невозможен
+        {{ $t('balance.onboard.slide2.title2') }}
       </h4>
     </div>
   </div>

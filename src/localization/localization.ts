@@ -198,11 +198,30 @@ export const localization = {
                     title: "Deposit balance",
                     descr: "*IMPORTANT! You can't withdraw TON from balance, withdraw only gifts, won or bought in market",
                     max: "MAX",
+                    link: "Go to payment",
+                    scan: "Scan with “Camera”",
                     buttons: {
                         deposit: "Deposit",
                         paid: "Paid",
                     }
                 }
+            },
+            onboard: {
+                game: "Lets go!",
+                next: "Next",
+                balance: "Balance",
+                slide1: {
+                    title1: "Top up your gaming balance in TON ",
+                    title2: "or through the SBP",
+                },
+                slide2: {
+                    title1: "You can withdraw a prize you have won or purchased in ",
+                    title2: "Withdrawal to TON is not possible",
+                    market: "Market",
+                },
+                slide3: {
+                    title1: "Gifts can be transferred to your account and sold on any of the marketplaces",
+                },
             }
         },
         crash: {
@@ -234,6 +253,29 @@ export const localization = {
                     max: "MAX",
                 }
             }
+        },
+        onboard: {
+            game: "Lets go!",
+            next: "Next",
+            slide1: {
+                title: "Hello! We are a game platform where you can win Telegram NFT",
+            },
+            slide2: {
+                title: "Open cases and enjoy the loot",
+            },
+            slide3: {
+                title: "Take the prize, sell it, or buy any one in",
+                market: "Market",
+            },
+            slide4: {
+                launch: "Launch",
+                andCatchYourLuck: "and catch your luck",
+            },
+            slide5: {
+                inviteFriends: "Invite friends",
+                doTasks: "Do tasks",
+                earn: "Earn",
+            },
         }
     },
 
@@ -436,11 +478,30 @@ export const localization = {
                     title: "Пополнение баланса",
                     descr: "*ВАЖНО! Вы не можете выводить TON с баланса, вывести можно только подарки, выигранные или купленные в маркете",
                     max: "МАКС",
+                    link: "Перейти",
+                    scan: "Сканируй через “Камера”",
                     buttons: {
                         deposit: "Пополнить",
                         paid: "Оплатил",
                     }
                 }
+            },
+            onboard: {
+                game: "Играть!",
+                next: "Дальше",
+                balance: "Баланс",
+                slide1: {
+                    title1: "Пополняйте игровой баланс в TON ",
+                    title2: "либо через СБП",
+                },
+                slide2: {
+                    title1: "Можно вывести выигранный подарок, либо купленный в ",
+                    title2: "Вывод в TON невозможен",
+                    market: "Маркет",
+                },
+                slide3: {
+                    title1: "Подарки можно вывести на свой аккаунт и продать в любом из маркетплейсов",
+                },
             }
         },
         crash: {
@@ -472,6 +533,29 @@ export const localization = {
                     max: "МАКС",
                 }
             }
+        },
+        onboard: {
+            game: "Играть!",
+            next: "Дальше",
+            slide1: {
+                title: "Привет! Мы игровая платформа, где ты можешь выиграть Telegram NFT",
+            },
+            slide2: {
+                title: "Открывай кейсы и наслаждайся лутом",
+            },
+            slide3: {
+                title: "Забирай приз, продай его или купи любой в",
+                market: "Маркет",
+            },
+            slide4: {
+                launch: "Запускай",
+                andCatchYourLuck: "и лови удачу",
+            },
+            slide5: {
+                inviteFriends: "Зови друзей",
+                doTasks: "Делай таски",
+                earn: "Зарабатывай",
+            },
         }
     },
 };

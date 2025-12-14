@@ -34,7 +34,7 @@ onMounted(() => { if (props.active) fireEnter(); });
     </div>
     <div class="context">
       <div class="title">
-        <h4>Открывай кейсы и наслаждайся лутом</h4>
+        <h4>{{ $t('onboard.slide2.title') }}</h4>
       </div>
     </div>
   </div>

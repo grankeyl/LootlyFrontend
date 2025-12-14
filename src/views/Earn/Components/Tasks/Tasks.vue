@@ -280,6 +280,10 @@ const checkReferralsTask = (need: number) => {
 const checkOpenedCases = (current: number, need: number) => {
   return current >= need;
 }
+
+const checkOpenedVolumes = (current: number, need: number) => {
+  return current >= need;
+}
  
 const taskCurrentInfo = (current: number, need: number) => {
   const currentClear = Math.min(Math.max(current, 0), need);
@@ -512,19 +516,23 @@ onBeforeUnmount(() => {
             </div>
             <div class="context">
               <h4>
-                {{ $t('earn.tasks.swipers.achieveAVolume') }} 100
+                {{ $t('earn.tasks.swipers.achieveAVolume') }} {{ item.config.TaskNeedVolumes }}
                 <img :src="TonWhiteIcon" alt="profile-icon" />
                 {{ $t('earn.tasks.swipers.inGame') }}
               </h4>
             </div>
-            <div v-if="item.user_status && ['new', 'success'].includes(item.user_status)" class="button">
+
+            <div v-if="item._loading" class="button loading">
+              <div class="spinner"></div>
+            </div>
+            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes)" class="button">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
-                <p>0/3</p>
+                <p>{{ taskCurrentInfo(item.volumes, item.config.TaskNeedVolumes) }}/{{ item.config.TaskNeedVolumes }}</p>
                 <img :src="ProfileIcon" alt="profile-icon" />
               </span>
             </div>
-            <div v-else-if="item.user_status && item.user_status === 'success'" class="button claim">
+            <div v-else-if="item.user_status && item.user_status === 'success' || checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
               <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
             </div>
             <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">

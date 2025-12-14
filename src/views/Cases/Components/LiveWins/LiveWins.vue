@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick, watch, computed } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
+import { useCacheStore } from "../../../../stores/pinia-store";
 import { getImgSvg } from "../../../../utils/useApp";
 
 // Icons
@@ -8,10 +9,12 @@ import LiveIcon from "@/assets/icons/live.svg";
 import LiveCaseText from "@/assets/images/cases-pg/live-case-text.svg";
 import LiveCaseBlur from "@/assets/images/cases-pg/live-case-blur.png";
 import LiveCaseTon from "@/assets/images/cases-pg/ton.svg";
-import { useCacheStore } from "../../../../stores/pinia-store";
+
+// Sounds
+import AddSound from "@/assets/sounds/add.mp3";
 
 const WS_URL = import.meta.env.VITE_APP_SOCKET_API_URL;
-const wrapRef = ref<HTMLDivElement|null>(null);
+const wrapRef = ref<HTMLDivElement | { $el: HTMLDivElement } | null>(null);
 
 const useCache = useCacheStore() as any;
 
@@ -98,7 +101,8 @@ function onImgError(it: LiveItem) {
 }
 
 async function prependItemSmooth(it: LiveItem) {
-  const el = wrapRef.value;
+  const root = wrapRef.value as any;
+  const el = (root?.$el ?? root) as HTMLDivElement | null;
   if (!el) return;
 
   const prevScroll = el.scrollLeft;
@@ -204,6 +208,9 @@ function connect() {
 
     if (payload && payload.type === "append") {
       const item = normalizeOne(payload.item);
+      const sound = new Audio(AddSound);
+      sound.volume = 0.04;
+      sound.play();
       if (item) await prependItemSmooth(item);
       return;
     }

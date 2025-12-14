@@ -80,10 +80,15 @@ export const pluralizeReferrals = (word: string, count: number, lang: string = '
     return inflection.inflect(word, count);
 };
 
-export const getImgSvg = (uri: string) => {
-  const bucketsLink = import.meta.env.VITE_APP_S3_URL;
-  return `${bucketsLink}${uri}`;
-}
+export const getImgSvg = (uri?: string) => {
+  if (!uri || uri.includes('undefined')) {
+    return '';
+  }
+
+  const bucketsLink = (import.meta.env.VITE_APP_S3_URL || '').replace(/\/$/, '');
+  const cleanUri = String(uri).replace(/^\//, '');
+  return `${bucketsLink}/${cleanUri}`;
+};
 
 export async function waitForFonts(
   families: string[] = ['SFRounded'],

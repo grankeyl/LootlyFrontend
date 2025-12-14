@@ -31,9 +31,9 @@ onMounted(() => { if (props.active) fireEnter(); });
     </div>
     <div class="context">
       <h4>
-        Пополняйте игровой баланс в TON 
+        {{ $t('balance.onboard.slide1.title1') }}
         <img :src="TonWhiteIcon" alt="ton-icon" class="ton-icon" />
-        либо через СБП
+        {{ $t('balance.onboard.slide1.title2') }}
         <img :src="SbpIcon" alt="sbp-icon" class="sbp-icon" />
       </h4>
     </div>

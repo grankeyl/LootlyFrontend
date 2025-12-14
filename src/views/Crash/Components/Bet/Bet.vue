@@ -142,6 +142,7 @@ watch(
   (v) => {
     if (!props.GameAutoWithdraw) return;
     if (v !== props.GameAutoX) return;
+    if (props.GameBetActual === 0) return;
 
     showSuccessToast(
       t('crash.bet.successGetCashout', { price: cutNumberNano(betActualNano.value) })

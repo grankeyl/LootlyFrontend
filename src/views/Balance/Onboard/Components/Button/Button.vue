@@ -11,8 +11,8 @@ const props = defineProps<{
       :class="{ active: props.isLast }"
       type="button"
     >
-      <h4 v-if="props.isLast">Погнали!</h4>
-      <h4 v-else>Дальше</h4>
+      <h4 v-if="props.isLast">{{ $t('balance.onboard.game') }}</h4>
+      <h4 v-else>{{ $t('balance.onboard.next') }}</h4>
     </button>
   </div>
 </template>

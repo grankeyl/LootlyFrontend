@@ -41,15 +41,15 @@ onMounted(() => { if (props.active) fireEnter(); });
     </div>
     <div class="context">
       <div class="item">
-        <h4>Зови друзей</h4>
+        <h4>{{ $t('onboard.slide5.inviteFriends') }}</h4>
         <div class="kit-icon friends" v-html="FriendsIcon"></div>
       </div>
       <div class="item">
-        <h4>Делай таски</h4>
+        <h4>{{ $t('onboard.slide5.doTasks') }}</h4>
         <div class="kit-icon" v-html="DoneFillIcon"></div>
       </div>
       <div class="item">
-        <h4>Зарабатывай</h4>
+        <h4>{{ $t('onboard.slide5.earn') }}</h4>
         <div class="kit-icon ticket" v-html="TicketIcon"></div>
         <div class="kit-icon" v-html="TonIcon"></div>
       </div>
