@@ -11,7 +11,7 @@ import LiveCaseBlur from "@/assets/images/cases-pg/live-case-blur.png";
 import LiveCaseTon from "@/assets/images/cases-pg/ton.svg";
 
 // Sounds
-import AddSound from "@/assets/sounds/add.mp3";
+// import AddSound from "@/assets/sounds/add.mp3";
 
 const WS_URL = import.meta.env.VITE_APP_SOCKET_API_URL;
 const wrapRef = ref<HTMLDivElement | { $el: HTMLDivElement } | null>(null);
@@ -208,9 +208,9 @@ function connect() {
 
     if (payload && payload.type === "append") {
       const item = normalizeOne(payload.item);
-      const sound = new Audio(AddSound);
-      sound.volume = 0.04;
-      sound.play();
+      // const sound = new Audio(AddSound);
+      // sound.volume = 0.04;
+      // sound.play();
       if (item) await prependItemSmooth(item);
       return;
     }

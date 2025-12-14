@@ -23,23 +23,11 @@ import Ton from "@/assets/icons/ton.svg";
 import TelegramModule from "../../../../hooks/useTelegram";
 
 // Sounds
-import RollSound from "@/assets/sounds/roll.mp3";
+// import RollSound from "@/assets/sounds/roll.mp3";
 
 const useCache = useCacheStore() as any;
 
 defineOptions({ inheritAttrs: false })
-
-const rollSound = new Audio(RollSound);
-rollSound.loop = true
-rollSound.volume = 0.3;
-
-function startRollSound() {
-  rollSound.play();
-}
-
-function stopRollSound() {
-  rollSound.pause();
-}
 
 const emit = defineEmits<{ 
   (e:'close'): void;
@@ -114,8 +102,6 @@ async function rollToDemo() {
   const random = Math.floor(Math.random() * rewardCount);
   const reward = itemRewards.value[random];
 
-  startRollSound();
-
   TelegramModule.useLightHaptic();
   isRollClicked.value = true;
   isRolling.value = true;
@@ -147,8 +133,6 @@ async function rollTo() {
 
   if (!open?.ok) return;
 
-  startRollSound();
-
   itemRolling.value = open;
 
   await nextTick();
@@ -170,8 +154,6 @@ async function quickSell(
 }
 
 function onWin(reward: any) {
-  stopRollSound();
-
   if (reward.rewardItem && reward.rewardItem.demo) { 
     itemWin.value = reward;
     isWin.value = true; 
