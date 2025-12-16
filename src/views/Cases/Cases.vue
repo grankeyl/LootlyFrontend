@@ -8,6 +8,7 @@ import Block from "./Components/Block/Block.vue";
 import Tabs from "./Components/Tabs/Tabs.vue";
 import Cases from "./Components/Cases/Cases.vue";
 import Case from "./Components/Modals/Case.vue";
+import FreeCase from "./Components/Modals/FreeCase.vue";
 import NotEnoght from "./Components/Modals/NotEnoght.vue";
 import TelegramModule from "../../hooks/useTelegram";
 
@@ -21,6 +22,15 @@ const SwitchTab = (tab: string) => {
 
 async function openCase(payload: any) {
   const choose = open(Case, {
+    data: payload,
+    onNotEnough: (p: any) => openNotEnough(p),
+  });
+  const dest = await choose.done.catch(() => null);
+  if (!dest) return;
+}
+
+async function openFreeCase(payload: any) {
+  const choose = open(FreeCase, {
     data: payload,
     onNotEnough: (p: any) => openNotEnough(p),
   });
@@ -51,6 +61,7 @@ onMounted(() => {
         />
         <Cases 
             @open-case="openCase"
+            @open-free-case="openFreeCase"
             :ActiveTab="ActiveTab"
         />
     </div>

@@ -67,8 +67,23 @@ const swipersTasks = computed(() => {
     }
 
     if (task.type === 'invite') {
-      const need = 3;
-      const current = useCache.UserDataMeta?.ref_count ?? 0;
+      const need = Number(task?.config?.TaskNeedFriends ?? 3);
+      const current = Number(useCache.UserDataMeta?.ref_count ?? 0);
+      const ratio = need > 0 ? current / need : 0;
+      return Math.min(Math.max(ratio, 0), 1);
+    }
+
+    // если поля opens/volumes отсутствуют — считаем 0
+    if (task.type === 'open') {
+      const need = Number(task?.config?.TaskNeedCaseOpened ?? task?.need ?? 0);
+      const current = Number(task?.opens ?? 0);
+      const ratio = need > 0 ? current / need : 0;
+      return Math.min(Math.max(ratio, 0), 1);
+    }
+
+    if (task.type === 'volume') {
+      const need = Number(task?.config?.TaskNeedVolumes ?? task?.need ?? 0);
+      const current = Number(task?.volumes ?? 0);
       const ratio = need > 0 ? current / need : 0;
       return Math.min(Math.max(ratio, 0), 1);
     }
@@ -277,16 +292,22 @@ const checkReferralsTask = (need: number) => {
   return referrals >= need;
 }
 
-const checkOpenedCases = (current: number, need: number) => {
-  return current >= need;
+const checkOpenedCases = (current: number | undefined | null, need: number) => {
+  const c = Number(current ?? 0);
+  const n = Number(need ?? 0);
+  return c >= n;
 }
 
-const checkOpenedVolumes = (current: number, need: number) => {
-  return current >= need;
+const checkOpenedVolumes = (current: number | undefined | null, need: number) => {
+  const c = Number(current ?? 0);
+  const n = Number(need ?? 0);
+  return c >= n;
 }
  
-const taskCurrentInfo = (current: number, need: number) => {
-  const currentClear = Math.min(Math.max(current, 0), need);
+const taskCurrentInfo = (current: number | undefined | null, need: number) => {
+  const c = Number(current ?? 0);
+  const n = Number(need ?? 0);
+  const currentClear = Math.min(Math.max(c, 0), n);
   return currentClear;
 };
 
@@ -528,8 +549,8 @@ onBeforeUnmount(() => {
             <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes)" class="button">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
-                <p>{{ taskCurrentInfo(item.volumes, item.config.TaskNeedVolumes) }}/{{ item.config.TaskNeedVolumes }}</p>
-                <img :src="ProfileIcon" alt="profile-icon" />
+                <p>{{ taskCurrentInfo(item.volumes ?? 0, item.config.TaskNeedVolumes) }}/{{ item.config.TaskNeedVolumes }}</p>
+                <img :src="TonWhiteIcon" alt="profile-icon" />
               </span>
             </div>
             <div v-else-if="item.user_status && item.user_status === 'success' || checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
@@ -562,8 +583,7 @@ onBeforeUnmount(() => {
             <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened)" class="button">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
-                <p>{{ taskCurrentInfo(item.opens, item.config.TaskNeedCaseOpened) }}/{{ item.config.TaskNeedCaseOpened }}</p>
-                <img :src="ProfileIcon" alt="profile-icon" />
+                <p>{{ taskCurrentInfo(item.opens ?? 0, item.config.TaskNeedCaseOpened) }}/{{ item.config.TaskNeedCaseOpened }}</p>
               </span>
             </div>
             <div v-else-if="item.user_status && item.user_status === 'success' || checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">

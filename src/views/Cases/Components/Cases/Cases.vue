@@ -10,7 +10,10 @@ import * as APICases from "../../../../api/cases";
 import Ton from "@/assets/images/cases-pg/ton.svg";
 import Empty from "../../../../components/common/Empty/Empty.vue";
 
-const emit = defineEmits<{ (e: "open-case", payload: any): void }>();
+const emit = defineEmits<{ 
+  (e: "open-case", payload: any): void 
+  (e: "open-free-case", payload: any): void
+}>();
 const props = defineProps<{ ActiveTab: string }>();
 
 const useCache = useCacheStore() as any;
@@ -60,6 +63,10 @@ function openCase(payload: any) {
   emit("open-case", payload);
 }
 
+function openFreeCase(payload: any) {
+  emit("open-free-case", payload);
+}
+
 async function getCases() {
   skeleton.value = true;
 
@@ -86,16 +93,20 @@ onMounted(getCases);
         <div v-if="props.ActiveTab === 'nfts'" class="items" :class="{ skeleton: skeleton }">
             <!-- <div 
                 class="item" 
-                @click="openCase({})"
+                @click="openFreeCase({
+                  Name: 'Free Case',
+                  Image: 'https://i.ibb.co.com/ycXzHX2Y/image.png',
+                  Symbol: 'https://i.ibb.co.com/76PBPdr/header.png',
+                })"
                 :style="{ 
-                    '--case-start-color': `#251823`,
-                    '--case-center-color': `#251823`,
-                    '--case-end-color': `#251823`
+                    '--case-start-color': `#561A8F`,
+                    '--case-center-color': `#322A48`,
+                    '--case-end-color': `#191124`
                 }"
             >
                 <div class="sk-load" v-if="skeleton"></div>
                 <div class="image">
-                    <img :src="getImgSvg('https://lootly.codes/s3/cases/covers/Pink_Case.webp')" alt="image" />
+                    <img :src="'https://i.ibb.co.com/ycXzHX2Y/image.png'" alt="image" />
                 </div>
                 <div class="context">
                     <div class="title">
