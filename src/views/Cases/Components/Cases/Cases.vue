@@ -63,9 +63,9 @@ function openCase(payload: any) {
   emit("open-case", payload);
 }
 
-function openFreeCase(payload: any) {
-  emit("open-free-case", payload);
-}
+// function openFreeCase(payload: any) {
+//   emit("open-free-case", payload);
+// }
 
 async function getCases() {
   skeleton.value = true;
