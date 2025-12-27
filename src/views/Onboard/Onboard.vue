@@ -93,10 +93,9 @@ onBeforeUnmount(() => { io?.disconnect(); io = null; });
 <style scoped lang="scss">
 .onb-page{
   position:relative; width:100%; max-width:var(--max-width);
-  height:100%; overflow:hidden; touch-action: pan-y; 
+  height:100vh; overflow:hidden; touch-action: pan-y; 
 }
 
-/* Нативный скролл по оси X с защёлками */
 .onb-track{
   height:100%;
   display:flex;
@@ -107,9 +106,8 @@ onBeforeUnmount(() => { io?.disconnect(); io = null; });
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
 }
-.onb-track::-webkit-scrollbar{ display:none; } /* Chrome/Safari */
+.onb-track::-webkit-scrollbar{ display:none; }
 
-/* Каждый слайд — точка защёлки */
 .onb-slide{
   flex: 0 0 100%;
   min-width:100%;

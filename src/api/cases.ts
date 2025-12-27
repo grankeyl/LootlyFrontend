@@ -17,6 +17,24 @@ export async function cases() {
   }
 }
 
+export async function tasksCase(
+  id: number
+) {
+  try {
+    const initData = Cookies.get("init-data");
+    const response = await api.get(
+      `/task-case/${id}`,
+      { headers: { "X-Init-Data": initData } }
+    );
+    if (response.status === 200) {
+      return response.data;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export async function rewards(
   id: number
 ) {

@@ -38,7 +38,7 @@
     --padding-left: 15px;
     --padding-right: 15px;
 
-    --max-width: 500px;
+    --max-width: 570px;
     --menu-height: 92px;
 
     --gradient-pink-case: radial-gradient(99.63% 106.36% at 50% -6.36%, #BF1394 0%, #630C53 50%, #29072C 100%);
@@ -215,16 +215,17 @@ body {
     rgba(255, 255, 255, 0.15) 50%,
     var(--bg-secondary) 75%
   );
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite linear;
+  background-size: 300% 100%;
+  will-change: background-position;
+  animation: skeleton-loading 1.8s linear infinite;
 }
 
 @keyframes skeleton-loading {
   0% {
-    background-position: -200% 0;
+    background-position: 100% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -100% 0;
   }
 }
 
@@ -284,4 +285,31 @@ button {
     padding-left: 4px;
     font-weight: 500;
   }
+}
+
+.pg-load {
+  z-index: 10000;
+}
+
+.snowflakes-box {
+  z-index: 100000;
+}
+
+#lcp-root {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+#app:has(.app) + #lcp-root,
+.app ~ #lcp-root {
+  display: none;
+}
+
+.paused * {
+  animation-play-state: paused !important;
 }

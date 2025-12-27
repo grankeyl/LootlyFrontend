@@ -334,7 +334,6 @@ async function claimTask(task: Task) {
   }
 }
 
-
 async function postStory(task: Task) {
   if (!task) return;
   if (task._loading) return;
@@ -412,6 +411,14 @@ function stopCheckSubscription(taskId: string) {
     clearInterval(intervalId);
     delete intervals[taskId];
   }
+}
+
+function inviteFriend() {
+  const miniAppLink = import.meta.env.VITE_APP_MINI_APP_LINK;
+  const code = useCache.UserData.Code;
+  const link = `${miniAppLink}=${code}`;
+  const message = t('earn.button.inviteFriendsMsg');
+  TelegramModule.useShare(link, message);
 }
 
 /** публичное */
@@ -512,7 +519,7 @@ onBeforeUnmount(() => {
             <div v-if="item._loading" class="button loading">
               <div class="spinner"></div>
             </div>
-            <div v-else-if="item.user_status && ['new', 'success'].includes(item.user_status) && !checkReferralsTask(item.config.TaskNeedFriends)" class="button">
+            <div v-else-if="item.user_status && ['new', 'success'].includes(item.user_status) && !checkReferralsTask(item.config.TaskNeedFriends)" class="button" @click="inviteFriend()">
               <h4>{{ $t('earn.tasks.swipers.invite') }}</h4>
               <span class="proccess">
                 <p>{{ taskCurrentInfo(useCache.UserDataMeta.ref_count, item.config.TaskNeedFriends) }}/{{ item.config.TaskNeedFriends }}</p>

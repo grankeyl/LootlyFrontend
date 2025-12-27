@@ -9,7 +9,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 export default defineConfig({
   plugins: [
     vue(),
-    nodePolyfills({ protocolImports: true, globals: { Buffer: true, process: true } }),
+    nodePolyfills({ protocolImports: true, globals: { Buffer: true, process: false } }),
     // mkcert({ hosts: ['localhost', '192.168.0.128'] })
   ],
   resolve: {

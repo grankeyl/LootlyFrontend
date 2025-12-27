@@ -40,11 +40,15 @@ const GAP = 8;
 
 const disableSnap = ref(false);
 
-const initialItems = Array.isArray(useCache?.LiveWinsData)
+const initialItems = Array.isArray(useCache?.LiveWinsData) && useCache.LiveWinsData.length
   ? useCache.LiveWinsData
-  : Array.from({ length: 4 }, () => ({
-      id: 1, image: "", degree: randomDeg(), price: 0,
-      BGStart: "", BGCenter: "", BGEnd: "", loaded: false,
+  : Array.from({ length: 4 }, (_, i) => ({
+      id: Date.now() + i,
+      image: "",
+      degree: randomDeg(),
+      price: 0,
+      BGStart: "", BGCenter: "", BGEnd: "",
+      loaded: false,
     }));
 
 const items = ref<LiveItem[]>(initialItems);
@@ -295,15 +299,15 @@ onBeforeUnmount(() => {
           class="img-fallback"
           v-else-if="item.failed"
         ></div>
+        
+        <div class="image" :class="{ skeleton: !item.loaded && !item.failed }">
+          <div class="img-skeleton" v-if="!item.loaded && !item.failed"></div>
+          <div class="img-fallback" v-else-if="item.failed"></div>
 
-        <div class="image">
           <img
             v-if="!item.failed && getImgSvg(item.image)"
             :src="getImgSvg(item.image)"
-            :alt="item.loaded ? 'gift image' : ''"
             :class="{ loaded: item.loaded }"
-            decoding="async"
-            loading="lazy"
             @load="onImgLoad(item)"
             @error="onImgError(item)"
           />
@@ -358,7 +362,7 @@ onBeforeUnmount(() => {
   inset: 0;
   border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.12), rgba(255,255,255,.06));
+  background: linear-gradient(90deg, rgba(255,255,255,.08), rgba(255, 255, 255, 0.10), rgba(255,255,255,.08));
   background-size: 200% 100%;
   animation: shimmer 1.1s linear infinite;
   z-index: 1;

@@ -3,13 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0">
     <title>Lootly</title>
     <link rel="stylesheet" href="src/assets/fonts/SFProRounded/stylesheet.css">
-    
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="dns-prefetch" href="//lootly.codes">
+    <link rel="preconnect" href="https://lootly.codes" crossorigin>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://cdn.jsdelivr.net/gh/Alaev-Co/snowflakes/dist/snow.min.css" rel="stylesheet">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJMFXZXVHZ"></script>
     <script>
@@ -70,5 +72,29 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+
+    <script>
+      document.addEventListener('visibilitychange', () => {
+      const hidden = document.hidden;
+      document.documentElement.classList.toggle('paused', hidden);
+    });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/gh/Alaev-Co/snowflakes/dist/Snow.min.js"></script>
+    <script>
+      if (process.env.NODE_ENV === 'production') {
+        setTimeout(() => {
+          new Snow ({
+            iconColor: '#F7D2EE',
+            iconSize: 13,
+            showSnowBalls: true,
+            showSnowBallsIsMobile: true,
+            showSnowflakes: true,
+            countSnowflake: 38,
+            showSnowBalls: false,
+          });
+        }, 1000);
+      }
+    </script>
   </body>
 </html>

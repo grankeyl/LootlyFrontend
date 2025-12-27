@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
 import { useCacheStore } from "../../../../stores/pinia-store";
 import { getImgSvg } from "../../../../utils/useApp";
@@ -32,6 +32,8 @@ const cases = ref<any[]>(
   }))
 );
 
+const freeCases = computed(() => cases.value.filter((i) => i.price_nano === 0));
+
 function preloadImages(urls: (string | null | undefined)[], timeout = 15000) {
   if (!urls) { return; }
   const list = (urls || []).filter(Boolean) as string[];
@@ -63,9 +65,9 @@ function openCase(payload: any) {
   emit("open-case", payload);
 }
 
-// function openFreeCase(payload: any) {
-//   emit("open-free-case", payload);
-// }
+function openFreeCase(payload: any) {
+  emit("open-free-case", payload);
+}
 
 async function getCases() {
   skeleton.value = true;
@@ -91,26 +93,25 @@ onMounted(getCases);
 <template>
     <div class="cases-block">
         <div v-if="props.ActiveTab === 'nfts'" class="items" :class="{ skeleton: skeleton }">
-            <!-- <div 
-                class="item" 
-                @click="openFreeCase({
-                  Name: 'Free Case',
-                  Image: 'https://i.ibb.co.com/ycXzHX2Y/image.png',
-                  Symbol: 'https://i.ibb.co.com/76PBPdr/header.png',
-                })"
+            <div 
+                v-for="(item, index) in freeCases" 
+                :key="index"
+                class="item free" 
+                @click="openFreeCase(item)"
                 :style="{ 
-                    '--case-start-color': `#561A8F`,
-                    '--case-center-color': `#322A48`,
-                    '--case-end-color': `#191124`
+                    '--case-start-color': `${item.BGCenter}`,
+                    '--case-center-color': `${item.BGCenter}`,
+                    '--case-end-color': `${item.BGEnd}`,
+                    '--chamomile-color': `${item.ChamomileColor}`
                 }"
             >
                 <div class="sk-load" v-if="skeleton"></div>
                 <div class="image">
-                    <img :src="'https://i.ibb.co.com/ycXzHX2Y/image.png'" alt="image" />
+                    <img :src="getImgSvg(item.Image)" alt="image" />
                 </div>
                 <div class="context">
                     <div class="title">
-                        <h4>Free Case</h4>
+                        <h4>{{ item.Name }}</h4>
                     </div>
                     <div class="button">
                         <button>
@@ -118,9 +119,10 @@ onMounted(getCases);
                         </button>
                     </div>
                 </div>
-            </div> -->
+            </div>
             <div 
                 v-for="(item, index) in cases" 
+                v-show="item.price_nano"
                 :key="index"
                 class="item" 
                 @click="openCase(item)"

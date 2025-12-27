@@ -35,8 +35,8 @@ const SwitchTab = (tab: string) => {
         @click="SwitchTab('memgifts')" 
         :class="{ active: CheckActiveTab('memgifts') }"
       >
-        <h4>Memgifts</h4>
-        <img :src="MemgiftIcon" alt="memgift icon" />
+        <h4>Free Cases</h4>
+        <img :src="TelegramIcon" alt="telegram icon" />
       </div> -->
     </div>
   </div>

@@ -7,6 +7,7 @@ import { tonToNano } from "../../utils/useTon";
 import { usePopup } from "../../components/common/Popup";
 import { useModal } from "../../components/common/Modal";
 import { useTranslation } from "i18next-vue";
+import { useRouter } from "vue-router";
 
 import * as APICrash from "./../../api/crash";
 
@@ -20,6 +21,8 @@ import BetModal from "./Components/Modals/Bet.vue";
 
 const { t } = useTranslation();
 const { open } = usePopup();
+
+const router = useRouter();
 
 const useCache = useCacheStore() as any;
 const pageRef = ref<HTMLElement | null>(null);
@@ -248,6 +251,12 @@ watch(() => GameAutoBet.value, (v) => {
   if (v) {
     setTimeout(() => placeBit({ bet: GameBet.value }), 350);
   }
+});
+
+onMounted(() => {
+  TelegramModule.useBackButton({
+    onBack: () => router.back(),
+  });
 });
 </script>
 

@@ -9,6 +9,7 @@ import BalanceView from "../views/Balance/Balance.vue";
 import BalanceOnboardView from "../views/Balance/Onboard/Onboard.vue";
 import LeaderboardView from "../views/Leaderboard/Leaderboard.vue";
 import CrashView from "../views/Crash/Crash.vue";
+import ChickenView from "../views/Chicken/Chicken.vue";
 
 const routes = [
   { path: "/", component: CasesView },
@@ -22,6 +23,7 @@ const routes = [
   { path: "/balance/onboard", component: BalanceOnboardView },
   { path: "/leaderboard", component: LeaderboardView },
   { path: "/crash", component: CrashView },
+  { path: "/chicken", component: ChickenView },
 ];
 
 export default createRouter({

@@ -26,10 +26,20 @@ export const localization = {
             profile: "Profile",
         },
         cases: {
+            tasks: {
+                inviteFriends_one: "Invite {{count}} friend",
+                inviteFriends_few: "Invite {{count}} friends",
+                inviteFriends_many: "Invite {{count}} friends",
+                inviteFriends_other: "Invite {{count}} friends",
+                subscribeChannel: "Subscribe to channel",
+            },
             tabs: {
                 NFTs: "Cases",
             },
             modals: {
+                open: "Open",
+                num_completed: "{{num}} completed",
+                whatsInside: "What's inside",
                 case: {
                     congrats: "Congratulations!",
                     congratsDesc: "You got:",
@@ -306,10 +316,20 @@ export const localization = {
             profile: "Профиль",
         },
         cases: {
+            tasks: {
+                inviteFriends_one: "Пригласить {{count}} друга",
+                inviteFriends_few: "Пригласить {{count}} друга",
+                inviteFriends_many: "Пригласить {{count}} друзей",
+                inviteFriends_other: "Пригласить {{count}} друзей",
+                subscribeChannel: "Подписаться на канал"
+            },
             tabs: {
                 NFTs: "Кейсы",
             },
             modals: {
+                open: "Открыть",
+                num_completed: "{{num}} выполнено",
+                whatsInside: "Что внутри",
                 case: {
                     congrats: "Поздравляем!",
                     congratsDesc: "Вы получили:",
