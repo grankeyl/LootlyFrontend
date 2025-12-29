@@ -177,6 +177,20 @@
             z-index: -1;
           }
 
+          &.timer {
+            background: var(--bg-secondary);
+            box-shadow: none;
+            backdrop-filter: blur(25px);
+
+            &::before {
+              display: none;
+            }
+
+            h4 {
+              color: var(--color-white);
+            }
+          }
+
           p {
             font-weight: 600;
             font-size: 1.2em;   // будет зависеть от font-size контейнера

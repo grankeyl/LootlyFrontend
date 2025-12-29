@@ -123,6 +123,7 @@ watch(
 
 function clearCase() {
   isRolling.value = false;
+  isRollClicked.value = false;
   itemRolling.value = {};
   itemWin.value = null;
   isWin.value = false;
@@ -140,7 +141,6 @@ async function quickSell(id: string) {
 function onWin(reward: any) {
   if (!reward) return;
 
-  // demo reward
   if (reward.rewardItem && reward.rewardItem.demo) {
     itemWin.value = reward;
     isWin.value = true;
@@ -149,7 +149,6 @@ function onWin(reward: any) {
 
   itemWin.value = reward;
 
-  // instant credit only if not quick sale
   if (!reward?.rewardItem?.quick_sale) {
     useCache.UserData.BalanceNano += reward?.rewardItem?.reward_price ?? 0n;
   }
@@ -403,12 +402,11 @@ async function onTaskClick(task: any, index?: number) {
 }
 
 async function rollTo() {
+  console.log("rollTo");
+  console.log(skeletonTasks.value);
+  console.log(isRollClicked.value, isRolling.value);
   if (skeletonTasks.value) return;
   if (isRollClicked.value || isRolling.value) return;
-  if (useCache.UserData.BalanceNano < props.data.price_nano) {
-    emit("not-enough", { id: 1 });
-    return;
-  }
 
   useCache.TasksData = [];
   isRollClicked.value = true;
@@ -416,8 +414,12 @@ async function rollTo() {
   const open = await APICases.open(props.data.ID).catch(() => null);
 
   if (!open?.ok) {
-    const msg = open?.message ?? open?.error ?? open?.data?.message ?? "Не удалось открыть кейс";
-    showErrorToast(msg);
+    console.log(open);
+    if (open?.error === "already_opened") {
+      showErrorToast("Кейс уже недоступен");
+    } else {
+      showErrorToast("Не удалось открыть кейс");
+    };
 
     isRollClicked.value = false;
     isRolling.value = false;
@@ -692,7 +694,7 @@ onBeforeUnmount(() => {
 
         <div v-if="isRolling && !isWin" class="buttons rolling">
           <div class="topper">
-            <button @click="skipRoll">
+            <button class="skip" @click="skipRoll">
               <h4>{{ $t("cases.modals.case.buttons.skip") }}</h4>
             </button>
           </div>

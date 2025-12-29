@@ -67,8 +67,8 @@ export async function open(
       return response.data;
     }
     return false;
-  } catch {
-    return false;
+  } catch (e: any) {
+    return e?.response?.data;
   }
 }
 

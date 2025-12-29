@@ -27,4 +27,8 @@ export default defineConfig({
     port: 2400,
     // hmr: { protocol: 'wss', host: '192.168.0.128', port: 2400 },
   },
+  build: {
+    assetsDir: 'assets',
+    rollupOptions: { output: { entryFileNames: 'assets/[name]-[hash].js', chunkFileNames: 'assets/[name]-[hash].js', assetFileNames: 'assets/[name]-[hash].[ext]' } }
+  }
 })

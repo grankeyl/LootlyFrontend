@@ -180,6 +180,8 @@ function stopHeartbeat() {
   }
 }
 
+let manualClose = false;
+
 function scheduleReconnect() {
   if (reconnectTimer) return;
   const delay = Math.min(30000, 1000 * Math.pow(2, reconnectAttempts)); // 1s→2s→4s…≤30s
@@ -190,6 +192,7 @@ function scheduleReconnect() {
 }
 
 function connect() {
+  manualClose = false;
   try { ws?.close(); } catch {}
   ws = new WebSocket(WS_URL + "/live");
   ws.addEventListener("open", () => {
@@ -230,11 +233,9 @@ function connect() {
     }
   });
 
-  ws.addEventListener("close", (e) => {
-    console.warn("🔴 [WS] Closed:", e.code, e.reason || "(no reason)");
+  ws.addEventListener("close", () => {
     stopHeartbeat();
-    reconnectAttempts++;
-    scheduleReconnect();
+    if (!manualClose) { reconnectAttempts++; scheduleReconnect(); }
   });
 
   ws.addEventListener("error", (err) => {
@@ -253,11 +254,9 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  manualClose = true;
   stopHeartbeat();
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
-  }
+  if (reconnectTimer) clearTimeout(reconnectTimer);
   try { ws?.close(); } catch {}
 });
 </script>
@@ -300,10 +299,7 @@ onBeforeUnmount(() => {
           v-else-if="item.failed"
         ></div>
         
-        <div class="image" :class="{ skeleton: !item.loaded && !item.failed }">
-          <div class="img-skeleton" v-if="!item.loaded && !item.failed"></div>
-          <div class="img-fallback" v-else-if="item.failed"></div>
-
+        <div class="image">
           <img
             v-if="!item.failed && getImgSvg(item.image)"
             :src="getImgSvg(item.image)"
@@ -323,73 +319,3 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss" src="./LiveWins.scss" scoped></style>
-<style scoped>
-/* убираем blur и move-транзишены */
-.items{ display:flex; gap:8px; align-items:center; }
-.items{ scroll-snap-type:x proximity; }
-.items.no-snap{ scroll-snap-type: none; }
-
-.item{ scroll-snap-align:start; transform: rotate(var(--deg,0deg)); transition: transform .3s ease, opacity .3s ease; }
-
-.pop-enter-from{ opacity:0; transform: rotate(calc(var(--deg,0deg) - 8deg)) scale(.9); }
-.pop-enter-active{ transition: opacity .3s ease, transform .3s ease; }
-.pop-enter-to{ opacity:1; transform: rotate(var(--deg,0deg)) scale(1); }
-/* важно: не анимируем перемещения, чтобы не портить измерения */
-.pop-move{ transition: none; }
-
-/* изображения — только opacity */
-.image img{ opacity:0; transition:opacity .3s ease; display:block; }
-.image img.loaded{ opacity:1; }
-
-/* контейнер под изображение */
-.image{ position: relative; width: 100%; height: 100%; }
-
-/* скрываем img до полной загрузки и плавно проявляем */
-.image img{
-  opacity: 0;
-  filter: blur(6px);
-  transition: opacity .35s ease, filter .35s ease;
-  display: block;
-}
-.image img.loaded{
-  opacity: 1;
-  filter: blur(0);
-}
-
-/* пер-item скелетон */
-.img-skeleton{
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  background: linear-gradient(90deg, rgba(255,255,255,.08), rgba(255, 255, 255, 0.10), rgba(255,255,255,.08));
-  background-size: 200% 100%;
-  animation: shimmer 1.1s linear infinite;
-  z-index: 1;
-}
-
-.img-fallback {
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.12), rgba(255,255,255,.06));
-  background-size: 200% 100%;
-  animation: shimmer 1.1s linear infinite;
-  z-index: 1;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-</style>

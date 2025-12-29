@@ -117,6 +117,9 @@ onMounted(getCases);
                         <button>
                             <p>Open</p>
                         </button>
+                        <!-- <button class="timer">
+                            <p>23:59:59</p>
+                        </button> -->
                     </div>
                 </div>
             </div>

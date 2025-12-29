@@ -116,6 +116,14 @@ img.showing {
   overscroll-behavior: auto;
   touch-action: pan-y;
 
+  @media screen and (max-height: 628px) {
+    height: 80vh;
+  }
+
+  @media screen and (max-height: 590px) {
+    height: 85vh;
+  }
+
   .sheetContent {
     display: flex;
     flex-direction: column; 
@@ -319,7 +327,7 @@ img.showing {
 
   .backdrop {
     width: 100%;
-    height: 45%;
+    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
@@ -1111,6 +1119,15 @@ img.showing {
 
         &.progress {
           pointer-events: none;
+        }
+
+        &.skip {
+          background: var(--bg-secondary);
+          box-shadow: none;
+          backdrop-filter: blur(25px);
+          h4 {
+            color: var(--color-white);
+          }
         }
 
         &.primary {
