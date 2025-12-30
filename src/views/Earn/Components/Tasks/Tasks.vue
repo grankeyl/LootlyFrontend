@@ -4,6 +4,7 @@ import { useCacheStore } from "../../../../stores/pinia-store";
 import { showSuccessToast } from "../../../../utils/toastManager";
 import { shootConfetti } from "../../../../utils/useConfetti";
 import { useTranslation } from "i18next-vue";
+import { useRouter } from "vue-router";
 
 import * as APITasks from "../../../../api/tasks";
 
@@ -27,6 +28,7 @@ import TelegramModule from "../../../../hooks/useTelegram";
 type Task = any;
 
 const { t } = useTranslation();
+const router = useRouter();
 
 const props = defineProps<{ 
   scrollEl?: Element | null 
@@ -50,11 +52,6 @@ const swipersTasks = computed(() => {
   const filtered = array
     .map((t, idx) => ({ t, idx }))
     .filter(x => x.t && x.t.type && swipersTasksTypes.includes(x.t.type));
-
-  // если уже сортировали один раз — больше порядок не трогаем
-  // if (swipersTasksApplied.value) {
-  //   return filtered.map(x => x.t);
-  // }
 
   const getProgress = (task: Task): number => {
     if (!task) return 0;
@@ -350,7 +347,14 @@ async function postStory(task: Task) {
   if (!storyMedia) return;
 
   TelegramModule.useLightHaptic();
-  TelegramModule.useStory(storyMedia);
+  TelegramModule.useStory(
+    storyMedia,
+    t('extra.storyMessage'),
+    {
+      url: import.meta.env.VITE_APP_MINI_APP_LINK,
+      name: t('extra.lootly'),
+    }
+  );
 
   setTimeout(() => {
     items.value.find(i => i.id === task.id)!._loading = false;
@@ -419,6 +423,14 @@ function inviteFriend() {
   const link = `${miniAppLink}=${code}`;
   const message = t('earn.button.inviteFriendsMsg');
   TelegramModule.useShare(link, message);
+}
+
+function goToCases() {
+  router.push('/');
+}
+
+function goToRocketGame() {
+  router.push('/crash');
 }
 
 /** публичное */
@@ -553,7 +565,7 @@ onBeforeUnmount(() => {
             <div v-if="item._loading" class="button loading">
               <div class="spinner"></div>
             </div>
-            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes)" class="button">
+            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes)" class="button" @click="goToRocketGame()">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
                 <p>{{ taskCurrentInfo(item.volumes ?? 0, item.config.TaskNeedVolumes) }}/{{ item.config.TaskNeedVolumes }}</p>
@@ -587,7 +599,7 @@ onBeforeUnmount(() => {
             <div v-if="item._loading" class="button loading">
               <div class="spinner"></div>
             </div>
-            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened)" class="button">
+            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened)" class="button" @click="goToCases()">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
                 <p>{{ taskCurrentInfo(item.opens ?? 0, item.config.TaskNeedCaseOpened) }}/{{ item.config.TaskNeedCaseOpened }}</p>
@@ -631,7 +643,6 @@ onBeforeUnmount(() => {
                 <div class="kit-icon" v-html="DoneRawIcon"></div>
               </div>
             </div>
-
           </div>
         </div>
       </div>

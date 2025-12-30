@@ -25,7 +25,6 @@ const { open } = usePopup();
 const router = useRouter();
 
 const useCache = useCacheStore() as any;
-const pageRef = ref<HTMLElement | null>(null);
 
 const GameStatus = ref<string>("loading");
 const GameBettingEtaMs = ref<number>(3);
@@ -34,56 +33,7 @@ const GameBet = ref<number>(0.1);
 const GameBetLoading = ref<boolean>(false);
 const GameBetActual = ref<number>(0);
 const GameLastCrashes = ref<object>([]);
-const GameBets = ref<object>([
-  // {
-  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-  //   "user_id": 2106187940,
-  //   "user_first_name": "Grankeyl",
-  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-  //   "amount": 0.1,
-  //   "auto_cashout": null,
-  //   "status": "active",
-  //   "settled_mult": null,
-  //   "value": 0.1,
-  //   "index": 1
-  // },
-  // {
-  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-  //   "user_id": 2106187940,
-  //   "user_first_name": "Grankeyl",
-  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-  //   "amount": 0.1,
-  //   "auto_cashout": null,
-  //   "status": "active",
-  //   "settled_mult": null,
-  //   "value": 0.1,
-  //   "index": 1
-  // },
-  // {
-  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-  //   "user_id": 2106187940,
-  //   "user_first_name": "Grankeyl",
-  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-  //   "amount": 0.1,
-  //   "auto_cashout": null,
-  //   "status": "active",
-  //   "settled_mult": null,
-  //   "value": 0.1,
-  //   "index": 1
-  // },
-  // {
-  //   "id": "ceddc1a8-a532-4bd9-8b28-47b20bd6e7a5",
-  //   "user_id": 2106187940,
-  //   "user_first_name": "Grankeyl",
-  //   "user_photo": "https://t.me/i/userpic/320/RxorCh8pIvxePpBZObmQqHhfbZ1-0XS1r-4kQ1-e_kA.svg",
-  //   "amount": 0.1,
-  //   "auto_cashout": null,
-  //   "status": "active",
-  //   "settled_mult": null,
-  //   "value": 0.1,
-  //   "index": 1
-  // }
-]);
+const GameBets = ref<object>([]);
 const GameOnline = ref<number>(2);
 
 const GameAutoX = ref<number>(1.1);
@@ -254,9 +204,7 @@ watch(() => GameAutoBet.value, (v) => {
 });
 
 onMounted(() => {
-  TelegramModule.useBackButton({
-    onBack: () => router.back(),
-  });
+  TelegramModule.useBackButton(() => router.back());
 });
 </script>
 

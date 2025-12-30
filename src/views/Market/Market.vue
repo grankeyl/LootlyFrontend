@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useModal } from './../../components/common/Modal'
 import { showSuccessToast } from '../../utils/toastManager'
@@ -12,6 +12,7 @@ import Actions from "./Components/Actions/Actions.vue"
 import Gifts from "./Components/Gifts/Gifts.vue"
 import Backdrop from "@/assets/images/profile-pg/bg-blured.png"
 import NotEnoght from './Components/Modals/NotEnoght.vue'
+import TelegramModule from '../../hooks/useTelegram'
 
 const { open } = useModal()
 const { t } = useTranslation()
@@ -46,6 +47,10 @@ function buySuccess(payload: any) {
   console.log('buy success', payload);
   showSuccessToast(`${t('extra.successPurchase', { name: payload.name })}`);
 }
+
+onMounted(async () => {
+  TelegramModule.hideBackButton()
+})
 
 watch(
   () => route.params.id,

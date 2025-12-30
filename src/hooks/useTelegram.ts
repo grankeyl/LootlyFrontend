@@ -99,10 +99,23 @@ const TelegramModule = {
       WebApp.openTelegramLink(shareLink);
     },
 
-    async useStory(media: string): Promise<void> {
+    async useStory(
+      media: string, 
+      text: string, 
+      widget_link: {
+        url: string;
+        name: string;
+      }
+    ): Promise<void> {
       return new Promise((resolve, reject) => {
         try {
-          WebApp.shareToStory(media);
+          WebApp.shareToStory(media, {
+            text: text,
+            widget_link: {
+              url: widget_link.url,
+              name: widget_link.name,
+            },
+          });
           resolve();
         } catch (err) {
           reject(err);

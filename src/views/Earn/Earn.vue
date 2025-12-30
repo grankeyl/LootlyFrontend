@@ -14,6 +14,7 @@ import BalanceAboutModal from './Components/Modals/BalanceAbout.vue';
 
 import Backdrop from "@/assets/images/earn-pg/bg-blured.png";
 import Header from '../../components/common/Header/Header.vue';
+import TelegramModule from '../../hooks/useTelegram';
 
 const { open } = useModal();
 
@@ -50,6 +51,8 @@ const loaded = ref(false);
 const imgSrc = ref<string | null>(null);
 
 onMounted(async () => {
+  TelegramModule.hideBackButton();
+
   const img = new Image();
   img.decoding = 'async';
   img.src = Backdrop;

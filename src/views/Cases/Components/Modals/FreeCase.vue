@@ -43,7 +43,19 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{ data: any }>();
+
 const attrs = useAttrs();
+
+// local mirror (do not mutate props)
+const alreadyOpened = ref<boolean>(!!props.data?.AlreadyOpened);
+
+watch(
+  () => props.data?.AlreadyOpened,
+  (v) => {
+    alreadyOpened.value = !!v;
+  },
+  { immediate: true }
+);
 
 const rouletteRef = ref<InstanceType<typeof Roulette> | null>(null);
 
@@ -200,9 +212,15 @@ async function getTasksCase() {
 }
 
 // ===== tasks polling (single loop) =====
-
 function getTaskKey(t: any) {
-  return String(t?.ID ?? t?.id ?? t?.task_id ?? t?.channel_id ?? t?.channel_name ?? "");
+  return String(
+    t?.ID ??
+    t?.id ??
+    t?.task_id ??
+    t?.channel_id ??
+    t?.channel_name ??
+    `${t?.type ?? "task"}:${t?.index ?? ""}`
+  );
 }
 
 function taskType(t: any): "invite" | "subscribe" {
@@ -214,17 +232,22 @@ function inviteNeed(t: any) {
   return Number(t?.task_need_friends ?? 3);
 }
 
-function inviteDone(t: any) {
-  if (typeof t?.current_friends === "number") return t.current_friends;
-  if (typeof t?.friends_done === "number") return t.friends_done;
-  if (typeof t?.friends_completed_count === "number") return t.friends_completed_count;
-  if (typeof t?.friends_completed === "boolean") return t.friends_completed ? inviteNeed(t) : 0;
-  return 0;
+function inviteAvailable(t: any) {
+  const cur = Number(t?.current_friends ?? 0);
+  const used = Number(t?.used_friends ?? 0);
+  const diff = cur - used;
+  return diff >= 0 ? diff : Math.max(0, cur);
+}
+
+function inviteOpensLeft(t: any) {
+  const need = inviteNeed(t);
+  if (!need) return 0;
+  return Math.floor(inviteAvailable(t) / need);
 }
 
 function isDoneTask(t: any) {
   if (taskType(t) === "subscribe") return !!t?.subscribed;
-  if (taskType(t) === "invite") return !!t?.friends_completed;
+  if (taskType(t) === "invite") return inviteOpensLeft(t) > 0;
 }
 
 function ruPlural(n: number, one: string, few: string, many: string) {
@@ -234,6 +257,56 @@ function ruPlural(n: number, one: string, few: string, many: string) {
   if (mod10 === 1 && mod100 !== 11) return one;
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
   return many;
+}
+
+// ===== Timer (countdown to item.ResetTimestamp)
+const nowTs = ref(Date.now());
+let nowTid: number | null = null;
+
+function toMs(ts: any): number {
+  if (ts == null) return 0;
+
+  if (typeof ts === "string") {
+    // "2025-12-31 11:00:00" -> "2025-12-31T11:00:00+03:00"
+    const s = ts.trim();
+    if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/.test(s)) {
+      const iso = s.replace(" ", "T") + "+03:00";
+      const parsed = Date.parse(iso);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    const parsed = Date.parse(s);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  const n = typeof ts === "number" ? ts : Number(ts);
+  if (!Number.isFinite(n)) return 0;
+  return n < 1e12 ? n * 1000 : n;
+}
+
+function pad2(v: number) {
+  return String(Math.max(0, v)).padStart(2, "0");
+}
+
+
+function formatTimer(resetTimestamp: any) {
+  const targetMs = toMs(resetTimestamp);
+  if (!targetMs) return "00:00:00";
+
+  const diffMs = targetMs - nowTs.value;
+  if (diffMs <= 0) return "00:00:00";
+
+  const totalSec = Math.floor(diffMs / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+}
+
+function isTimerEnded(resetTimestamp: any) {
+  const targetMs = toMs(resetTimestamp);
+  return !!targetMs && targetMs - nowTs.value <= 0;
 }
 
 function taskTitle(tk: any) {
@@ -256,21 +329,6 @@ function taskKey(t: any, idx: number) {
   return k || String(idx);
 }
 
-function friendsProgressText(t: any) {
-  const need = inviteNeed(t);
-  const done = inviteDone(t);
-  return `${Math.min(done, need)}/${need}`;
-}
-
-function friendsProgressPercent(t: any) {
-  const need = inviteNeed(t);
-  const done = inviteDone(t);
-  if (!need || need <= 0) return 0;
-
-  const clampedDone = Math.min(Math.max(done, 0), need);
-  return Math.max(0, Math.min(100, Math.round((clampedDone / need) * 100)));
-}
-
 const invTasks = computed(() =>
   (itemTasks.value || []).map((t: any, idx: number) => {
     const type = taskType(t);
@@ -280,10 +338,10 @@ const invTasks = computed(() =>
       _key: taskKey(t, idx),
       _type: type,
       _needFriends: type === "invite",
-      _done: isDoneTask(t),
+      _done: type === "invite" ? inviteOpensLeft(t) > 0 : isDoneTask(t),
+      _progress: type === "invite" ? `${inviteAvailable(t)}/${inviteNeed(t)}` : "",
+      _percent: type === "invite" ? Math.min(100, Math.round((inviteAvailable(t) / inviteNeed(t)) * 100)) : 0,
       _title: taskTitle(t),
-      _progress: type === "invite" ? friendsProgressText(t) : "",
-      _percent: type === "invite" ? friendsProgressPercent(t) : 0,
     };
   })
 );
@@ -323,6 +381,10 @@ function mergeTaskState(fresh: any[], current: any[]) {
       ...t,
       loading: cur?.loading ?? false,
       subscribed: t?.subscribed ?? cur?.subscribed ?? false,
+      used_friends:
+        String(t?.type).toLowerCase() === "invite"
+          ? (cur?.used_friends ?? t?.used_friends ?? 0)
+          : t?.used_friends,
     };
   });
 }
@@ -401,10 +463,29 @@ async function onTaskClick(task: any, index?: number) {
   startTasksPolling();
 }
 
+const inviteLeftTotal = computed(() => {
+  if (!isInvCase.value) return 0;
+  const inv = (itemTasks.value || []).find((x:any) => taskType(x) === "invite");
+  return inv ? inviteOpensLeft(inv) : 0;
+});
+
+const canOpenNow = computed(() => {
+  if (skeletonTasks.value) return false;
+  if (alreadyOpened.value && !isInvCase.value) return false; // обычные — ждут таймер
+  if (isInvCase.value) return inviteLeftTotal.value > 0;     // invite — пока есть попытки
+  return allTasksDone.value;
+});
+
+function nextMoscowMidnightMs(nowMs: number = Date.now()): number {
+  const MSK_OFFSET_MS = 3 * 60 * 60 * 1000; // UTC+3
+  const mskNow = new Date(nowMs + MSK_OFFSET_MS);
+  const y = mskNow.getUTCFullYear();
+  const m = mskNow.getUTCMonth();
+  const d = mskNow.getUTCDate();
+  return Date.UTC(y, m, d + 1, 0, 0, 0) - MSK_OFFSET_MS;
+}
+
 async function rollTo() {
-  console.log("rollTo");
-  console.log(skeletonTasks.value);
-  console.log(isRollClicked.value, isRolling.value);
   if (skeletonTasks.value) return;
   if (isRollClicked.value || isRolling.value) return;
 
@@ -424,6 +505,24 @@ async function rollTo() {
     isRollClicked.value = false;
     isRolling.value = false;
     return;
+  }
+
+  if (props.data.Status === "sub") {
+    useCache.CasesData.forEach((i: any) => {
+      if (i.ID === props.data.ID) {
+        i.AlreadyOpened = true;
+        i.ResetTimestamp = nextMoscowMidnightMs();
+      }
+    });
+  }
+
+  if (isInvCase.value) {
+    const idx = itemTasks.value.findIndex((x:any) => taskType(x) === "invite");
+    if (idx !== -1) {
+      const need = inviteNeed(itemTasks.value[idx]);
+      const used = Number(itemTasks.value[idx].used_friends ?? 0);
+      itemTasks.value[idx].used_friends = used + need;
+    }
   }
 
   itemRolling.value = open;
@@ -452,12 +551,23 @@ function close() {
 const sheetOverscroll = useSheetOverscrollProtection(".sheet");
 
 onMounted(() => {
+  // tick once per second so timer stays live
+  nowTid = window.setInterval(() => {
+    nowTs.value = Date.now();
+    if (!isInvCase.value && alreadyOpened.value && isTimerEnded(props.data?.ResetTimestamp)) {
+      alreadyOpened.value = false;
+    }
+  }, 1000);
+
   getRewards();
   getTasksCase();
   sheetOverscroll.mount();
 });
 
 onBeforeUnmount(() => {
+  if (nowTid) window.clearInterval(nowTid);
+  nowTid = null;
+
   stopTasksPolling();
   sheetOverscroll.unmount();
 });
@@ -594,7 +704,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="task-title">
                 <div class="sk-load" v-if="skeletonTasks"></div>
-                <h4>Subscribe to {{ item.channel_name }} Telegram</h4>
+                <h4>{{ t("cases.tasks.subscribeChannelName", { name: item.channel_name }) }}</h4>
               </div>
               <div class="button">
                 <div v-if="!item.subscribed && !item.loading" class="inner none">
@@ -719,11 +829,15 @@ onBeforeUnmount(() => {
 
         <div v-if="!isRolling" class="buttons">
           <div class="topper">
-            <button v-if="!allTasksDone" class="progress">
+            <button v-if="alreadyOpened && !isInvCase" class="timer">
+              <h4>{{ formatTimer(props.data.ResetTimestamp) }}</h4>
+            </button>
+
+            <button v-else-if="!allTasksDone && !alreadyOpened" class="progress">
               <h4>{{ tasksProgressLabel }}</h4>
             </button>
 
-            <button v-else class="primary" :disabled="skeletonTasks" @click="rollTo()">
+            <button v-else class="primary" :disabled="!canOpenNow" @click="rollTo()">
               <h4>{{ $t("cases.modals.open") }}</h4>
             </button>
           </div>

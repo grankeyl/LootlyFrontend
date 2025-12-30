@@ -17,8 +17,9 @@ export const localization = {
             taskSuccessClaimed: "Task successfully claimed",
             successPurchase: "Successful purchase of the “{{name}}”",
             successGiftWithdrawn: "Gift successfully withdrawn",
+            storyMessage: "🦄 Win Plush Pepe or TON in a free daily case from the Lootly gaming platform",
+            lootly: "Lootly",
         },
-
         menu: {
             cases: "Games",
             market: "Market",
@@ -32,6 +33,7 @@ export const localization = {
                 inviteFriends_many: "Invite {{count}} friends",
                 inviteFriends_other: "Invite {{count}} friends",
                 subscribeChannel: "Subscribe to channel",
+                subscribeChannelName: `Subscribe to "{{name}}"`,
             },
             tabs: {
                 NFTs: "Cases",
@@ -123,7 +125,7 @@ export const localization = {
             },
             button: {
                 inviteFriends: "Invite friends",
-                inviteFriendsMsg: "💅 Best platform for games on NFT",
+                inviteFriendsMsg: "🦄 Get an invite to Lootly — a premium gaming platform with Telegram gifts.",
             },
             modals: {
                 balanceAbout: {
@@ -307,6 +309,8 @@ export const localization = {
             taskSuccessClaimed: "Задание выполнено!",
             successPurchase: "Успешно покупка «{{name}}»",
             successGiftWithdrawn: "Подарок успешно выведен",
+            storyMessage: "🦄 Выигрывай Plush Pepe или TON в бесплатном ежедневном кейсе от игровой платформы Lootly",
+            lootly: "Lootly",
         },
 
         menu: {
@@ -321,7 +325,8 @@ export const localization = {
                 inviteFriends_few: "Пригласить {{count}} друга",
                 inviteFriends_many: "Пригласить {{count}} друзей",
                 inviteFriends_other: "Пригласить {{count}} друзей",
-                subscribeChannel: "Подписаться на канал"
+                subscribeChannel: "Подписаться на канал",
+                subscribeChannelName: `Подписаться на "{{name}}"`,
             },
             tabs: {
                 NFTs: "Кейсы",
@@ -413,7 +418,7 @@ export const localization = {
             },
             button: {
                 inviteFriends: "Пригласить друзей",
-                inviteFriendsMsg: "💅 Лучшая платформа для игр на NFT",
+                inviteFriendsMsg: "🦄 Лови инвайт в Lootly — премиальная игровая платформа с телеграм-подарками.",
             },
             modals: {
                 balanceAbout: {

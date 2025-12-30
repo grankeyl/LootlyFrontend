@@ -13,7 +13,7 @@ import { showErrorToast } from "../../../../utils/toastManager";
 const router = useRouter();
 
 function openChickenGame() {
-  showErrorToast("Sorry, Chicken Game is not available now");
+  showErrorToast("Sorry, Chicken Gift is not available now");
   // TelegramModule.useMediumHaptic();
   // router.push('/chicken');
 }
@@ -42,7 +42,7 @@ function openRocketGame() {
         <img :src="BlockChickenBg" alt="block-bg" />
       </div>
       <div class="title">
-        <h4>Chicken Game</h4>
+        <h4>Chicken Gift</h4>
       </div>
       <div class="chevrone">
         <div class="kit-icon" v-html="ChevroneRight"></div>

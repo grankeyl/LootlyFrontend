@@ -78,6 +78,8 @@
   backface-visibility: hidden;
   will-change: transform;
   animation: blockFloat 10s ease-in-out infinite;
+  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
 
   &::before {
     content: "";
@@ -96,6 +98,10 @@
     animation: shine 5.5s ease-in-out infinite;
     overflow: hidden;
     border-radius: 18px;
+  }
+
+  &:hover {
+    transform: scale(0.96);
   }
 
   .bg {

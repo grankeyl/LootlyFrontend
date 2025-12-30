@@ -11,6 +11,7 @@ import Slide4 from './Components/Slide4/Slide4.vue';
 import Slide5 from './Components/Slide5/Slide5.vue';
 import Button from './Components/Button/Button.vue';
 import Progress from './Components/Progress/Progress.vue';
+import TelegramModule from '../../hooks/useTelegram';
 
 const router = useRouter();
 
@@ -45,6 +46,8 @@ function setCurrentSlide(i:number) {
 }
 
 onMounted(async () => {
+  TelegramModule.hideBackButton();
+
   await nextTick();
   const all = Array.from(TrackRef.value?.querySelectorAll<HTMLElement>(':scope > .onb-slide') ?? []);
   slidesCount.value = all.length || 1;

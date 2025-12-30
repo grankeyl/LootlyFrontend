@@ -45,6 +45,7 @@ img.showing {
   -webkit-backdrop-filter: blur(15px);
   backdrop-filter: blur(15px);
   z-index: 1;
+  cursor: pointer;
 }
 
 .balance {

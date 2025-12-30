@@ -63,6 +63,8 @@ const loaded = ref(false);
 const imgSrc = ref<string | null>(null);
 
 onMounted(async () => {
+  TelegramModule.hideBackButton();
+  
   const img = new Image();
   img.decoding = 'async';
   img.src = Backdrop;

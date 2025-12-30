@@ -1,7 +1,17 @@
 <script setup lang="ts">
 // Components
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+
 import Game from "./Game/Game.vue";
 import Tools from "./Tools/Tools.vue";
+import TelegramModule from "../../hooks/useTelegram";
+
+const router = useRouter();
+
+onMounted(() => {
+  TelegramModule.useBackButton(() => router.back());
+});
 </script>
 
 <template>
