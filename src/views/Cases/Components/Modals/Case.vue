@@ -60,12 +60,6 @@ const itemRewards = ref<any[]>(
   }))
 );
 
-// --- helpers ---
-function sortRewardsByPriceDesc(items: any[]) {
-  return [...(items || [])].sort(
-    (a, b) => Number(b?.price_ton ?? 0) - Number(a?.price_ton ?? 0)
-  );
-}
 function preloadImages(urls: (string | null | undefined)[], timeout = 15000) {
   const u = (urls || []).filter(Boolean) as string[];
   if (!u.length) return Promise.resolve();
