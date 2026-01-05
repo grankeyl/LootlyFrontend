@@ -21,13 +21,60 @@ let io: IntersectionObserver | null = null;
 
 const skeleton = ref(true);
 
+
 const leaderboard = ref<any[]>([]);
+
+// Track images that failed to load, so we can hide <img> and show avatar_null
+const failedPhotoKeys = ref<Set<string>>(new Set());
+
+function leaderKey(item: any, index?: number) {
+  return String(
+    item?.user_id ??
+      item?.id ??
+      item?.username ??
+      item?.rank ??
+      index ??
+      "unknown"
+  );
+}
+
+function hasPhoto(item: any, index?: number) {
+  const key = leaderKey(item, index);
+  return Boolean(item?.photo) && !failedPhotoKeys.value.has(key);
+}
+
+function onPhotoError(item: any, index?: number) {
+  const key = leaderKey(item, index);
+  failedPhotoKeys.value.add(key);
+}
+
+function avatarLetter(item: any) {
+  const s = (item?.username || item?.name || "?").toString();
+  return (s[0] || "?").toUpperCase();
+}
+
+function makePlaceholderLeader(rank: 1 | 2 | 3) {
+  return {
+    rank,
+    photo: "",
+    username: null,
+    name: "—",
+    sum_volume_nano: 0,
+  };
+}
+
 const primaryLeaders = computed(() => {
-  const top3 = leaderboard.value.slice(0, 3)
-  if (top3.length === 3) return [top3[1], top3[0], top3[2]]
-  if (top3.length === 2) return [top3[1], top3[0]]
-  return top3
-})
+  const top3 = leaderboard.value.slice(0, 3);
+  const missing: (1 | 2 | 3)[] = ([1, 2, 3] as const).filter(
+    (r) => !top3.some((x) => Number(x?.rank) === r)
+  );
+  const filled = [...top3, ...missing.map((r) => makePlaceholderLeader(r))]
+    .slice(0, 3);
+  const r1 = filled.find((x) => Number(x?.rank) === 1) ?? makePlaceholderLeader(1);
+  const r2 = filled.find((x) => Number(x?.rank) === 2) ?? makePlaceholderLeader(2);
+  const r3 = filled.find((x) => Number(x?.rank) === 3) ?? makePlaceholderLeader(3);
+  return [r2, r1, r3];
+});
 const otherLeaders  = computed(() => leaderboard.value.slice(3))
 
 const leaderboardSentinel = ref<HTMLDivElement|null>(null);
@@ -242,7 +289,15 @@ onBeforeUnmount(() => {
       <div class="item" v-for="(item, index) in primaryLeaders" :key="index">
         <div class="user">
           <div class="image">
-            <img :src="item.photo" alt="image">
+            <img
+              v-if="hasPhoto(item, index)"
+              :src="item.photo"
+              alt="image"
+              @error="onPhotoError(item, index)"
+            />
+            <div class="avatar_null" v-else>
+              <h4>{{ avatarLetter(item) }}</h4>
+            </div>
             <div class="mark">
               <p>{{ cutNumberNano(item.sum_volume_nano) }}</p>
               <img :src="TonWhiteIcon" alt="ton-white-icon" />
@@ -271,7 +326,15 @@ onBeforeUnmount(() => {
           <p>#{{ item.rank }}</p>
         </div>
         <div class="image">
-          <img :src="item.photo" alt="">
+          <img
+            v-if="hasPhoto(item, index)"
+            :src="item.photo"
+            alt=""
+            @error="onPhotoError(item, index)"
+          />
+          <div class="avatar_null" v-else>
+            <h4>{{ avatarLetter(item) }}</h4>
+          </div>
         </div>
         <div class="name">
           <h4 v-if="item.username">@{{ item.username }}</h4>

@@ -11,7 +11,6 @@ import TelegramModule from "../../hooks/useTelegram";
 const router = useRouter();
 const pageRef = ref<HTMLElement|null>(null);
 
-/* === плавное появление задника === */
 const loaded = ref(false);
 const imgSrc = ref<string | null>(null);
 

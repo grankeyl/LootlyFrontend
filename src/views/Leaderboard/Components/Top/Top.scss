@@ -118,11 +118,41 @@
     position: relative;
     margin: auto;
 
+    .image {
+      width: 71px;
+      height: 71px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
     img {
       width: 71px;
       height: 71px;
       object-fit: cover;
       border-radius: 50%;
+    }
+
+    .avatar_null {
+      width: 71px;
+      height: 71px;
+      position: absolute;
+      inset: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-20);
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      color: var(--color-white);
+
+      h4 {
+        font-weight: 600;
+        font-size: 1.8rem;
+        color: var(--color-white);
+        margin-top: -6px;
+      }
     }
 
     .mark {
@@ -158,6 +188,7 @@
       display: flex;
       position: absolute;
       bottom: -30px;
+      left: 0;
 
       h4 {
         font-weight: 600;
@@ -195,14 +226,36 @@
       .image {
         width: 41px;
         height: 41px;
-        background: var(--color-white);
         border-radius: 50px;
         overflow: hidden;
+        position: relative;
 
         img {
           width: 41px;
           height: 41px;
           object-fit: cover;
+        }
+
+        .avatar_null {
+          width: 41px;
+          height: 41px;
+          position: absolute;
+          inset: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--bg-5);
+          border-radius: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.6rem;
+
+          h4 {
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--color-white);
+            margin-top: 2px;
+          }
         }
       }
 

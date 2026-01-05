@@ -61,6 +61,11 @@ const itemRewards = ref<any[]>(
 );
 
 // --- helpers ---
+function sortRewardsByPriceDesc(items: any[]) {
+  return [...(items || [])].sort(
+    (a, b) => Number(b?.price_ton ?? 0) - Number(a?.price_ton ?? 0)
+  );
+}
 function preloadImages(urls: (string | null | undefined)[], timeout = 15000) {
   const u = (urls || []).filter(Boolean) as string[];
   if (!u.length) return Promise.resolve();
@@ -188,12 +193,14 @@ async function getRewards() {
   } else {
     const res = await APICases.rewards(id).catch(() => null);
     items = (res?.items ?? res?.data?.items ?? res?.rewards ?? null) as any[] | null;
-    if (!items) return; // оставляем скелетон
+    if (!items) return;
+    // items = sortRewardsByPriceDesc(items);
     useCache.CasesRewardsData = useCache.CasesRewardsData || {};
     useCache.CasesRewardsData[id] = items;
   }
 
   if (items) {
+    // items = sortRewardsByPriceDesc(items);
     await preloadImages(items.map((i: any) => i?.image));
     itemRewards.value = items;
   }
@@ -389,6 +396,8 @@ onMounted(() => {
 
                 <div class="price">
                   <p>{{ reward.price_ton }}</p>
+                  <!-- {{ reward.name }}
+                  {{ index }} -->
                   <img :src="TonIcon" alt="ton" />
                 </div>
               </div>

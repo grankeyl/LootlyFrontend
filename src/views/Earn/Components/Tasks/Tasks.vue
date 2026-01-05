@@ -46,6 +46,20 @@ const offset = ref(0);
 const swipersTasksTypes = ['invite', 'volume', 'open', 'createStory'];
 
 const swipersTasksApplied = ref(false);
+const getNeedFriends = (task: Task) => Number(task?.config?.TaskNeedFriends ?? 3);
+
+const getNeedCases = (task: Task) => Number(task?.config?.TaskNeedCaseOpened ?? task?.need ?? 0);
+
+// backend may send different keys for volume tasks
+const getNeedVolumes = (task: Task) => Number(
+  task?.config?.TaskNeedVolumes ??
+  task?.config?.TaskNeedValueToCrash ??
+  task?.need ??
+  0
+);
+
+const isPending = (s: any) => ['new', 'processing'].includes(String(s ?? ''));
+
 const swipersTasks = computed(() => {
   const array = items.value || [];
 
@@ -64,7 +78,7 @@ const swipersTasks = computed(() => {
     }
 
     if (task.type === 'invite') {
-      const need = Number(task?.config?.TaskNeedFriends ?? 3);
+      const need = getNeedFriends(task);
       const current = Number(useCache.UserDataMeta?.ref_count ?? 0);
       const ratio = need > 0 ? current / need : 0;
       return Math.min(Math.max(ratio, 0), 1);
@@ -72,14 +86,14 @@ const swipersTasks = computed(() => {
 
     // если поля opens/volumes отсутствуют — считаем 0
     if (task.type === 'open') {
-      const need = Number(task?.config?.TaskNeedCaseOpened ?? task?.need ?? 0);
+      const need = getNeedCases(task);
       const current = Number(task?.opens ?? 0);
       const ratio = need > 0 ? current / need : 0;
       return Math.min(Math.max(ratio, 0), 1);
     }
 
     if (task.type === 'volume') {
-      const need = Number(task?.config?.TaskNeedVolumes ?? task?.need ?? 0);
+      const need = getNeedVolumes(task);
       const current = Number(task?.volumes ?? 0);
       const ratio = need > 0 ? current / need : 0;
       return Math.min(Math.max(ratio, 0), 1);
@@ -93,8 +107,8 @@ const swipersTasks = computed(() => {
     if (task.user_status === 'success') return true;
 
     if (task.type === 'invite') {
-      const current = useCache.UserDataMeta?.ref_count ?? 0;
-      if (current >= 3) return true;
+      const current = Number(useCache.UserDataMeta?.ref_count ?? 0);
+      if (current >= getNeedFriends(task)) return true;
     }
 
     if (getProgress(task) >= 1) return true;
@@ -285,19 +299,23 @@ function setupResizeAndScrollFallback() {
 }
 
 const checkReferralsTask = (need: number) => {
-  const referrals = useCache.UserDataMeta.ref_count ?? 0;
-  return referrals >= need;
+  const n = Number(need ?? 0);
+  if (n <= 0) return false;
+  const referrals = Number(useCache.UserDataMeta?.ref_count ?? 0);
+  return referrals >= n;
 }
 
 const checkOpenedCases = (current: number | undefined | null, need: number) => {
   const c = Number(current ?? 0);
   const n = Number(need ?? 0);
+  if (n <= 0) return false;
   return c >= n;
 }
 
 const checkOpenedVolumes = (current: number | undefined | null, need: number) => {
   const c = Number(current ?? 0);
   const n = Number(need ?? 0);
+  if (n <= 0) return false;
   return c >= n;
 }
  
@@ -531,14 +549,14 @@ onBeforeUnmount(() => {
             <div v-if="item._loading" class="button loading">
               <div class="spinner"></div>
             </div>
-            <div v-else-if="item.user_status && ['new', 'success'].includes(item.user_status) && !checkReferralsTask(item.config.TaskNeedFriends)" class="button" @click="inviteFriend()">
+            <div v-else-if="item.user_status && (isPending(item.user_status) || item.user_status === 'success') && !checkReferralsTask(getNeedFriends(item))" class="button" @click="inviteFriend()">
               <h4>{{ $t('earn.tasks.swipers.invite') }}</h4>
               <span class="proccess">
-                <p>{{ taskCurrentInfo(useCache.UserDataMeta.ref_count, item.config.TaskNeedFriends) }}/{{ item.config.TaskNeedFriends }}</p>
+                <p>{{ taskCurrentInfo(useCache.UserDataMeta.ref_count, getNeedFriends(item)) }}/{{ getNeedFriends(item) }}</p>
                 <img :src="ProfileIcon" alt="profile-icon" />
               </span>
             </div>
-            <div v-else-if="item.user_status && item.user_status === 'success' || checkReferralsTask(3) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
+            <div v-else-if="(item.user_status === 'success') || (checkReferralsTask(getNeedFriends(item)) && item.user_status !== 'claimed')" class="button claim" @click="claimTask(item)">
               <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
             </div>
             <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">
@@ -565,14 +583,14 @@ onBeforeUnmount(() => {
             <div v-if="item._loading" class="button loading">
               <div class="spinner"></div>
             </div>
-            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes)" class="button" @click="goToRocketGame()">
+            <div v-else-if="item.user_status && isPending(item.user_status) && !checkOpenedVolumes(item.volumes, getNeedVolumes(item))" class="button" @click="goToRocketGame()">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
-                <p>{{ taskCurrentInfo(item.volumes ?? 0, item.config.TaskNeedVolumes) }}/{{ item.config.TaskNeedVolumes }}</p>
+                <p>{{ taskCurrentInfo(item.volumes ?? 0, getNeedVolumes(item)) }}/{{ getNeedVolumes(item) }}</p>
                 <img :src="TonWhiteIcon" alt="profile-icon" />
               </span>
             </div>
-            <div v-else-if="item.user_status && item.user_status === 'success' || checkOpenedVolumes(item.volumes, item.config.TaskNeedVolumes) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
+            <div v-else-if="(item.user_status === 'success') || (checkOpenedVolumes(item.volumes, getNeedVolumes(item)) && item.user_status !== 'claimed')" class="button claim" @click="claimTask(item)">
               <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
             </div>
             <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">
@@ -599,13 +617,13 @@ onBeforeUnmount(() => {
             <div v-if="item._loading" class="button loading">
               <div class="spinner"></div>
             </div>
-            <div v-else-if="item.user_status && ['new'].includes(item.user_status) && !checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened)" class="button" @click="goToCases()">
+            <div v-else-if="item.user_status && isPending(item.user_status) && !checkOpenedCases(item.opens, getNeedCases(item))" class="button" @click="goToCases()">
               <h4>{{ $t('earn.tasks.swipers.go') }}</h4>
               <span class="proccess">
-                <p>{{ taskCurrentInfo(item.opens ?? 0, item.config.TaskNeedCaseOpened) }}/{{ item.config.TaskNeedCaseOpened }}</p>
+                <p>{{ taskCurrentInfo(item.opens ?? 0, getNeedCases(item)) }}/{{ getNeedCases(item) }}</p>
               </span>
             </div>
-            <div v-else-if="item.user_status && item.user_status === 'success' || checkOpenedCases(item.opens, item.config.TaskNeedCaseOpened) && item.user_status !== 'claimed'" class="button claim" @click="claimTask(item)">
+            <div v-else-if="(item.user_status === 'success') || (checkOpenedCases(item.opens, getNeedCases(item)) && item.user_status !== 'claimed')" class="button claim" @click="claimTask(item)">
               <h4>{{ $t('earn.tasks.swipers.claim') }}</h4>
             </div>
             <div v-else-if="item.user_status && item.user_status === 'claimed'" class="button done">

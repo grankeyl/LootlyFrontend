@@ -9,6 +9,7 @@ import Slide2 from './Components/Slide2/Slide2.vue';
 import Slide3 from './Components/Slide3/Slide3.vue';
 import Slide4 from './Components/Slide4/Slide4.vue';
 import Slide5 from './Components/Slide5/Slide5.vue';
+import Slide6 from './Components/Slide6/Slide.vue';
 import Button from './Components/Button/Button.vue';
 import Progress from './Components/Progress/Progress.vue';
 import TelegramModule from '../../hooks/useTelegram';
@@ -80,6 +81,7 @@ onBeforeUnmount(() => { io?.disconnect(); io = null; });
       <div class="onb-slide"><Slide3 :active="currentSlide === 3" /></div>
       <div class="onb-slide"><Slide4 :active="currentSlide === 4" /></div>
       <div class="onb-slide"><Slide5 :active="currentSlide === 5" /></div>
+      <div class="onb-slide"><Slide6 :active="currentSlide === 6" /></div>
     </div>
 
     <div class="onb-progress">

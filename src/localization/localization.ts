@@ -288,6 +288,9 @@ export const localization = {
                 doTasks: "Do tasks",
                 earn: "Earn",
             },
+            slide6: {
+                title: "Hurry up and open the free cases!",
+            },
         }
     },
 
@@ -580,6 +583,9 @@ export const localization = {
                 inviteFriends: "Зови друзей",
                 doTasks: "Делай таски",
                 earn: "Зарабатывай",
+            },
+            slide6: {
+                title: "Успей открыть бесплатные кейсы!",
             },
         }
     },
