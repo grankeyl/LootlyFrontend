@@ -274,6 +274,9 @@ export const localization = {
             }
         },
         chicken: {
+            toasts: {
+                cashout: "You got {{price}} TON!",
+            },
             modes: {
                 easy: "Easy",
                 medium: "Medium",
@@ -595,6 +598,9 @@ export const localization = {
             }
         },
         chicken: {
+            toasts: {
+                cashout: "Вы забрали {{price}} TON!",
+            },
             modes: {
                 easy: "Легкий",
                 medium: "Средний",

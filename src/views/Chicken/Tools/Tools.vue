@@ -7,6 +7,7 @@ import { useCacheStore } from "../../../stores/pinia-store";
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
+import TelegramModule from "../../../hooks/useTelegram";
 
 const { t } = useTranslation();
 
@@ -99,10 +100,12 @@ const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
 };
 
 function onStartGame() {
+  TelegramModule.useSoftHaptic();
   emit('game-start');
 }
 
 function onStep() {
+  TelegramModule.useSoftHaptic();
   emit('step');
 }
 
@@ -128,6 +131,7 @@ function onModeClick(mode: number) {
 
 function onCashout() {
   if (props.gameStarted) {
+    TelegramModule.useSoftHaptic();
     emit('cashout');
   };
 }

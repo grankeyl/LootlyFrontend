@@ -16,9 +16,9 @@ import chickenDeadUrl from "@/assets/chicken/chicken-dead.png?url";
 import stoneUrl from "@/assets/chicken/stone.png?url";
 import nestUrl from "@/assets/chicken/nest.png?url";
 import nestHdUrl from "@/assets/chicken/nest-hd.png?url";
-
 // @ts-ignore
 import fireJson from "@/assets/chicken/fire.json";
+import TelegramModule from "../../../hooks/useTelegram";
 
 const emit = defineEmits<{
   (e: "clear-game"): void;
@@ -32,6 +32,7 @@ const props = defineProps<{
 }>();
 
 const wrapRef = ref<HTMLDivElement | null>(null);
+const fireRef = ref<HTMLDivElement | null>(null);
 
 // ===== design =====
 const DESIGN_W = 395;
@@ -49,7 +50,6 @@ const CAMERA_PAD = 60;
 
 // ===== state =====
 let app: PIXI.Application | null = null;
-
 let viewport: PIXI.Container | null = null;
 let world: PIXI.Container | null = null;
 
@@ -72,25 +72,21 @@ let busy = false;
 let inputLocked = false;
 let step = 0;
 
-// resize helpers
 let ro: ResizeObserver | null = null;
 let vvCleanup: (() => void) | null = null;
 
 let lastW = 0;
 let lastH = 0;
 
-// layout throttle
 let layoutRaf: number | null = null;
 let mounted = false;
 
-// tweens
 let coinTweens: gsap.core.Tween[] = [];
 let coinWinTween: gsap.core.Tween | null = null;
 
-// cashout/reset protection
 let resetInProgress = false;
 
-// ===== horizontal pan (drag) =====
+// ===== horizontal pan =====
 let dragging = false;
 let dragStartScreenX = 0;
 let dragStartWorldX = 0;
@@ -99,10 +95,19 @@ let lastMoveT = 0;
 let velX = 0;
 let inertiaTween: gsap.core.Tween | null = null;
 
+// ===== ui state =====
 const isLoading = ref(true);
+const texturesLoaded = ref(false);
 
 // start progress
 const START_AT_COIN = ref(props.gameStep ?? 0);
+
+// ===== “show once” gates =====
+let sceneBuiltOnce = false;     // сцена построена хоть раз
+let canvasShownOnce = false;    // canvas показан хоть раз (НЕ повторять)
+let loaderHiddenOnce = false;   // лоадер скрыт хоть раз (НЕ трогать потом)
+let initRaf: number | null = null;
+let ratiosRebuildRaf: number | null = null;
 
 // ===== multipliers =====
 const DEFAULT_MULTIPLIERS = [1.99, 2.99, 4.99, 7.99, 12.99, 20.99];
@@ -116,13 +121,18 @@ function normalizeRatios(v: any): number[] {
 const multipliers = computed<number[]>(() => normalizeRatios(props.modeRatios));
 const m = () => multipliers.value;
 
-const texturesLoaded = ref(false);
+const ratiosKey = computed(() => normalizeRatios(props.modeRatios).join("|"));
 
+// ===== helpers =====
 function syncLoading() {
-  isLoading.value = props.loading || !texturesLoaded.value;
+  // лоадер управляем один раз: до инициализации
+  if (loaderHiddenOnce) {
+    isLoading.value = false;
+    return;
+  }
+  isLoading.value = props.loading || !texturesLoaded.value || !sceneBuiltOnce || !canvasShownOnce;
 }
 
-// ===== utils =====
 function isMobileDevice() {
   return (
     window.matchMedia?.("(pointer: coarse)")?.matches ||
@@ -151,6 +161,11 @@ function killCoinTweens() {
   coinWinTween = null;
 }
 
+function killInertia() {
+  inertiaTween?.kill();
+  inertiaTween = null;
+}
+
 function clampWorldX(x: number) {
   if (!pipes.length) return x;
   const firstX = pipes[0].x;
@@ -160,15 +175,17 @@ function clampWorldX(x: number) {
   return Math.max(minX, Math.min(maxX, x));
 }
 
-function killInertia() {
-  inertiaTween?.kill();
-  inertiaTween = null;
+function worldToScreen(x: number, y: number) {
+  if (!viewport || !world) return { x: 0, y: 0 };
+  const s = viewport.scale.x;
+  const sx = viewport.x + (world.x + x) * s;
+  const sy = viewport.y + (world.y + y) * s;
+  return { x: sx, y: sy };
 }
 
 function worldSetX(x: number) {
   if (!world) return;
   world.x = clampWorldX(x);
-  // обновим огонь, если он сейчас видим (при панорамировании)
   if (lastFireWorld && fireRef.value && fireRef.value.style.display !== "none") {
     const p = worldToScreen(lastFireWorld.x, lastFireWorld.y);
     fireRef.value.style.left = `${p.x}px`;
@@ -176,7 +193,7 @@ function worldSetX(x: number) {
   }
 }
 
-// ===== fallback textures (if assets fail) =====
+// ===== fallback textures =====
 function makePipeTexture(renderer: PIXI.Renderer) {
   const g = new PIXI.Graphics();
   g.roundRect(0, 0, 90, 118, 22).fill(0x2a2a2f);
@@ -203,31 +220,24 @@ function makeChickenTexture(renderer: PIXI.Renderer) {
   const g = new PIXI.Graphics();
   g.ellipse(0, 0, 46, 34).fill(0xffffff);
   g.ellipse(18, -10, 18, 16).fill(0xffffff);
-
   g.circle(8, -18, 10).fill(0xf4e3b5).stroke({ width: 3, color: 0xd2c29a });
   g.circle(28, -18, 10).fill(0xf4e3b5).stroke({ width: 3, color: 0xd2c29a });
   g.circle(12, -18, 3).fill(0x1a1a1a);
   g.circle(32, -18, 3).fill(0x1a1a1a);
-
   g.roundRect(16, -10, 20, 14, 6).fill(0xf2b243).stroke({ width: 3, color: 0xd5932d });
-
   g.roundRect(10, -44, 14, 16, 6).fill(0xd34a3f);
   g.roundRect(22, -46, 14, 18, 6).fill(0xd34a3f);
-
   g.roundRect(-28, -4, 22, 16, 10).fill(0xf2f2f2).stroke({ width: 2, color: 0xe0e0e0 });
-
   // @ts-ignore
   return renderer.generateTexture(g, { resolution: 2 });
 }
 
-// ===== lottie fire (DOM overlay) =====
-const fireRef = ref<HTMLDivElement | null>(null);
+// ===== fire lottie =====
 let fireAnim: AnimationItem | null = null;
 let lastFireWorld: { x: number; y: number } | null = null;
 
 function initFireLottie() {
   if (!fireRef.value || fireAnim) return;
-
   fireAnim = lottie.loadAnimation({
     container: fireRef.value,
     renderer: "svg",
@@ -235,48 +245,33 @@ function initFireLottie() {
     autoplay: false,
     animationData: fireJson as any,
   });
-
   fireRef.value.style.opacity = "0";
   fireRef.value.style.display = "none";
-}
-
-function worldToScreen(x: number, y: number) {
-  if (!viewport || !world) return { x: 0, y: 0 };
-  const s = viewport.scale.x;
-  const sx = viewport.x + (world.x + x) * s;
-  const sy = viewport.y + (world.y + y) * s;
-  return { x: sx, y: sy };
 }
 
 function showFireAtWorldPosLottie(x: number, y: number) {
   if (!fireRef.value) return;
   initFireLottie();
-
   lastFireWorld = { x, y };
-
   const p = worldToScreen(x, y);
   fireRef.value.style.left = `${p.x}px`;
   fireRef.value.style.top = `${p.y}px`;
-
   fireRef.value.style.display = "block";
   requestAnimationFrame(() => {
     if (!fireRef.value) return;
     fireRef.value.style.opacity = "1";
   });
-
   fireAnim?.goToAndPlay(0, true);
 }
 
 function hideFireLottie(immediate = false) {
   if (!fireRef.value) return;
-
   if (immediate) {
     fireRef.value.style.opacity = "0";
     fireRef.value.style.display = "none";
     fireAnim?.stop();
     return;
   }
-
   fireRef.value.style.opacity = "0";
   setTimeout(() => {
     if (!fireRef.value) return;
@@ -368,19 +363,14 @@ function playCoinWin(coinC: PIXI.Container) {
   }
 }
 
-// ===== textures sync =====
 function syncCoinTextures() {
   if (!coinTexture) return;
 
   const removeLabel = (coinC: PIXI.Container) => {
     const lbl = (coinC as any).label as PIXI.Text | undefined | null;
     if (!lbl) return;
-    try {
-      coinC.removeChild(lbl);
-    } catch {}
-    try {
-      lbl.destroy();
-    } catch {}
+    try { coinC.removeChild(lbl); } catch {}
+    try { lbl.destroy(); } catch {}
     (coinC as any).label = null;
   };
 
@@ -401,6 +391,31 @@ function syncCoinTextures() {
 }
 
 // ===== layout =====
+const SHORT_SCREEN_H = 671;
+
+function getScreenH() {
+  return Math.floor(window.visualViewport?.height ?? window.innerHeight);
+}
+
+function getCoinYOffset() {
+  return getScreenH() <= SHORT_SCREEN_H ? 200 : 250;
+}
+
+let lastCoinYOffset = getCoinYOffset();
+
+function applyCoinYOffset() {
+  const off = getCoinYOffset();
+  if (off === lastCoinYOffset) return;
+  lastCoinYOffset = off;
+
+  for (let i = 0; i < coins.length; i++) {
+    const p = pipes[i + 1];
+    const c = coins[i];
+    if (!p || !c) continue;
+    c.y = p.y - off;
+  }
+}
+
 function layout() {
   if (!app || !wrapRef.value || !viewport) return;
 
@@ -428,39 +443,12 @@ function layout() {
   viewport.y = baseY + deviceY;
 
   applyCoinYOffset();
-
   app.stage.hitArea = new PIXI.Rectangle(0, 0, w, canvasH);
 
-  // keep lottie fire glued to world pos on resize
   if (lastFireWorld && fireRef.value && fireRef.value.style.display !== "none") {
     const p = worldToScreen(lastFireWorld.x, lastFireWorld.y);
     fireRef.value.style.left = `${p.x}px`;
     fireRef.value.style.top = `${p.y}px`;
-  }
-}
-
-const SHORT_SCREEN_H = 671;
-
-function getScreenH() {
-  return Math.floor(window.visualViewport?.height ?? window.innerHeight);
-}
-
-function getCoinYOffset() {
-  return getScreenH() <= SHORT_SCREEN_H ? 200 : 250;
-}
-
-let lastCoinYOffset = getCoinYOffset();
-
-function applyCoinYOffset() {
-  const off = getCoinYOffset();
-  if (off === lastCoinYOffset) return;
-  lastCoinYOffset = off;
-
-  for (let i = 0; i < coins.length; i++) {
-    const p = pipes[i + 1];
-    const c = coins[i];
-    if (!p || !c) continue;
-    c.y = p.y - off;
   }
 }
 
@@ -603,7 +591,6 @@ function buildScene() {
   chicken.anchor.set(0.5, 1);
   chicken.x = 76 + CHICKEN_X_OFFSET;
   chicken.y = baseY + 6;
-  chicken.width = 90;
   chicken.width = getScreenH() <= SHORT_SCREEN_H ? 70 : 90;
   chicken.height = getScreenH() <= SHORT_SCREEN_H ? 70 : 90;
   world.addChild(chicken);
@@ -636,6 +623,20 @@ function buildScene() {
 }
 
 // ===== movement + camera =====
+function beginStepGuard() {
+  if (!world || !chicken) return false;
+  if (busy || inputLocked) return false;
+  if (step >= m().length) return false;
+  busy = true;
+  inputLocked = true;
+  return true;
+}
+
+function endStepGuard() {
+  busy = false;
+  inputLocked = false;
+}
+
 function jumpTo(toX: number, landY: number, onDone?: () => void) {
   if (!chicken) return;
 
@@ -644,7 +645,6 @@ function jumpTo(toX: number, landY: number, onDone?: () => void) {
 
   const endX = toX + CHICKEN_X_OFFSET;
   const endY = landY;
-
   const peak = Math.min(fromY, endY) - 140;
 
   const t = { p: 0 };
@@ -673,42 +673,7 @@ function cameraFollow() {
   gsap.to(world, { x: targetX, duration: 0.55, ease: "power3.out" });
 }
 
-function smoothResetToStart(onDone?: () => void) {
-  if (!world) {
-    buildScene();
-    onDone?.();
-    return;
-  }
-
-  gsap.killTweensOf(world);
-  gsap
-    .timeline({ onComplete: onDone })
-    .to(world, { alpha: 0, duration: 0.18, ease: "power2.inOut" })
-    .add(() => {
-      hideFireLottie(true);
-      lastFireWorld = null;
-      buildScene();
-      if (world) world.alpha = 0;
-    })
-    .to(world, { alpha: 1, duration: 0.18, ease: "power2.inOut" });
-}
-
-// ===== outcome handlers =====
-function beginStepGuard() {
-  if (!world || !chicken) return false;
-  if (busy || inputLocked) return false;
-  if (step >= m().length) return false;
-  busy = true;
-  inputLocked = true;
-  return true;
-}
-
-function endStepGuard() {
-  busy = false;
-  inputLocked = false;
-}
-
-/** ALWAYS WIN step */
+// ===== gameplay API =====
 function winStep() {
   if (!beginStepGuard()) return;
 
@@ -731,11 +696,12 @@ function winStep() {
     syncCoinTextures();
     cameraFollow();
     endStepGuard();
+
+    TelegramModule.useLightHaptic();
     emit("set-game-step-processed", false);
   });
 }
 
-/** LOSE current step (with fire lottie) */
 function loseStep() {
   if (!beginStepGuard()) return;
 
@@ -756,12 +722,8 @@ function loseStep() {
     if (coinC) {
       const lbl = (coinC as any).label as PIXI.Text | undefined;
       if (lbl) {
-        try {
-          coinC.removeChild(lbl);
-        } catch {}
-        try {
-          lbl.destroy();
-        } catch {}
+        try { coinC.removeChild(lbl); } catch {}
+        try { lbl.destroy(); } catch {}
         (coinC as any).label = null;
       }
     }
@@ -771,9 +733,7 @@ function loseStep() {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        smoothResetToStart(() => {
-          endStepGuard();
-        });
+        smoothResetToStart(() => endStepGuard());
       },
     });
 
@@ -799,51 +759,60 @@ function loseStep() {
     tl.to({}, { duration: 0.1 }, ">");
 
     START_AT_COIN.value = 0;
+    
+    TelegramModule.useNotifyErrorHaptic();
     emit("set-game-step-processed", true);
     emit("clear-game");
   });
 }
 
-// ===== input =====
 function tap() {
   winStep();
 }
 
-/**
- * FIXED CASHOUT:
- * - не используем beginStepGuard (он может вернуть false при step>=m().length или busy)
- * - не делаем gsap.globalTimeline.clear() (он убивал наш reset tween)
- * - аккуратно убиваем только наши твины и делаем smoothResetToStart
- */
+function smoothResetToStart(onDone?: () => void) {
+  if (!world) {
+    buildScene();
+    onDone?.();
+    return;
+  }
+
+  gsap.killTweensOf(world);
+  gsap
+    .timeline({ onComplete: onDone })
+    .to(world, { alpha: 0, duration: 0.18, ease: "power2.inOut" })
+    .add(() => {
+      hideFireLottie(true);
+      lastFireWorld = null;
+      buildScene();
+      if (world) world.alpha = 0;
+    })
+    .to(world, { alpha: 1, duration: 0.18, ease: "power2.inOut" });
+}
+
 function cashout() {
   if (!mounted) return;
   if (resetInProgress) return;
   resetInProgress = true;
 
-  // блокируем ввод, чтобы ничего не наложилось
   busy = true;
   inputLocked = true;
 
   try {
-    // убить инерцию/камеру/прыжки
     killInertia();
     if (world) gsap.killTweensOf(world);
     if (chicken) gsap.killTweensOf(chicken);
-
-    // убить idle анимации монет, потом buildScene заново их стартанёт
     killCoinTweens();
 
     hideFireLottie(true);
     lastFireWorld = null;
 
-    // гарантируем возврат к “живой” курице (если вдруг была dead)
     if (chicken && chickenTexture) chicken.texture = chickenTexture;
     if (chicken) {
       chicken.alpha = 1;
       chicken.rotation = 0;
     }
 
-    // сбрасываем в старт мягко
     smoothResetToStart(() => {
       endStepGuard();
       resetInProgress = false;
@@ -858,9 +827,8 @@ function cashout() {
   }
 }
 
-// ===== horizontal pan handlers =====
+// ===== pan handlers =====
 function canPanNow() {
-  // во время прыжка/лосса/вин-степа не паним, чтобы не дёргать мир
   return !!world && !!viewport && !busy && !inputLocked && !isLoading.value;
 }
 
@@ -884,16 +852,14 @@ function onDragMove(e: PIXI.FederatedPointerEvent) {
   const now = performance.now();
   const x = e.global.x;
 
-  // dx в screen px -> world px через scale
   const dxScreen = x - dragStartScreenX;
   const s = viewport.scale.x || 1;
   const dxWorld = dxScreen / s;
 
   worldSetX(dragStartWorldX + dxWorld);
 
-  // velocity
   const dt = Math.max(1, now - lastMoveT);
-  velX = (x - lastMoveX) / dt; // screen px per ms
+  velX = (x - lastMoveX) / dt;
   lastMoveX = x;
   lastMoveT = now;
 }
@@ -902,9 +868,8 @@ function onDragEnd() {
   if (!dragging || !world || !viewport) return;
   dragging = false;
 
-  // инерция
   const s = viewport.scale.x || 1;
-  const vWorld = (velX / s) * 1000; // world px per sec
+  const vWorld = (velX / s) * 1000;
 
   const abs = Math.abs(vWorld);
   if (abs < 30) return;
@@ -921,19 +886,12 @@ function onDragEnd() {
         fireRef.value.style.top = `${p.y}px`;
       }
     },
-    onComplete: () => {
-      inertiaTween = null;
-    },
+    onComplete: () => (inertiaTween = null),
   });
 }
 
-// expose API to parent
-defineExpose({
-  tap,
-  winStep,
-  loseStep,
-  cashout,
-});
+// expose
+defineExpose({ tap, winStep, loseStep, cashout });
 
 // ===== mount/unmount =====
 async function loadTexture(alias: string, src: string): Promise<PIXI.Texture | null> {
@@ -946,12 +904,123 @@ async function loadTexture(alias: string, src: string): Promise<PIXI.Texture | n
   }
 }
 
+// ===== show canvas strictly once (NO second animation) =====
+function showCanvasOnceAfterFirstRender() {
+  if (!app || canvasShownOnce) return;
+  canvasShownOnce = true;
+
+  // показать canvas
+  app.canvas.style.display = "block";
+
+  // дождаться 1 тик рендера, потом фейд-ин
+  app.ticker.addOnce(() => {
+    if (!app) return;
+    requestAnimationFrame(() => {
+      if (!app) return;
+      app.canvas.style.opacity = "1";
+
+      // спрятать лоадер строго один раз
+      if (!loaderHiddenOnce) {
+        loaderHiddenOnce = true;
+        isLoading.value = false;
+      }
+    });
+  });
+}
+
+// ===== init / rebuild orchestration =====
+function readyForInit() {
+  return mounted && !props.loading && texturesLoaded.value && normalizeRatios(props.modeRatios).length > 0;
+}
+
+function tryInitSceneOnce() {
+  if (sceneBuiltOnce) return;
+  if (!app || !world || !viewport) return;
+  if (!readyForInit()) return;
+
+  START_AT_COIN.value = Math.max(0, Number(props.gameStep ?? 0));
+
+  buildScene();
+  sceneBuiltOnce = true;
+
+  scheduleLayout();
+
+  // canvas + loader трогаем только здесь (один раз)
+  showCanvasOnceAfterFirstRender();
+
+  syncLoading();
+}
+
+function smoothRebuildForRatios() {
+  // rebuild НЕ должен трогать canvas/loader (иначе будет “вторая анимация”)
+  if (!sceneBuiltOnce) return;
+  if (!mounted || props.loading || !texturesLoaded.value || !world) return;
+
+  const newLen = multipliers.value.length;
+  const keepStep = Math.max(0, Math.min(step, newLen));
+  START_AT_COIN.value = keepStep;
+
+  busy = true;
+  inputLocked = true;
+  killInertia();
+  killCoinTweens();
+  hideFireLottie(true);
+  lastFireWorld = null;
+
+  gsap.killTweensOf(world);
+  gsap
+    .timeline({ onComplete: () => endStepGuard() })
+    .to(world, { alpha: 0, duration: 0.18, ease: "power2.inOut" })
+    .add(() => {
+      buildScene();
+      scheduleLayout();
+      if (world) world.alpha = 0;
+    })
+    .to(world, { alpha: 1, duration: 0.18, ease: "power2.inOut" });
+}
+
+// ===== watchers =====
+watch(() => props.loading, () => {
+  syncLoading();
+  // если лоадер ушел — не возвращаем его вообще
+  if (!loaderHiddenOnce) queueInit();
+});
+
+watch(ratiosKey, () => {
+  // до первичной инициализации — просто пробуем init
+  if (!sceneBuiltOnce) {
+    queueInit();
+    return;
+  }
+  // после — мягкий rebuild
+  if (ratiosRebuildRaf != null) cancelAnimationFrame(ratiosRebuildRaf);
+  ratiosRebuildRaf = requestAnimationFrame(() => {
+    ratiosRebuildRaf = null;
+    smoothRebuildForRatios();
+  });
+});
+
+watch(() => props.gameStep, () => {
+  // стартовый step учитываем только до init
+  if (!sceneBuiltOnce) queueInit();
+});
+
+// единая точка постановки init (чтобы не было 2х запусков подряд)
+function queueInit() {
+  if (initRaf != null) return;
+  initRaf = requestAnimationFrame(() => {
+    initRaf = null;
+    tryInitSceneOnce();
+  });
+}
+
+// ===== mounted =====
 onMounted(async () => {
   if (!wrapRef.value) return;
   mounted = true;
-  isLoading.value = props.loading ?? true;
 
   updateAppHeight();
+  syncLoading();
 
   app = new PIXI.Application();
   await app.init({
@@ -971,14 +1040,14 @@ onMounted(async () => {
 
   app.stage.eventMode = "static";
 
-  // === enable pan ===
+  // pan
   app.stage.on("pointerdown", onDragStart);
   app.stage.on("pointermove", onDragMove);
   app.stage.on("pointerup", onDragEnd);
   app.stage.on("pointerupoutside", onDragEnd);
   app.stage.on("pointercancel", onDragEnd);
 
-  // mount canvas UNDER overlays
+  // mount canvas
   wrapRef.value.prepend(app.canvas);
   Object.assign(app.canvas.style, {
     position: "absolute",
@@ -990,7 +1059,7 @@ onMounted(async () => {
     opacity: "0",
     zIndex: "0",
     transition: "opacity 220ms ease",
-    pointerEvents: "auto", // важно для drag
+    pointerEvents: "auto",
   });
 
   initFireLottie();
@@ -1021,17 +1090,7 @@ onMounted(async () => {
   coinWinTexture = _coinWin;
 
   texturesLoaded.value = true;
-
   syncLoading();
-  // buildScene();
-  // scheduleLayout();
-
-  app.ticker.addOnce(() => {
-    if (!mounted) return;
-    app!.canvas.style.display = "block";
-    void app!.canvas.offsetHeight;
-    app!.canvas.style.opacity = "1";
-  });
 
   const vv = window.visualViewport;
   const onVV = () => {
@@ -1051,12 +1110,21 @@ onMounted(async () => {
   ro.observe(wrapRef.value);
 
   window.addEventListener("resize", scheduleLayout);
+
+  // пробуем init сразу (если props уже готовы)
+  queueInit();
 });
 
 onBeforeUnmount(() => {
   mounted = false;
 
   window.removeEventListener("resize", scheduleLayout);
+
+  if (initRaf != null) cancelAnimationFrame(initRaf);
+  initRaf = null;
+
+  if (ratiosRebuildRaf != null) cancelAnimationFrame(ratiosRebuildRaf);
+  ratiosRebuildRaf = null;
 
   if (layoutRaf != null) {
     cancelAnimationFrame(layoutRaf);
@@ -1082,7 +1150,6 @@ onBeforeUnmount(() => {
   resetInProgress = false;
 
   texturesLoaded.value = false;
-  isLoading.value = true;
 
   try {
     hideFireLottie(true);
@@ -1109,49 +1176,21 @@ onBeforeUnmount(() => {
   app = null;
   viewport = null;
   world = null;
-
   pipes = [];
   coins = [];
   chicken = null;
-});
 
-
-watch(() => props.loading, syncLoading);
-
-let sceneBuiltOnce = false;
-
-function ratiosReady() {
-  return Array.isArray(props.modeRatios) && props.modeRatios.length > 0;
-}
-
-function tryInitSceneOnce() {
-  if (!mounted) return;
-  if (sceneBuiltOnce) return;
-  if (props.loading) return;
-  if (!texturesLoaded.value) return;
-  if (!ratiosReady()) return; // <- ключевое
-
-  // стартовое положение (если есть step)
-  START_AT_COIN.value = Math.max(0, Number(props.gameStep ?? 0));
-
-  buildScene();
-  scheduleLayout();
-  sceneBuiltOnce = true;
-}
-
-watch([() => props.loading, () => props.modeRatios, () => props.gameStep, texturesLoaded], tryInitSceneOnce, {
-  flush: "post",
+  // reset gates (на всякий)
+  sceneBuiltOnce = false;
+  canvasShownOnce = false;
+  loaderHiddenOnce = false;
 });
 </script>
 
 <template>
   <div class="wrap" ref="wrapRef">
-    <!-- PIXI canvas добавляется сюда через prepend -->
-
-    <!-- Lottie fire overlay -->
     <div class="fire-lottie" ref="fireRef" aria-hidden="true"></div>
 
-    <!-- loader MUST be above everything -->
     <div class="loading" :class="{ show: isLoading }" aria-hidden="true">
       <div class="load-icon"></div>
     </div>
@@ -1171,30 +1210,23 @@ watch([() => props.loading, () => props.modeRatios, () => props.gameStep, textur
 
   overflow: hidden;
   position: relative;
-
-  /* чтобы жесты не скроллили страницу и нормально работал drag */
   touch-action: none;
 }
 
-/* Lottie fire above canvas */
 .fire-lottie {
   position: absolute;
   left: 0;
   top: 0;
-
   width: 120px;
   height: 120px;
-
   transform: translate(-50%, -70%);
   pointer-events: none;
   z-index: 1;
-
   opacity: 0;
   transition: opacity 120ms ease;
   will-change: transform, opacity, left, top;
 }
 
-/* loader MUST be above canvas + fire */
 .loading {
   position: absolute;
   inset: 0;
@@ -1227,11 +1259,7 @@ watch([() => props.loading, () => props.modeRatios, () => props.gameStep, textur
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

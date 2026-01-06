@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useCacheStore } from "../../../stores/pinia-store";
 import { cutNumberNano } from "../../../utils/useTon";
 import { useTranslation } from "i18next-vue";
+import { isDesktop } from "../../../utils/checkDevice";
 
 import * as APIUser from "../../../api/user";
 
@@ -69,7 +70,7 @@ async function SetLang() {
 </script>
 
 <template>
-  <div class="header" :class="{ dth: !CheckActiveMenu() }">
+  <div class="header" :class="{ dth: !CheckActiveMenu(), desktop: isDesktop() }">
     <div  class="logo">
       <img :src="Logo" alt="logo" />
     </div>

@@ -2,8 +2,8 @@
 import { onMounted, onBeforeUnmount, ref } from "vue";
 import { useRouter } from "vue-router";
 import { uuidv4 } from "../../utils/useApp";
-import { tonToNano } from "../../utils/useTon";
-import { showErrorToast } from "../../utils/toastManager";
+import { cutNumberNanoTrunc, tonToNano } from "../../utils/useTon";
+import { showErrorToast, showSuccessToast } from "../../utils/toastManager";
 import { useTranslation } from "i18next-vue";
 import { useCacheStore } from "../../stores/pinia-store";
 
@@ -167,6 +167,7 @@ async function onCashout() {
 
     clearGame();
     gameRef.value?.cashout();
+    showSuccessToast(t('chicken.toasts.cashout', { price: cutNumberNanoTrunc(payoutNano) }));
   });
 }
 

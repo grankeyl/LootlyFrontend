@@ -54,10 +54,12 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--max-width);
-  padding-top: calc(
-    var(--tg-safe-area-inset-top, -35px) + 76px
-  );
+  padding-top: calc(var(--tg-safe-area-inset-top, -50px) + 68px);
   z-index: 10000;
+
+  &.desktop {
+    padding-top: 8px;
+  }
 }
 
 .content {
