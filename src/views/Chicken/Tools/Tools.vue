@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useTranslation } from "i18next-vue";
-import { cutNumber } from "../../../utils/useTon";
+import { cutNumber, cutNumberNano, cutNumberNanoTrunc } from "../../../utils/useTon";
+import { useCacheStore } from "../../../stores/pinia-store";
 
 // Icons
 import TonWhiteIcon from "@/assets/icons/ton-white.svg";
@@ -9,16 +10,48 @@ import TonBlackIcon from "@/assets/icons/ton-black.svg";
 
 const { t } = useTranslation();
 
-const betText = ref<string>('');
-const bet = ref<number>(0.1);
+const useCache = useCacheStore() as any;
 
-const fastBetList = ref<object>([
-  { id: 1, price: 0.1, type: "amount" },
+const BET_MIN = 0.1;
+const BET_MAX = 9999999;
+
+const betText = ref<string>(String(BET_MIN));
+const bet = ref<number>(BET_MIN);
+
+type FastBetType = "min" | "max" | "amount";
+type FastBetItem = { id: number; price: string | number; type: FastBetType };
+
+const fastBetList = ref<FastBetItem[]>([
+  { id: 1, price: t("chicken.bet.min") || "MIN", type: "min" },
   { id: 2, price: 1, type: "amount" },
   { id: 3, price: 3, type: "amount" },
   { id: 4, price: 5, type: "amount" },
-  { id: 5, price: t('crash.modals.bet.max') || "MAX", type: "max" },
-]) as any;
+  { id: 5, price: t("chicken.bet.max") || "MAX", type: "max" },
+]);
+
+const clampBet = (v: number) => {
+  if (!Number.isFinite(v) || v < BET_MIN) return BET_MIN;
+  if (v > BET_MAX) return BET_MAX;
+  return v;
+};
+
+const emit = defineEmits<{
+  (e:'step'): void
+  (e:'cashout'): void
+  (e:'set-mode', payload: number): void
+  (e:'game-start'): void
+  (e:'set-game-bet', payload: number): void
+}>();
+
+const props = defineProps<{
+  modesActive: string;
+  modes: any[];
+
+  gameStarted: boolean;
+  gameCashoutNano: number;
+
+  disabled: boolean;
+}>();
 
 const sanitizePrice = (str: any, maxDecimals = 2) => {
   if (str == null) return '';
@@ -40,7 +73,9 @@ const onPriceInput = (e: any, maxDecimals = 2, kind: 'bet'|'auto' = 'bet') => {
   e.target.value = s;
 
   if (kind === 'bet') {
+    bet.value = Number(s);
     betText.value = s;
+    emit('set-game-bet', Number(s));
   } else {
     // emit('set-game-auto-x-text', s);
     // emit('set-game-auto-x', (s === '' || s === '.') ? 0 : Number(s));
@@ -49,27 +84,67 @@ const onPriceInput = (e: any, maxDecimals = 2, kind: 'bet'|'auto' = 'bet') => {
 
 const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
   const s = sanitizePrice(e.target.value, decimals);
-  const normalized = s ? cutNumber(s, decimals) : '';
+  let next = s === '' ? BET_MIN : Number(s);
+
+  next = clampBet(next);
+
+  const normalized = cutNumber(String(next), decimals);
   e.target.value = normalized;
 
   if (kind === 'bet') {
+    bet.value = next;
     betText.value = normalized;
-    bet.value = normalized === '' ? 0 : Number(normalized);
-    // emit('set-fast-bet', bet.value);
-  } else {
-    // emit('set-game-auto-x-text', normalized);
-    // emit('set-game-auto-x', normalized === '' ? 0 : Number(normalized));
+    emit('set-game-bet', next);
   }
 };
+
+function onStartGame() {
+  emit('game-start');
+}
+
+function onStep() {
+  emit('step');
+}
+
+function applyFastBet(item: FastBetItem) {
+  if (props.gameStarted) return;
+
+  const value =
+    item.type === 'max'
+      ? (cutNumberNano(useCache.UserData.BalanceNano) as any || 0)
+      : item.type === 'amount'
+        ? item.price
+        : BET_MIN;
+
+  bet.value = value as any;
+  betText.value = cutNumber(String(value), 2);
+  emit('set-game-bet', bet.value);
+}
+
+function onModeClick(mode: number) {
+  if (props.gameStarted) return;
+  emit('set-mode', mode);
+}
+
+function onCashout() {
+  if (props.gameStarted) {
+    emit('cashout');
+  };
+}
 </script>
 
 <template>
   <div class="tools">
     <div class="categories">
-      <div class="item active"><h4>Easy</h4></div>
-      <div class="item"><h4>Medium</h4></div>
-      <div class="item"><h4>Hard</h4></div>
-      <div class="item"><h4>Extreme</h4></div>
+      <div 
+        v-for="(mode, index) in props.modes"
+        :key="index"
+        class="item"
+        :class="{ active: props.modesActive === mode.type }"
+        @click="onModeClick(mode.type)"
+      >
+        <h4>{{ $t(`chicken.modes.${mode.type}`) }}</h4>
+      </div>
     </div>
     <div class="summary">
       <div class="input">
@@ -77,33 +152,47 @@ const onPriceBlur = (e: any, decimals = 2, kind: 'bet'|'auto' = 'bet') => {
           type="text"
           inputmode="decimal"
           autocomplete="off"
-          :placeholder="$t('crash.modals.bet.yourPrice')"
+          :placeholder="$t('chicken.bet.yourPrice')"
           :value="betText"
           @input="onPriceInput($event, 2, 'bet')"
           @blur="onPriceBlur($event, 2, 'bet')"
+          :disabled="props.gameStarted"
         />
         <img :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
       </div>
     </div>
     <div class="select">
-      <div 
-        class="item" 
-        v-for="(bet, index) in fastBetList" 
-        :key="index"
+      <div
+        class="item"
+        v-for="(item, index) in fastBetList"
+        :key="item.id || index"
+        @click="applyFastBet(item)"
       >
-        <h4>{{ bet.price }}</h4>
-        <img v-if="bet.type && bet.type === 'amount'" :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
+        <h4>{{ item.price }}</h4>
+        <img v-if="item.type === 'amount'" :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
       </div>
     </div>
           
     <div class="buttons">
-      <div class="topper">
-        <button>
-          <h4>AutoPlay</h4>
+      <div v-if="!props.gameStarted" class="topper">
+        <button class="soon" :disabled="disabled">
+          <h4>{{ $t('chicken.bet.autoPlay') }}</h4>
+          <div class="mark">
+            <p>{{ $t('chicken.bet.soon') }}</p>
+          </div>
         </button>
-        <button>
-          <h4>Play 500</h4>
+        <button @click="onStartGame" :disabled="disabled">
+          <h4>{{ $t('chicken.bet.play', { price: bet }) }}</h4>
           <img :src="TonBlackIcon" alt="ton-icon" />
+        </button>
+      </div>
+      <div v-if="props.gameStarted" class="topper">
+        <button class="cashout" @click="onCashout" :disabled="disabled">
+          <h4>{{ $t('chicken.bet.cashout', { price: cutNumberNanoTrunc(gameCashoutNano, 2) }) }}</h4>
+          <img :src="TonWhiteIcon" alt="ton-icon" />
+        </button>
+        <button @click="onStep" :disabled="disabled">
+          <h4>{{ $t('chicken.bet.step') }}</h4>
         </button>
       </div>
     </div>

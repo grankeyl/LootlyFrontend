@@ -70,10 +70,10 @@ function save() {
     </div>
     <div class="buttons">
       <button @click="$emit('close')">
-        <h4>Cancel</h4>
+        <h4>{{ $t('crash.popups.autox.cancel') }}</h4>
       </button>
       <button @click="save()">
-        <h4>Save</h4>
+        <h4>{{ $t('crash.popups.autox.save') }}</h4>
       </button>
     </div>
   </div>

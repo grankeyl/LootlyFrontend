@@ -13,7 +13,6 @@
   border: 2px solid rgba(197, 143, 26, 0.01);
   background: radial-gradient(103.21% 50% at 50% 50%, #0D0D0F 0%, #2E2001 100%);
   box-shadow: 0 -1px 16px 0 #c58f1ab0 inset;
-  opacity: .45;
 
   &::before {
     content: "";
@@ -29,7 +28,7 @@
     );
     transform: translateX(-120%);
     opacity: 0;
-    // animation: shineChicken 4s ease-in-out infinite;
+    animation: shineChicken 4s ease-in-out infinite;
     overflow: hidden;
     border-radius: 18px;
   }
@@ -51,7 +50,6 @@
 
     img {
       animation: bgDriftChicken 15s ease-in-out infinite;
-      animation: none;
     }
   }
 

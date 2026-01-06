@@ -8,14 +8,12 @@ import BlockChickenBg from "@/assets/images/cases-pg/block-chicken-bg.png";
 // Icons
 import ChevroneRight from "@/assets/icons/chevrone-right.svg?raw";
 import TelegramModule from "../../../../hooks/useTelegram";
-import { showErrorToast } from "../../../../utils/toastManager";
 
 const router = useRouter();
 
 function openChickenGame() {
-  showErrorToast("Sorry, Chicken Gift is not available now");
-  // TelegramModule.useMediumHaptic();
-  // router.push('/chicken');
+  TelegramModule.useMediumHaptic();
+  router.push('/chicken');
 }
 
 function openRocketGame() {
@@ -26,23 +24,23 @@ function openRocketGame() {
 
 <template>
   <div class="blocker">
-    <div class="block rocket" @click="openRocketGame">
-      <div class="bg">
-        <img :src="BlockBg" alt="block-bg" />
-      </div>
-      <div class="title">
-        <h4>Rocket Game</h4>
-      </div>
-      <div class="chevrone">
-        <div class="kit-icon" v-html="ChevroneRight"></div>
-      </div>
-    </div>
     <div class="block chicken" @click="openChickenGame">
       <div class="bg">
         <img :src="BlockChickenBg" alt="block-bg" />
       </div>
       <div class="title">
         <h4>Chicken Gift</h4>
+      </div>
+      <div class="chevrone">
+        <div class="kit-icon" v-html="ChevroneRight"></div>
+      </div>
+    </div>
+    <div class="block rocket" @click="openRocketGame">
+      <div class="bg">
+        <img :src="BlockBg" alt="block-bg" />
+      </div>
+      <div class="title">
+        <h4>Rocket Game</h4>
       </div>
       <div class="chevrone">
         <div class="kit-icon" v-html="ChevroneRight"></div>

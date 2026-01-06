@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import * as PIXI from "pixi.js";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { gsap } from "gsap";
+import * as PIXI from "pixi.js";
+
+import lottie from "lottie-web";
+import type { AnimationItem } from "lottie-web";
 
 import coinUrl from "@/assets/chicken/coin-gray.png?url";
 import coinPrimaryUrl from "@/assets/chicken/coin-primary.png?url";
@@ -14,35 +17,42 @@ import stoneUrl from "@/assets/chicken/stone.png?url";
 import nestUrl from "@/assets/chicken/nest.png?url";
 import nestHdUrl from "@/assets/chicken/nest-hd.png?url";
 
-import lottie, { type AnimationConfigWithData, type CanvasRendererConfig } from "lottie-web";
-
 // @ts-ignore
-import fireAnim from "@/assets/chicken/fire.json";
+import fireJson from "@/assets/chicken/fire.json";
+
+const emit = defineEmits<{
+  (e: "clear-game"): void;
+  (e: "set-game-step-processed", payload: boolean): void;
+}>();
+
+const props = defineProps<{
+  gameStep: number;
+  loading: boolean;
+  modeRatios: any[];
+}>();
 
 const wrapRef = ref<HTMLDivElement | null>(null);
 
+// ===== design =====
 const DESIGN_W = 395;
 const DESIGN_H = 450;
-
 const EXTRA_BOTTOM_PX = 220;
-const SAFE_BOTTOM = 110;
-// насколько приподнять всю сцену относительно низа контейнера (чтобы не залезала под UI)
+const SAFE_BOTTOM = 30;
 
 const BOTTOM_ANCHOR_PX = 450;
+const DESKTOP_Y_OFFSET_PX = 100;
+const MOBILE_Y_OFFSET_PX = 20;
 
-// выравнивание курицы относительно трубы (в jumpTo у тебя было -5)
 const CHICKEN_X_OFFSET = -5;
-
-// куда на экране хотим ставить курицу (px в координатах world)
 const DESIRED_SCREEN_X = 70;
-// небольшой запас, чтобы не упираться в края при clamping
 const CAMERA_PAD = 60;
 
-// ===== стартовая позиция (1..multipliers.length). 1 = первая монета, 2 = вторая и т.д.
-// Хочешь стартовать на второй монетке -> поставь 2.
-const START_AT_COIN = 0;
-
+// ===== state =====
 let app: PIXI.Application | null = null;
+
+let viewport: PIXI.Container | null = null;
+let world: PIXI.Container | null = null;
+
 let pipeTexture: PIXI.Texture | null = null;
 let coinTexture: PIXI.Texture | null = null;
 let coinPrimaryTexture: PIXI.Texture | null = null;
@@ -53,15 +63,6 @@ let chickenDeadTexture: PIXI.Texture | null = null;
 let stoneTexture: PIXI.Texture | null = null;
 let nestTexture: PIXI.Texture | null = null;
 let nestHdTexture: PIXI.Texture | null = null;
-let ro: ResizeObserver | null = null;
-let rafId: number | null = null;
-let vvCleanup: (() => void) | null = null;
-
-let lastCanvasW = 0;
-let lastCanvasH = 0;
-
-let viewport: PIXI.Container | null = null;
-let world: PIXI.Container | null = null;
 
 let chicken: PIXI.Sprite | null = null;
 let pipes: PIXI.Sprite[] = [];
@@ -71,124 +72,76 @@ let busy = false;
 let inputLocked = false;
 let step = 0;
 
-const multipliers = [1.99, 2.99, 4.99, 7.99, 12.99, 20.99];
+// resize helpers
+let ro: ResizeObserver | null = null;
+let vvCleanup: (() => void) | null = null;
 
-// coin anim tweens
+let lastW = 0;
+let lastH = 0;
+
+// layout throttle
+let layoutRaf: number | null = null;
+let mounted = false;
+
+// tweens
 let coinTweens: gsap.core.Tween[] = [];
 let coinWinTween: gsap.core.Tween | null = null;
 
-type FireFx = {
-  sprite: PIXI.Sprite;
-  canvas: HTMLCanvasElement;
-  anim: any;
-  holder: HTMLDivElement;
-  tick: () => void;
-  destroy: () => void;
-};
+// cashout/reset protection
+let resetInProgress = false;
 
-let fireFx: FireFx | null = null;
+// ===== horizontal pan (drag) =====
+let dragging = false;
+let dragStartScreenX = 0;
+let dragStartWorldX = 0;
+let lastMoveX = 0;
+let lastMoveT = 0;
+let velX = 0;
+let inertiaTween: gsap.core.Tween | null = null;
 
-function destroyFire() {
-  if (!fireFx) return;
-  fireFx.destroy();
-  fireFx = null;
+const isLoading = ref(true);
+
+// start progress
+const START_AT_COIN = ref(props.gameStep ?? 0);
+
+// ===== multipliers =====
+const DEFAULT_MULTIPLIERS = [1.99, 2.99, 4.99, 7.99, 12.99, 20.99];
+
+function normalizeRatios(v: any): number[] {
+  const arr = Array.isArray(v) ? v : [];
+  const nums = arr.map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0);
+  return nums.length ? nums : DEFAULT_MULTIPLIERS;
 }
 
-// создаёт лотти-огонь и вешает его в world
-function spawnFireAt(x: number, y: number) {
-  if (!app || !world) return;
+const multipliers = computed<number[]>(() => normalizeRatios(props.modeRatios));
+const m = () => multipliers.value;
 
-  destroyFire();
+const texturesLoaded = ref(false);
 
-  const holder = document.createElement("div");
-  holder.style.position = "absolute";
-  holder.style.left = "-10000px";
-  holder.style.top = "-10000px";
-  holder.style.width = "200px";
-  holder.style.height = "200px";
-  holder.style.pointerEvents = "none";
-  holder.style.opacity = "0";
-  document.body.appendChild(holder);
+function syncLoading() {
+  isLoading.value = props.loading || !texturesLoaded.value;
+}
 
-  // свой canvas (важно: задаём size ДО lottie.loadAnimation)
-  const canvas = document.createElement("canvas");
-  canvas.width = 115;
-  canvas.height = 115;
-  holder.appendChild(canvas);
+// ===== utils =====
+function isMobileDevice() {
+  return (
+    window.matchMedia?.("(pointer: coarse)")?.matches ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  );
+}
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    holder.remove();
-    return;
-  }
+function updateAppHeight() {
+  const vv = window.visualViewport;
+  const h = Math.floor(vv?.height ?? window.innerHeight) - 100;
+  document.documentElement.style.setProperty("--app-height", `${h}px`);
+}
 
-  // @ts-ignore
-  const config: AnimationConfigWithData<"canvas"> = {
-    animationData: fireAnim,
-    renderer: "canvas",
-    loop: true,
-    autoplay: true,
-    rendererSettings: {
-      context: ctx,
-      clearCanvas: true,
-      // @ts-ignore
-      preserveAspectRatio: "xMidYMid meet",
-    } as CanvasRendererConfig,
-  };
-
-  const anim = lottie.loadAnimation(config);
-  anim.play();
-
-  const tex = PIXI.Texture.from(canvas);
-  const spr = new PIXI.Sprite(tex);
-  spr.anchor.set(0.5, 1);
-  spr.x = x;
-  spr.y = y;
-  spr.zIndex = 2000;
-
-  spr.width = 110;
-  spr.height = 110;
-
-  // плавное появление: fade + pop + лёгкий подъём
-  spr.alpha = 0;
-  spr.scale.set(0.85);
-  spr.y = y + 10;
-
-  world.addChild(spr);
-
-  gsap.to(spr, { alpha: 1, duration: 0.18, ease: "power2.out" });
-  gsap.to(spr.scale, { x: 1, y: 1, duration: 0.22, ease: "back.out(2)" });
-  gsap.to(spr, { y, duration: 0.22, ease: "power2.out" });
-
-  const tick = () => {
-    // PIXI v8
-    const src: any = (tex as any).source;
-    if (src && typeof src.update === "function") {
-      src.update();
-      return;
-    }
-    // PIXI v7 fallback
-    const bt: any = (tex as any).baseTexture;
-    if (bt && typeof bt.update === "function") bt.update();
-  };
-
-  const destroy = () => {
-    try {
-      anim.destroy();
-    } catch {}
-    try {
-      tex.destroy(true);
-    } catch {}
-    try {
-      // @ts-ignore
-      spr.destroy({ children: true, texture: false, baseTexture: false });
-    } catch {}
-    try {
-      holder.remove();
-    } catch {}
-  };
-
-  fireFx = { sprite: spr, canvas, anim, holder, tick, destroy };
+function scheduleLayout() {
+  if (layoutRaf != null) return;
+  layoutRaf = requestAnimationFrame(() => {
+    layoutRaf = null;
+    layout();
+  });
 }
 
 function killCoinTweens() {
@@ -198,7 +151,32 @@ function killCoinTweens() {
   coinWinTween = null;
 }
 
-// ---------- textures fallback ----------
+function clampWorldX(x: number) {
+  if (!pipes.length) return x;
+  const firstX = pipes[0].x;
+  const lastX = pipes[pipes.length - 1].x;
+  const minX = DESIRED_SCREEN_X - lastX - CAMERA_PAD;
+  const maxX = DESIRED_SCREEN_X - firstX + CAMERA_PAD;
+  return Math.max(minX, Math.min(maxX, x));
+}
+
+function killInertia() {
+  inertiaTween?.kill();
+  inertiaTween = null;
+}
+
+function worldSetX(x: number) {
+  if (!world) return;
+  world.x = clampWorldX(x);
+  // обновим огонь, если он сейчас видим (при панорамировании)
+  if (lastFireWorld && fireRef.value && fireRef.value.style.display !== "none") {
+    const p = worldToScreen(lastFireWorld.x, lastFireWorld.y);
+    fireRef.value.style.left = `${p.x}px`;
+    fireRef.value.style.top = `${p.y}px`;
+  }
+}
+
+// ===== fallback textures (if assets fail) =====
 function makePipeTexture(renderer: PIXI.Renderer) {
   const g = new PIXI.Graphics();
   g.roundRect(0, 0, 90, 118, 22).fill(0x2a2a2f);
@@ -213,11 +191,9 @@ function makeCoinTexture(renderer: PIXI.Renderer) {
   g.circle(0, 0, 74).fill(0x6a6a70);
   g.circle(0, 0, 66).fill(0x4b4b52);
   g.circle(0, 0, 58).fill(0x9a9aa2);
-
   g.moveTo(-40, -55);
   g.lineTo(45, 50);
   g.stroke({ width: 18, color: 0xffffff, alpha: 0.12, cap: "round" });
-
   g.circle(0, 0, 58).stroke({ width: 6, color: 0x000000, alpha: 0.22 });
   // @ts-ignore
   return renderer.generateTexture(g, { resolution: 2 });
@@ -244,7 +220,72 @@ function makeChickenTexture(renderer: PIXI.Renderer) {
   return renderer.generateTexture(g, { resolution: 2 });
 }
 
-// ---------- coin idle animation ----------
+// ===== lottie fire (DOM overlay) =====
+const fireRef = ref<HTMLDivElement | null>(null);
+let fireAnim: AnimationItem | null = null;
+let lastFireWorld: { x: number; y: number } | null = null;
+
+function initFireLottie() {
+  if (!fireRef.value || fireAnim) return;
+
+  fireAnim = lottie.loadAnimation({
+    container: fireRef.value,
+    renderer: "svg",
+    loop: true,
+    autoplay: false,
+    animationData: fireJson as any,
+  });
+
+  fireRef.value.style.opacity = "0";
+  fireRef.value.style.display = "none";
+}
+
+function worldToScreen(x: number, y: number) {
+  if (!viewport || !world) return { x: 0, y: 0 };
+  const s = viewport.scale.x;
+  const sx = viewport.x + (world.x + x) * s;
+  const sy = viewport.y + (world.y + y) * s;
+  return { x: sx, y: sy };
+}
+
+function showFireAtWorldPosLottie(x: number, y: number) {
+  if (!fireRef.value) return;
+  initFireLottie();
+
+  lastFireWorld = { x, y };
+
+  const p = worldToScreen(x, y);
+  fireRef.value.style.left = `${p.x}px`;
+  fireRef.value.style.top = `${p.y}px`;
+
+  fireRef.value.style.display = "block";
+  requestAnimationFrame(() => {
+    if (!fireRef.value) return;
+    fireRef.value.style.opacity = "1";
+  });
+
+  fireAnim?.goToAndPlay(0, true);
+}
+
+function hideFireLottie(immediate = false) {
+  if (!fireRef.value) return;
+
+  if (immediate) {
+    fireRef.value.style.opacity = "0";
+    fireRef.value.style.display = "none";
+    fireAnim?.stop();
+    return;
+  }
+
+  fireRef.value.style.opacity = "0";
+  setTimeout(() => {
+    if (!fireRef.value) return;
+    fireRef.value.style.display = "none";
+    fireAnim?.stop();
+  }, 120);
+}
+
+// ===== coin anim =====
 function startCoinIdle(c: PIXI.Container, i: number) {
   const coin = (c as any).coinSprite as PIXI.Sprite | undefined;
   const sparkle = (c as any).sparkle as PIXI.Graphics | undefined;
@@ -327,33 +368,39 @@ function playCoinWin(coinC: PIXI.Container) {
   }
 }
 
-// ---------- helpers ----------
-function updateAppHeight() {
-  // Делает «честную» высоту для мобилок/вебвью, где 100vh прыгает из-за адресной строки.
-  // Ставим CSS-переменную в px и используем её в .wrap.
-  const vv = window.visualViewport;
-  const h = Math.floor(vv?.height ?? window.innerHeight);
-  document.documentElement.style.setProperty("--app-height", `${h}px`);
+// ===== textures sync =====
+function syncCoinTextures() {
+  if (!coinTexture) return;
+
+  const removeLabel = (coinC: PIXI.Container) => {
+    const lbl = (coinC as any).label as PIXI.Text | undefined | null;
+    if (!lbl) return;
+    try {
+      coinC.removeChild(lbl);
+    } catch {}
+    try {
+      lbl.destroy();
+    } catch {}
+    (coinC as any).label = null;
+  };
+
+  for (let i = 0; i < coins.length; i++) {
+    const c = coins[i];
+    const spr = c ? ((c as any).coinSprite as PIXI.Sprite | undefined) : undefined;
+    if (!spr) continue;
+
+    if (i < step - 1) {
+      spr.texture = coinWinTexture ?? coinTexture;
+      removeLabel(c);
+    } else if (i === step - 1) {
+      spr.texture = coinPrimaryTexture ?? coinTexture;
+    } else {
+      spr.texture = coinTexture;
+    }
+  }
 }
 
-function clampWorldX(x: number) {
-  // world.x так, чтобы курица оставалась в видимой зоне и не улетала за экран.
-  // pipes[0] — стартовая (невидимая) труба, pipes[last] — последняя.
-  if (!pipes.length) return x;
-
-  const firstX = pipes[0].x;
-  const lastX = pipes[pipes.length - 1].x;
-
-  // хотим, чтобы chickenScreenX = world.x + chicken.x ~= DESIRED_SCREEN_X
-  // => world.x ~= DESIRED_SCREEN_X - chicken.x
-  // но ограничиваем так, чтобы крайние трубы не уходили слишком далеко.
-  const minX = DESIRED_SCREEN_X - lastX - CAMERA_PAD;
-  const maxX = DESIRED_SCREEN_X - firstX + CAMERA_PAD;
-
-  return Math.max(minX, Math.min(maxX, x));
-}
-
-// ---------- layout ----------
+// ===== layout =====
 function layout() {
   if (!app || !wrapRef.value || !viewport) return;
 
@@ -361,44 +408,73 @@ function layout() {
   const rect = el.getBoundingClientRect();
   const w = Math.max(1, Math.floor(rect.width));
 
-  // реальная видимая высота (через --app-height), rect.height уже ок
   const css = getComputedStyle(el);
-  const pb = Math.floor(parseFloat(css.paddingBottom || "0")); // safe-area в px
-
-  // ВАЖНО: доступная высота под игру — без нижнего padding
+  const pb = Math.floor(parseFloat(css.paddingBottom || "0"));
   const h = Math.max(1, Math.floor(rect.height - pb));
 
-  const MAX_SCALE = 1;
+  if (w === lastW && h === lastH) return;
+  lastW = w;
+  lastH = h;
+
   const canvasH = h + EXTRA_BOTTOM_PX;
+  app.renderer.resize(w, canvasH);
 
-  if (w !== lastCanvasW || canvasH !== lastCanvasH) {
-    app.renderer.resize(w, canvasH);
-    lastCanvasW = w;
-    lastCanvasH = canvasH;
-  }
-
-  const s = Math.min(MAX_SCALE, w / DESIGN_W);
+  const s = Math.min(1, w / DESIGN_W);
   viewport.scale.set(s);
-
-  // якорь снизу: добавляем pb, чтобы на iPhone/вебвью низ не "уползал"
   viewport.x = 0;
-  viewport.y = Math.round(h - DESIGN_H * s - (BOTTOM_ANCHOR_PX + pb));
+
+  const baseY = Math.round(h - DESIGN_H * s - (BOTTOM_ANCHOR_PX + pb));
+  const deviceY = isMobileDevice() ? MOBILE_Y_OFFSET_PX : DESKTOP_Y_OFFSET_PX;
+  viewport.y = baseY + deviceY;
+
+  applyCoinYOffset();
 
   app.stage.hitArea = new PIXI.Rectangle(0, 0, w, canvasH);
+
+  // keep lottie fire glued to world pos on resize
+  if (lastFireWorld && fireRef.value && fireRef.value.style.display !== "none") {
+    const p = worldToScreen(lastFireWorld.x, lastFireWorld.y);
+    fireRef.value.style.left = `${p.x}px`;
+    fireRef.value.style.top = `${p.y}px`;
+  }
 }
 
-// ---------- scene ----------
+const SHORT_SCREEN_H = 671;
+
+function getScreenH() {
+  return Math.floor(window.visualViewport?.height ?? window.innerHeight);
+}
+
+function getCoinYOffset() {
+  return getScreenH() <= SHORT_SCREEN_H ? 200 : 250;
+}
+
+let lastCoinYOffset = getCoinYOffset();
+
+function applyCoinYOffset() {
+  const off = getCoinYOffset();
+  if (off === lastCoinYOffset) return;
+  lastCoinYOffset = off;
+
+  for (let i = 0; i < coins.length; i++) {
+    const p = pipes[i + 1];
+    const c = coins[i];
+    if (!p || !c) continue;
+    c.y = p.y - off;
+  }
+}
+
+// ===== scene =====
 function buildScene() {
   if (!app || !world) return;
 
   killCoinTweens();
-  destroyFire();
 
   world.removeChildren();
   pipes = [];
   coins = [];
   chicken = null;
-  step = 0; // временно, ниже выставим старт по START_AT_COIN
+  step = 0;
 
   world.x = 0;
   world.y = 0;
@@ -409,6 +485,7 @@ function buildScene() {
   world.addChild(bg);
 
   const floorY = DESIGN_H - SAFE_BOTTOM;
+
   const floor = new PIXI.Graphics()
     .roundRect(-80, floorY - 20, DESIGN_W + 160, 220, 90)
     .fill({ color: 0x0d0d0f, alpha: 0.35 });
@@ -417,56 +494,44 @@ function buildScene() {
   const baseY = floorY;
   const pipeY = baseY + 110;
 
-  // @ts-ignore
-  const stone = new PIXI.Sprite(stoneTexture);
-  stone.width = 181;
-  stone.height = 179;
-  stone.anchor.set(0.5);
-  stone.x = 56;
-  stone.y = baseY + 82;
-  world.addChild(stone);
-
-  // @ts-ignore
-  const nest = new PIXI.Sprite(nestTexture);
-  nest.width = 100;
-  nest.height = 49;
-  nest.anchor.set(0.5);
-  nest.x = 75;
-  nest.y = baseY - 8;
-  world.addChild(nest);
-
-  // @ts-ignore
-  const nestHd = new PIXI.Sprite(nestHdTexture);
-  nestHd.width = 92;
-  nestHd.height = 33;
-  nestHd.anchor.set(0.5);
-  nestHd.x = 75;
-  nestHd.y = baseY - 5;
-  nestHd.zIndex = 1000;
-
-  // const nest = new PIXI.Sprite(nestTexture);
-  // nest.width = 100;
-  // nest.height = 49;
-  // nest.anchor.set(0.5);
-  // nest.x = 75;
-  // nest.y = DESIGN_H / 1.38;
-  // world.addChild(nest);
-
-  // const nestHd = new PIXI.Sprite(nestHdTexture);
-  // nestHd.width = 92;
-  // nestHd.height = 33;
-  // nestHd.anchor.set(0.5);
-  // nestHd.x = 75;
-  // nestHd.y = DESIGN_H / 1.38;
-  // nestHd.zIndex = 1000;
-
   const pipeTex = pipeTexture ?? makePipeTexture(app.renderer);
   const coinTex = coinTexture ?? makeCoinTexture(app.renderer);
-  const chickenTex = chickenTexture ?? makeChickenTexture(app.renderer);
+  const chickTex = chickenTexture ?? makeChickenTexture(app.renderer);
+
+  if (stoneTexture) {
+    const stone = new PIXI.Sprite(stoneTexture);
+    stone.width = 181;
+    stone.height = 179;
+    stone.anchor.set(0.5);
+    stone.x = 56;
+    stone.y = baseY + 82;
+    world.addChild(stone);
+  }
+
+  if (nestTexture) {
+    const nest = new PIXI.Sprite(nestTexture);
+    nest.width = 100;
+    nest.height = 49;
+    nest.anchor.set(0.5);
+    nest.x = 75;
+    nest.y = baseY - 8;
+    world.addChild(nest);
+  }
+
+  let nestHd: PIXI.Sprite | null = null;
+  if (nestHdTexture) {
+    nestHd = new PIXI.Sprite(nestHdTexture);
+    nestHd.width = 92;
+    nestHd.height = 33;
+    nestHd.anchor.set(0.5);
+    nestHd.x = 75;
+    nestHd.y = baseY - 5;
+    nestHd.zIndex = 1000;
+  }
 
   const x0 = 82;
   const gap = 125;
-  const pipesCount = multipliers.length + 1;
+  const pipesCount = m().length + 1;
 
   for (let i = 0; i < pipesCount; i++) {
     const p = new PIXI.Sprite(pipeTex);
@@ -483,8 +548,8 @@ function buildScene() {
       const c = new PIXI.Container();
 
       const coin = new PIXI.Sprite(coinTex);
-      coin.width = 85;
-      coin.height = 85;
+      coin.width = getScreenH() <= SHORT_SCREEN_H ? 70 : 85;
+      coin.height = getScreenH() <= SHORT_SCREEN_H ? 70 : 85;
       coin.anchor.set(0.5);
       (c as any).coinSprite = coin;
 
@@ -504,19 +569,20 @@ function buildScene() {
         .fill({ color: 0xffffff, alpha: 0.22 });
       (c as any).sparkle = sparkle;
 
-      // @ts-ignore
+      const ratioIdx = Math.min(i - 1, m().length - 1);
       const label = new PIXI.Text({
-        text: `${multipliers[Math.min(i - 1, multipliers.length - 1)].toFixed(2)}x`,
+        text: `${m()[ratioIdx].toFixed(2)}x`,
         style: {
           fontFamily: "SFRounded",
-          fontSize: 20,
+          fontSize: getScreenH() <= SHORT_SCREEN_H ? 16 : 20,
           fill: 0xffffff,
           fontWeight: "600",
-          dropShadow: true,
-          dropShadowColor: 0x000000,
-          dropShadowAlpha: 0.5,
-          dropShadowBlur: 6,
-          dropShadowDistance: 2,
+          dropShadow: {
+            color: 0x000000,
+            alpha: 0.5,
+            blur: 6,
+            distance: 2,
+          },
         },
       });
       label.anchor.set(0.5);
@@ -525,78 +591,52 @@ function buildScene() {
 
       c.addChild(coin, sparkle, label);
       c.x = p.x;
-      c.y = p.y - 250;
+      lastCoinYOffset = getCoinYOffset();
+      c.y = p.y - lastCoinYOffset;
 
       world.addChild(c);
       coins.push(c);
     }
   }
 
-  chicken = new PIXI.Sprite(chickenTex);
+  chicken = new PIXI.Sprite(chickTex);
   chicken.anchor.set(0.5, 1);
   chicken.x = 76 + CHICKEN_X_OFFSET;
   chicken.y = baseY + 6;
-  chicken.rotation = 0;
   chicken.width = 90;
-  chicken.height = 90;
-  chicken.alpha = 1;
+  chicken.width = getScreenH() <= SHORT_SCREEN_H ? 70 : 90;
+  chicken.height = getScreenH() <= SHORT_SCREEN_H ? 70 : 90;
   world.addChild(chicken);
 
-  world.addChild(nestHd);
+  if (nestHd) world.addChild(nestHd);
 
-  // ===== старт на нужной монетке одной переменной START_AT_COIN =====
-  // step = количество уже пройденных (выигранных) монет.
-  // Если START_AT_COIN = 2, значит первые 2 монеты уже "пройдены",
-  // курица стоит на трубе №2, следующий прыжок будет на монету №3.
-  const startCoin = Math.max(0, Math.min(START_AT_COIN, multipliers.length));
+  const startCoin = Math.max(0, Math.min(START_AT_COIN.value, m().length));
   step = startCoin;
 
-  // переносим курицу на нужную трубу (pipes[1] = 1-я монета, pipes[2] = 2-я ...)
   if (startCoin > 0 && pipes[startCoin]) {
-    chicken.x = pipes[startCoin].x + CHICKEN_X_OFFSET
-
-    if (step === 0) {
-      chicken.y = baseY + 6;
-    } else {
-      chicken.y = baseY + 18;
-    }
+    chicken.x = pipes[startCoin].x + CHICKEN_X_OFFSET;
+    chicken.y = baseY + 18;
   }
 
   syncCoinTextures();
 
-  // подсветить текущую (последнюю пройденную) как при выигрыше
   const activeIdx = step - 1;
   if (activeIdx >= 0) {
     const active = coins[activeIdx];
-    if (active) {
-      // короткий "поп" как при win
-      playCoinWin(active);
-      // и чуть-чуть поджечь искру, чтобы было видно сразу
-      const sparkle = (active as any).sparkle as PIXI.Graphics | undefined;
-      if (sparkle) {
-        sparkle.alpha = Math.max(sparkle.alpha, 0.25);
-      }
-    }
+    if (active) playCoinWin(active);
   }
 
-  // сдвинуть камеру под стартовую позицию
-  requestAnimationFrame(() => {
-    if (!world || !chicken) return;
-    // snap (без твина), но корректно уводим камеру к нужной трубе
-    world.x = clampWorldX(DESIRED_SCREEN_X - chicken.x);
-  });
-
+  world.x = clampWorldX(DESIRED_SCREEN_X - chicken.x);
   coins.forEach((c, idx) => startCoinIdle(c, idx));
+
+  hideFireLottie(true);
+  lastFireWorld = null;
+
+  killInertia();
 }
 
-// ---------- outcome mock ----------
-async function getOutcome() {
-  await new Promise((r) => setTimeout(r, 90));
-  return { win: Math.random() < 0.85 };
-}
-
-// ---------- jump ----------
-function jumpTo(toX: number, landY: number) {
+// ===== movement + camera =====
+function jumpTo(toX: number, landY: number, onDone?: () => void) {
   if (!chicken) return;
 
   const fromX = chicken.x;
@@ -608,11 +648,9 @@ function jumpTo(toX: number, landY: number) {
   const peak = Math.min(fromY, endY) - 140;
 
   const t = { p: 0 };
-  const dur = 0.42;
-
   gsap.to(t, {
     p: 1,
-    duration: dur,
+    duration: 0.42,
     ease: "power2.out",
     onUpdate: () => {
       const p = t.p;
@@ -624,33 +662,15 @@ function jumpTo(toX: number, landY: number) {
 
       chicken!.rotation = -0.12 + 0.12 * p;
     },
+    onComplete: () => onDone?.(),
   });
 }
 
-// ---------- camera ----------
 function cameraFollow() {
   if (!world || !chicken) return;
-
+  gsap.killTweensOf(world);
   const targetX = clampWorldX(DESIRED_SCREEN_X - chicken.x);
   gsap.to(world, { x: targetX, duration: 0.55, ease: "power3.out" });
-}
-
-// --- camera helpers ---
-function cameraShake(intensity = 6, repeats = 6) {
-  if (!world) return;
-  gsap.killTweensOf(world, "x");
-  const baseX = world.x;
-  gsap.to(world, {
-    x: baseX + intensity,
-    duration: 0.045,
-    repeat: repeats,
-    yoyo: true,
-    ease: "sine.inOut",
-    onComplete: () => {
-      // возвращаем в исходную точку, чтобы дальше спокойно ехать
-      world && (world.x = baseX);
-    },
-  });
 }
 
 function smoothResetToStart(onDone?: () => void) {
@@ -661,178 +681,277 @@ function smoothResetToStart(onDone?: () => void) {
   }
 
   gsap.killTweensOf(world);
-
   gsap
-    .timeline({
-      onComplete: () => {
-        onDone?.();
-      },
-    })
-    // медленнее уходим в затемнение
-    .to(world, { alpha: 0, duration: 0.2, ease: "power2.inOut" })
-    .to({}, { duration: 0.03 })
+    .timeline({ onComplete: onDone })
+    .to(world, { alpha: 0, duration: 0.18, ease: "power2.inOut" })
     .add(() => {
-      destroyFire();
+      hideFireLottie(true);
+      lastFireWorld = null;
       buildScene();
-      if (world) {
-        world.x = 0;
-        world.alpha = 0;
-      }
+      if (world) world.alpha = 0;
     })
-    // плавнее возвращаемся
-    .to(world, { alpha: 1, duration: 0.2, ease: "power2.inOut" });
+    .to(world, { alpha: 1, duration: 0.18, ease: "power2.inOut" });
 }
 
-function syncCoinTextures() {
-  if (!coinTexture) return;
+// ===== outcome handlers =====
+function beginStepGuard() {
+  if (!world || !chicken) return false;
+  if (busy || inputLocked) return false;
+  if (step >= m().length) return false;
+  busy = true;
+  inputLocked = true;
+  return true;
+}
 
-  const removeLabel = (coinC: PIXI.Container) => {
-    const lbl = (coinC as any).label as PIXI.Text | undefined | null;
-    if (!lbl) return;
+function endStepGuard() {
+  busy = false;
+  inputLocked = false;
+}
 
-    try { coinC.removeChild(lbl); } catch {}
-    try { lbl.destroy(); } catch {}
-    (coinC as any).label = null;
-  };
+/** ALWAYS WIN step */
+function winStep() {
+  if (!beginStepGuard()) return;
 
-  for (let i = 0; i < coins.length; i++) {
-    const c = coins[i];
-    const spr = c ? ((c as any).coinSprite as PIXI.Sprite | undefined) : undefined;
-    if (!spr) continue;
+  const floorY = DESIGN_H - SAFE_BOTTOM;
+  const nextIdx = Math.min(step + 1, pipes.length - 1);
+  const target = pipes[nextIdx];
 
-    if (i < step - 1) {
-      // прошлые = WIN, текст убираем
-      spr.texture = coinWinTexture ?? coinTexture;
-      removeLabel(c);
-    } else if (i === step - 1) {
-      // актуальная (где курица) = PRIMARY, текст оставляем
-      spr.texture = coinPrimaryTexture ?? coinTexture;
-    } else {
-      // будущие = GRAY, текст оставляем
-      spr.texture = coinTexture;
+  hideFireLottie(true);
+  lastFireWorld = null;
+
+  jumpTo(target.x, floorY, () => {
+    const coinIdx = Math.min(step, coins.length - 1);
+    const coinC = coins[coinIdx];
+    const coinSpr = coinC ? ((coinC as any).coinSprite as PIXI.Sprite | undefined) : undefined;
+
+    if (coinSpr && coinPrimaryTexture) coinSpr.texture = coinPrimaryTexture;
+    if (coinC) playCoinWin(coinC);
+
+    step++;
+    syncCoinTextures();
+    cameraFollow();
+    endStepGuard();
+    emit("set-game-step-processed", false);
+  });
+}
+
+/** LOSE current step (with fire lottie) */
+function loseStep() {
+  if (!beginStepGuard()) return;
+
+  const floorY = DESIGN_H - SAFE_BOTTOM;
+  const nextIdx = Math.min(step + 1, pipes.length - 1);
+  const target = pipes[nextIdx];
+
+  jumpTo(target.x, floorY, () => {
+    showFireAtWorldPosLottie(target.x, floorY - 12);
+    setTimeout(() => hideFireLottie(false), 850);
+
+    const coinIdx = Math.min(step, coins.length - 1);
+    const coinC = coins[coinIdx];
+    const coinSpr = coinC ? ((coinC as any).coinSprite as PIXI.Sprite | undefined) : undefined;
+
+    if (chicken && chickenDeadTexture) chicken.texture = chickenDeadTexture;
+
+    if (coinC) {
+      const lbl = (coinC as any).label as PIXI.Text | undefined;
+      if (lbl) {
+        try {
+          coinC.removeChild(lbl);
+        } catch {}
+        try {
+          lbl.destroy();
+        } catch {}
+        (coinC as any).label = null;
+      }
     }
-  }
+
+    if (coinSpr && coinLoseTexture) coinSpr.texture = coinLoseTexture;
+    if (coinC) playCoinWin(coinC);
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        smoothResetToStart(() => {
+          endStepGuard();
+        });
+      },
+    });
+
+    if (!chicken) return;
+
+    tl.to(chicken, { rotation: chicken.rotation + 0.06, duration: 0.08, ease: "power2.out" }, 0);
+    tl.to({}, { duration: 0.12 }, 0.08);
+    tl.to(chicken, { y: chicken.y + 6, duration: 0.1, ease: "power2.inOut" }, 0.08);
+
+    tl.to(
+      chicken,
+      {
+        x: DESIGN_W / 2.3,
+        y: DESIGN_H + 200,
+        rotation: chicken.rotation - 3.1,
+        duration: 0.6,
+        ease: "power2.in",
+      },
+      0.06
+    );
+
+    tl.to(chicken, { alpha: 0, duration: 0.18, ease: "power2.out" }, "-=0.14");
+    tl.to({}, { duration: 0.1 }, ">");
+
+    START_AT_COIN.value = 0;
+    emit("set-game-step-processed", true);
+    emit("clear-game");
+  });
 }
 
-// ---------- input ----------
-async function onTap() {
-  if (!world || !chicken) return;
-  if (busy || inputLocked) return;
-  if (step >= multipliers.length) return;
+// ===== input =====
+function tap() {
+  winStep();
+}
 
+/**
+ * FIXED CASHOUT:
+ * - не используем beginStepGuard (он может вернуть false при step>=m().length или busy)
+ * - не делаем gsap.globalTimeline.clear() (он убивал наш reset tween)
+ * - аккуратно убиваем только наши твины и делаем smoothResetToStart
+ */
+function cashout() {
+  if (!mounted) return;
+  if (resetInProgress) return;
+  resetInProgress = true;
+
+  // блокируем ввод, чтобы ничего не наложилось
   busy = true;
   inputLocked = true;
 
-  const outcome = await getOutcome();
+  try {
+    // убить инерцию/камеру/прыжки
+    killInertia();
+    if (world) gsap.killTweensOf(world);
+    if (chicken) gsap.killTweensOf(chicken);
 
-  const floorY = DESIGN_H - SAFE_BOTTOM;
-  const target = pipes[Math.min(step + 1, pipes.length - 1)];
+    // убить idle анимации монет, потом buildScene заново их стартанёт
+    killCoinTweens();
 
-  // jump now
-  jumpTo(target.x, floorY);
+    hideFireLottie(true);
+    lastFireWorld = null;
 
-  if (outcome.win) {
-    const coinC = coins[Math.min(step, coins.length - 1)];
-    const coinSpr = coinC ? ((coinC as any).coinSprite as PIXI.Sprite | undefined) : undefined;
+    // гарантируем возврат к “живой” курице (если вдруг была dead)
+    if (chicken && chickenTexture) chicken.texture = chickenTexture;
+    if (chicken) {
+      chicken.alpha = 1;
+      chicken.rotation = 0;
+    }
 
-    const SWAP_DELAY_MS = 400;
+    // сбрасываем в старт мягко
+    smoothResetToStart(() => {
+      endStepGuard();
+      resetInProgress = false;
+    });
 
-    setTimeout(() => {
-      // текущая монета подсвечивается как primary (текущий шаг)
-      if (coinSpr && coinPrimaryTexture) coinSpr.texture = coinPrimaryTexture;
-      if (coinC) playCoinWin(coinC);
-    }, SWAP_DELAY_MS);
-
-    setTimeout(() => {
-      step++;
-      syncCoinTextures();
-      cameraFollow();
-      busy = false;
-      inputLocked = false;
-    }, 480);
-  } else {
-    const coinC = coins[Math.min(step, coins.length - 1)];
-    const coinSpr = coinC ? ((coinC as any).coinSprite as PIXI.Sprite | undefined) : undefined;
-
-    const SWAP_DELAY_MS = 400;
-
-    // показываем огонь и меняем монету/лейбл
-    setTimeout(() => {
-      if (chicken && chickenDeadTexture) chicken.texture = chickenDeadTexture;
-      if (coinC) {
-        const lbl = (coinC as any).label as PIXI.Text | undefined;
-        if (lbl) {
-          coinC.removeChild(lbl);
-          lbl.destroy();
-          (coinC as any).label = null;
-        }
-      }
-
-      if (coinSpr && coinLoseTexture) coinSpr.texture = coinLoseTexture;
-      if (coinC) playCoinWin(coinC);
-
-      const losePipe = pipes[Math.min(step + 1, pipes.length - 1)];
-      if (losePipe) {
-        const fireY = losePipe.y - losePipe.height + 33;
-        spawnFireAt(losePipe.x, fireY);
-        cameraShake(5, 5);
-      }
-    }, SWAP_DELAY_MS);
-
-    // плавный проигрыш + плавный ресет
-    setTimeout(() => {
-      if (!chicken) {
-        smoothResetToStart(() => {
-          busy = false;
-          inputLocked = false;
-        });
-        return;
-      }
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          smoothResetToStart(() => {
-            busy = false;
-            inputLocked = false;
-          });
-        },
-      });
-
-      // маленький «ступор»
-      tl.to(chicken, { rotation: chicken.rotation + 0.06, duration: 0.08, ease: "power2.out" }, 0);
-      // микро-пауза + лёгкое замедление ощущения
-      tl.to({}, { duration: 0.12 }, 0.08);
-      tl.to(chicken, { y: chicken.y + 6, duration: 0.10, ease: "power2.inOut" }, 0.08);
-
-      // падение
-      tl.to(
-        chicken,
-        {
-          x: DESIGN_W / 2.3,
-          y: DESIGN_H + 200,
-          rotation: chicken.rotation - 3.1,
-          duration: 0.6,
-          ease: "power2.in",
-        },
-        0.06
-      );
-
-      // исчезновение под конец
-      tl.to(chicken, { alpha: 0, duration: 0.18, ease: "power2.out" }, "-=0.14");
-
-      // огонь мягко гасим
-      if (fireFx?.sprite) {
-        tl.to(fireFx.sprite, { alpha: 0, duration: 0.22, ease: "power2.in" }, "-=0.20");
-      }
-      // финальная пауза, чтобы fade не был резким
-      tl.to({}, { duration: 0.10 }, ">");
-    }, 380);
+    START_AT_COIN.value = 0;
+    emit("set-game-step-processed", true);
+    emit("clear-game");
+  } catch {
+    endStepGuard();
+    resetInProgress = false;
   }
 }
 
-// ---------- lifecycle ----------
+// ===== horizontal pan handlers =====
+function canPanNow() {
+  // во время прыжка/лосса/вин-степа не паним, чтобы не дёргать мир
+  return !!world && !!viewport && !busy && !inputLocked && !isLoading.value;
+}
+
+function onDragStart(e: PIXI.FederatedPointerEvent) {
+  if (!canPanNow()) return;
+  dragging = true;
+  killInertia();
+
+  const x = e.global.x;
+  dragStartScreenX = x;
+  dragStartWorldX = world!.x;
+
+  lastMoveX = x;
+  lastMoveT = performance.now();
+  velX = 0;
+}
+
+function onDragMove(e: PIXI.FederatedPointerEvent) {
+  if (!dragging || !world || !viewport) return;
+
+  const now = performance.now();
+  const x = e.global.x;
+
+  // dx в screen px -> world px через scale
+  const dxScreen = x - dragStartScreenX;
+  const s = viewport.scale.x || 1;
+  const dxWorld = dxScreen / s;
+
+  worldSetX(dragStartWorldX + dxWorld);
+
+  // velocity
+  const dt = Math.max(1, now - lastMoveT);
+  velX = (x - lastMoveX) / dt; // screen px per ms
+  lastMoveX = x;
+  lastMoveT = now;
+}
+
+function onDragEnd() {
+  if (!dragging || !world || !viewport) return;
+  dragging = false;
+
+  // инерция
+  const s = viewport.scale.x || 1;
+  const vWorld = (velX / s) * 1000; // world px per sec
+
+  const abs = Math.abs(vWorld);
+  if (abs < 30) return;
+
+  const to = clampWorldX(world.x + vWorld * 0.25);
+  inertiaTween = gsap.to(world, {
+    x: to,
+    duration: 0.6,
+    ease: "power3.out",
+    onUpdate: () => {
+      if (lastFireWorld && fireRef.value && fireRef.value.style.display !== "none") {
+        const p = worldToScreen(lastFireWorld.x, lastFireWorld.y);
+        fireRef.value.style.left = `${p.x}px`;
+        fireRef.value.style.top = `${p.y}px`;
+      }
+    },
+    onComplete: () => {
+      inertiaTween = null;
+    },
+  });
+}
+
+// expose API to parent
+defineExpose({
+  tap,
+  winStep,
+  loseStep,
+  cashout,
+});
+
+// ===== mount/unmount =====
+async function loadTexture(alias: string, src: string): Promise<PIXI.Texture | null> {
+  try {
+    PIXI.Assets.add({ alias, src });
+    await PIXI.Assets.load(alias);
+    return (PIXI.Assets.get(alias) as PIXI.Texture) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 onMounted(async () => {
   if (!wrapRef.value) return;
+  mounted = true;
+  isLoading.value = props.loading ?? true;
+
+  updateAppHeight();
 
   app = new PIXI.Application();
   await app.init({
@@ -842,97 +961,82 @@ onMounted(async () => {
     autoDensity: true,
     antialias: true,
     backgroundAlpha: 0,
+    powerPreference: "high-performance" as any,
   });
 
-  // assets
-  try {
-    PIXI.Assets.add({ alias: "coinGray", src: coinUrl });
-    await PIXI.Assets.load("coinGray");
-    coinTexture = (PIXI.Assets.get("coinGray") as PIXI.Texture) ?? null;
-  } catch {
-    coinTexture = null;
-  }
+  viewport = new PIXI.Container();
+  world = new PIXI.Container();
+  app.stage.addChild(viewport);
+  viewport.addChild(world);
 
-  try {
-    PIXI.Assets.add({ alias: "pipe", src: pipeUrl });
-    await PIXI.Assets.load("pipe");
-    pipeTexture = (PIXI.Assets.get("pipe") as PIXI.Texture) ?? null;
-  } catch {
-    pipeTexture = null;
-  }
+  app.stage.eventMode = "static";
 
-  try {
-    PIXI.Assets.add({ alias: "chicken", src: chickenUrl });
-    await PIXI.Assets.load("chicken");
-    chickenTexture = (PIXI.Assets.get("chicken") as PIXI.Texture) ?? null;
-  } catch {
-    chickenTexture = null;
-  }
+  // === enable pan ===
+  app.stage.on("pointerdown", onDragStart);
+  app.stage.on("pointermove", onDragMove);
+  app.stage.on("pointerup", onDragEnd);
+  app.stage.on("pointerupoutside", onDragEnd);
+  app.stage.on("pointercancel", onDragEnd);
 
-  try {
-    PIXI.Assets.add({ alias: "chickenDead", src: chickenDeadUrl });
-    await PIXI.Assets.load("chickenDead");
-    chickenDeadTexture = (PIXI.Assets.get("chickenDead") as PIXI.Texture) ?? null;
-  } catch {
-    chickenDeadTexture = null;
-  }
+  // mount canvas UNDER overlays
+  wrapRef.value.prepend(app.canvas);
+  Object.assign(app.canvas.style, {
+    position: "absolute",
+    left: "0",
+    top: "0",
+    width: "100%",
+    height: `calc(100% + ${EXTRA_BOTTOM_PX}px)`,
+    display: "none",
+    opacity: "0",
+    zIndex: "0",
+    transition: "opacity 220ms ease",
+    pointerEvents: "auto", // важно для drag
+  });
 
-  try {
-    PIXI.Assets.add({ alias: "stone", src: stoneUrl });
-    await PIXI.Assets.load("stone");
-    stoneTexture = (PIXI.Assets.get("stone") as PIXI.Texture) ?? null;
-  } catch {
-    stoneTexture = null;
-  }
+  initFireLottie();
 
-  try {
-    PIXI.Assets.add({ alias: "nest", src: nestUrl });
-    await PIXI.Assets.load("nest");
-    nestTexture = (PIXI.Assets.get("nest") as PIXI.Texture) ?? null;
-  } catch {
-    nestTexture = null;
-  }
+  const [_coin, _pipe, _chicken, _chickenDead, _stone, _nest, _nestHd, _coinPrimary, _coinLose, _coinWin] =
+    await Promise.all([
+      loadTexture("coinGray", coinUrl),
+      loadTexture("pipe", pipeUrl),
+      loadTexture("chicken", chickenUrl),
+      loadTexture("chickenDead", chickenDeadUrl),
+      loadTexture("stone", stoneUrl),
+      loadTexture("nest", nestUrl),
+      loadTexture("nestHd", nestHdUrl),
+      loadTexture("coinPrimary", coinPrimaryUrl),
+      loadTexture("coinLose", coinLoseUrl),
+      loadTexture("coinWin", coinWinUrl),
+    ]);
 
-  try {
-    PIXI.Assets.add({ alias: "nestHd", src: nestHdUrl });
-    await PIXI.Assets.load("nestHd");
-    nestHdTexture = (PIXI.Assets.get("nestHd") as PIXI.Texture) ?? null;
-  } catch {
-    nestHdTexture = null;
-  }
+  coinTexture = _coin;
+  pipeTexture = _pipe;
+  chickenTexture = _chicken;
+  chickenDeadTexture = _chickenDead;
+  stoneTexture = _stone;
+  nestTexture = _nest;
+  nestHdTexture = _nestHd;
+  coinPrimaryTexture = _coinPrimary;
+  coinLoseTexture = _coinLose;
+  coinWinTexture = _coinWin;
 
-  try {
-    PIXI.Assets.add({ alias: "coinPrimary", src: coinPrimaryUrl });
-    await PIXI.Assets.load("coinPrimary");
-    coinPrimaryTexture = (PIXI.Assets.get("coinPrimary") as PIXI.Texture) ?? null;
-  } catch {
-    coinPrimaryTexture = null;
-  }
+  texturesLoaded.value = true;
 
-  try {
-    PIXI.Assets.add({ alias: "coinLose", src: coinLoseUrl });
-    await PIXI.Assets.load("coinLose");
-    coinLoseTexture = (PIXI.Assets.get("coinLose") as PIXI.Texture) ?? null;
-  } catch {
-    coinLoseTexture = null;
-  }
+  syncLoading();
+  // buildScene();
+  // scheduleLayout();
 
-  try {
-    PIXI.Assets.add({ alias: "coinWin", src: coinWinUrl });
-    await PIXI.Assets.load("coinWin");
-    coinWinTexture = (PIXI.Assets.get("coinWin") as PIXI.Texture) ?? null;
-  } catch {
-    coinWinTexture = null;
-  }
+  app.ticker.addOnce(() => {
+    if (!mounted) return;
+    app!.canvas.style.display = "block";
+    void app!.canvas.offsetHeight;
+    app!.canvas.style.opacity = "1";
+  });
 
-  wrapRef.value.appendChild(app.canvas);
-
-  // фикс для iOS/Telegram WebView: 100vh/100dvh может отличаться от видимой высоты
-  updateAppHeight();
   const vv = window.visualViewport;
   const onVV = () => {
     updateAppHeight();
-    layout();
+    scheduleLayout();
   };
   if (vv) {
     vv.addEventListener("resize", onVV);
@@ -943,51 +1047,22 @@ onMounted(async () => {
     };
   }
 
-  Object.assign(app.canvas.style, {
-    position: "absolute",
-    left: "0",
-    top: "0",
-    width: "100%",
-    height: `calc(100% + ${EXTRA_BOTTOM_PX}px)`,
-    display: "block",
-  });
-
-  viewport = new PIXI.Container();
-  world = new PIXI.Container();
-
-  app.stage.addChild(viewport);
-  viewport.addChild(world);
-
-  app.stage.eventMode = "static";
-  app.stage.on("pointerdown", onTap);
-
-  // тик огня
-  app.ticker.add(() => {
-    if (!fireFx) return;
-    try {
-      fireFx.tick();
-    } catch (e) {
-      console.error("fireFx tick error", e);
-    }
-  });
-
-  buildScene();
-
-  rafId = requestAnimationFrame(() => layout());
-
-  ro = new ResizeObserver(() => layout());
+  ro = new ResizeObserver(() => scheduleLayout());
   ro.observe(wrapRef.value);
 
-  window.addEventListener("resize", layout);
+  window.addEventListener("resize", scheduleLayout);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", layout);
+  mounted = false;
 
-  if (rafId != null) {
-    cancelAnimationFrame(rafId);
-    rafId = null;
+  window.removeEventListener("resize", scheduleLayout);
+
+  if (layoutRaf != null) {
+    cancelAnimationFrame(layoutRaf);
+    layoutRaf = null;
   }
+
   if (ro && wrapRef.value) {
     ro.unobserve(wrapRef.value);
     ro.disconnect();
@@ -999,40 +1074,164 @@ onBeforeUnmount(() => {
     vvCleanup = null;
   }
 
+  killInertia();
   killCoinTweens();
-  destroyFire();
+
   busy = false;
   inputLocked = false;
+  resetInProgress = false;
 
-  if (app) {
-    app.ticker.stop();
-    app.destroy(true);
-    app = null;
-  }
+  texturesLoaded.value = false;
+  isLoading.value = true;
+
+  try {
+    hideFireLottie(true);
+    fireAnim?.destroy();
+  } catch {}
+  fireAnim = null;
+  lastFireWorld = null;
+
+  try {
+    if (app) {
+      app.stage.off("pointerdown", onDragStart);
+      app.stage.off("pointermove", onDragMove);
+      app.stage.off("pointerup", onDragEnd);
+      app.stage.off("pointerupoutside", onDragEnd);
+      app.stage.off("pointercancel", onDragEnd);
+
+      app.canvas.style.display = "none";
+      app.canvas.style.opacity = "0";
+      app.stage.removeAllListeners();
+      app.destroy(true);
+    }
+  } catch {}
+
+  app = null;
+  viewport = null;
+  world = null;
+
+  pipes = [];
+  coins = [];
+  chicken = null;
+});
+
+
+watch(() => props.loading, syncLoading);
+
+let sceneBuiltOnce = false;
+
+function ratiosReady() {
+  return Array.isArray(props.modeRatios) && props.modeRatios.length > 0;
+}
+
+function tryInitSceneOnce() {
+  if (!mounted) return;
+  if (sceneBuiltOnce) return;
+  if (props.loading) return;
+  if (!texturesLoaded.value) return;
+  if (!ratiosReady()) return; // <- ключевое
+
+  // стартовое положение (если есть step)
+  START_AT_COIN.value = Math.max(0, Number(props.gameStep ?? 0));
+
+  buildScene();
+  scheduleLayout();
+  sceneBuiltOnce = true;
+}
+
+watch([() => props.loading, () => props.modeRatios, () => props.gameStep, texturesLoaded], tryInitSceneOnce, {
+  flush: "post",
 });
 </script>
 
 <template>
-  <div class="wrap" ref="wrapRef"></div>
+  <div class="wrap" ref="wrapRef">
+    <!-- PIXI canvas добавляется сюда через prepend -->
+
+    <!-- Lottie fire overlay -->
+    <div class="fire-lottie" ref="fireRef" aria-hidden="true"></div>
+
+    <!-- loader MUST be above everything -->
+    <div class="loading" :class="{ show: isLoading }" aria-hidden="true">
+      <div class="load-icon"></div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
 .wrap {
   width: 100%;
-
-  /* честная высота: выставляется из visualViewport в --app-height */
   height: var(--app-height, 100dvh);
   min-height: 320px;
 
-  /* учёт safe-area (iPhone, некоторые webview) */
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
 
-  z-index: 0;
   background: #0d0d0f;
 
-  /* при отрицательном viewport.y верх должен обрезаться, низ остаётся прибитым */
   overflow: hidden;
   position: relative;
+
+  /* чтобы жесты не скроллили страницу и нормально работал drag */
+  touch-action: none;
+}
+
+/* Lottie fire above canvas */
+.fire-lottie {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 120px;
+  height: 120px;
+
+  transform: translate(-50%, -70%);
+  pointer-events: none;
+  z-index: 1;
+
+  opacity: 0;
+  transition: opacity 120ms ease;
+  will-change: transform, opacity, left, top;
+}
+
+/* loader MUST be above canvas + fire */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #0d0d0f;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+  transform: translateY(-150px);
+  z-index: 2;
+}
+
+.loading.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.load-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  animation: spin 0.9s linear infinite;
+  transform: translateZ(0);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

@@ -27,6 +27,7 @@ export const localization = {
             profile: "Profile",
         },
         cases: {
+            open: "Open",
             tasks: {
                 inviteFriends_one: "Invite {{count}} friend",
                 inviteFriends_few: "Invite {{count}} friends",
@@ -264,6 +265,30 @@ export const localization = {
 
                     max: "MAX",
                 }
+            },
+            popups: {
+                autox: {
+                    cancel: "Cancel",
+                    save: "Save",
+                }
+            }
+        },
+        chicken: {
+            modes: {
+                easy: "Easy",
+                medium: "Medium",
+                hard: "Hard",
+                extreme: "Extreme",
+            },
+            bet: {
+                min: "MIN",
+                max: "MAX",
+                yourPrice: "Your Price",
+                autoPlay: "Autoplay",
+                play: "Play {{price}}",
+                step: "Step",
+                cashout: "Cashout {{price}}",
+                soon: "Soon",
             }
         },
         onboard: {
@@ -323,6 +348,7 @@ export const localization = {
             profile: "Профиль",
         },
         cases: {
+            open: "Открыть",
             tasks: {
                 inviteFriends_one: "Пригласить {{count}} друга",
                 inviteFriends_few: "Пригласить {{count}} друга",
@@ -560,6 +586,30 @@ export const localization = {
 
                     max: "МАКС",
                 }
+            },
+            popups: {
+                autox: {
+                    cancel: "Отмена",
+                    save: "Сохранить",
+                }
+            }
+        },
+        chicken: {
+            modes: {
+                easy: "Легкий",
+                medium: "Средний",
+                hard: "Тяжелый",
+                extreme: "Хардкор",
+            },
+            bet: {
+                min: "МИН",
+                max: "МАКС",
+                yourPrice: "Ваша ставка",
+                autoPlay: "Авто-игра",
+                play: "Играть {{price}}",
+                step: "Вперед",
+                cashout: "Забрать {{price}}",
+                soon: "Скоро",
             }
         },
         onboard: {

@@ -66,3 +66,15 @@ export const tonToNano = (amount: string | number): bigint => {
   const frac = (f.replace(/\D/g, '') + '000000000').slice(0, 9);
   return BigInt(i) * 1_000_000_000n + BigInt(frac);
 };
+
+export const cutNumberNanoTrunc = (num: any, decimals = 2) => {
+  if (num && typeof num === "object" && "value" in num) num = num.value;
+
+  const n = Number(num);
+  if (!Number.isFinite(n) || n < 0) return (0).toFixed(decimals);
+
+  const ton = n / 1e9;
+  const k = 10 ** decimals;
+  const trunc = Math.floor(ton * k) / k;
+  return trunc.toFixed(decimals);
+};

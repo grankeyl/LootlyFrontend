@@ -21,6 +21,7 @@ import Roulette from "@/components/common/Roulette/Roulette.vue";
 // Images
 import Ton from "@/assets/icons/ton.svg";
 import TelegramModule from "../../../../hooks/useTelegram";
+import { showErrorToast } from "../../../../utils/toastManager";
 
 // Sounds
 // import RollSound from "@/assets/sounds/roll.mp3";
@@ -130,7 +131,10 @@ async function rollTo() {
     return null;
   });
 
-  if (!open?.ok) return;
+  if (!open?.ok) {
+    showErrorToast(open.message);
+    return;
+  };
 
   itemRolling.value = open;
 

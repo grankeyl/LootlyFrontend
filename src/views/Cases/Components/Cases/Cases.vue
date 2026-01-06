@@ -194,7 +194,7 @@ async function getCases() {
                     </div>
                     <div class="button">
                         <button v-if="!item.AlreadyOpened">
-                            <p>Open</p>
+                            <p>{{ $t('cases.open') }}</p>
                         </button>
                         <button v-if="item.AlreadyOpened" class="timer">
                             <p>{{ formatTimer(item.ResetTimestamp) }}</p>

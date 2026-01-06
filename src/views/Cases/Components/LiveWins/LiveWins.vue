@@ -207,6 +207,7 @@ function connect() {
     if (data?.type) console.log("🏷️ [WS] Event type:", data.type);
     if (data?.type === "pong" || data?.op === "pong") return;
 
+
     const payload =
       data?.payload ??
       data?.data ??
