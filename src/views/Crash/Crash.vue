@@ -132,7 +132,10 @@ async function placeBit(payload: any) {
 
   const autoCashout = GameAutoWithdraw.value ? GameAutoX.value : 0;
   const res = await APICrash.bet(bet, autoCashout);
-  if (res?.status !== 'ok') return;
+  if (res?.status !== 'ok') {
+    showErrorToast(res.message);
+    return;
+  };
   if (res.bet) {
     useCache.UserData.BalanceNano = current - betNano;
     GameBetActual.value += bet;

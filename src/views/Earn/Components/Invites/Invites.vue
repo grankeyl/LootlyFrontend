@@ -12,7 +12,7 @@ import FriendsIcon from "@/assets/icons/friends.svg";
 import PercentIcon from "@/assets/icons/percent.svg";
 import TonLineIcon from "@/assets/icons/ton-line.svg";
 import ChevroneDownIcon from "@/assets/icons/chevrone-down.svg";
-import { cutNumberNano } from "../../../../utils/useTon";
+import { cutNumberNano, cutNumberNanoTrunc } from "../../../../utils/useTon";
 
 const useCache = useCacheStore() as any;
 
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
             <h4 v-else>{{ item.name }}</h4>
           </div>
           <div class="summary">
-            <h4>{{ item.sum_deposit }}</h4>
+            <h4>{{ cutNumberNanoTrunc(item.sum_deposit, 2) }}</h4>
             <img :src="TonWhiteIcon" alt="lootcoin-icon" />
           </div>
         </div>
