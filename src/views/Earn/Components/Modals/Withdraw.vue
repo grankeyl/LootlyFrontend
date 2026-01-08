@@ -47,9 +47,9 @@ function backspace() {
     </div>
     <div class="info">
       <img :src="TonWhiteIcon" alt="ton-icon" aria-hidden="true" />
-      <h4>Вывод TON</h4>
+      <h4>{{ $t('earn.modals.withdraw.title') }}</h4>
       <p>
-        Укажите сумму TON для вывода
+        {{ $t('earn.modals.withdraw.descr') }}
       </p>
     </div>
     <div class="input">
@@ -62,7 +62,7 @@ function backspace() {
           <img :src="TonIcon" alt="ton-icon" aria-hidden="true" />
         </div>
         <div class="max">
-          <h4>МАКС</h4>
+          <h4>{{ $t('earn.modals.withdraw.max') }}</h4>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@ function backspace() {
     <div class="buttons">
       <button>
         <img :src="AddBlackIcon" alt="add-black-icon" aria-hidden="true" />
-        <h4>Withdraw</h4>
+        <h4>{{ $t('earn.modals.withdraw.buttons.withdraw') }}</h4>
       </button>
     </div>
   </div>

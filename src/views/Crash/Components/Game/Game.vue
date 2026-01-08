@@ -504,6 +504,18 @@ watch(
   }
 );
 
+function sleep(ms: any) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function loseVibration() {
+  for (let i = 0; i < 21; i++) {
+    TelegramModule.useRigidHaptic();
+    await sleep(24);
+  }
+}
+
+
 onMounted(() => {
   startPrepare();
 });
@@ -546,7 +558,8 @@ watch(
     }
     if (v === "completed") {
       if (from === "playing") {
-        TelegramModule.useNotifyErrorHaptic();
+        // TelegramModule.useNotifyErrorHaptic();
+        loseVibration();
         crashNow();
       } else {
         mountedOnce.value = true;

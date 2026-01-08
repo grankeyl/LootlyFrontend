@@ -144,6 +144,14 @@ export const localization = {
                     buttons: {
                         ok: "Ok",
                     }
+                },
+                withdraw: {
+                    title: "Withdraw TON",
+                    descr: "Enter amount of TON to withdraw",
+                    max: "MAX",
+                    buttons: {
+                        withdraw: "Withdraw",
+                    }
                 }
             }
         },
