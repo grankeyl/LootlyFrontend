@@ -42,6 +42,15 @@ const defaults = {
   colors: ['#FFE400', '#FFBD00', '#E89400', '#FFCA6C', '#FDFFB8']
 };
 
+const defaults2 = {
+  spread: 360,
+  ticks: 50,
+  gravity: 0,
+  decay: 0.94,
+  startVelocity: 30,
+  colors: ['#E71BA7', '#cd0b8f', '#de36a9', '#bd1f8b', '#f500a7']
+};
+
 existingCanvas.style.visibility = 'hidden';
 
 const show = () => (existingCanvas.style.visibility = 'visible');
@@ -51,5 +60,12 @@ export async function shootConfetti() {
   show();
   await customConfetti({ ...defaults, particleCount: 40, scalar: 1.2, shapes: ['star'] });
   await customConfetti({ ...defaults, particleCount: 10, scalar: 0.75, shapes: ['circle'] });
+  hide();
+}
+
+export async function shootConfetti2() {
+  show();
+  await customConfetti({ ...defaults2, particleCount: 40, scalar: 1.2, shapes: ['star'] });
+  await customConfetti({ ...defaults2, particleCount: 10, scalar: 0.75, shapes: ['circle'] });
   hide();
 }

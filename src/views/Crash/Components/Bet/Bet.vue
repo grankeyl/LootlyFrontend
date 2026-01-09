@@ -14,6 +14,7 @@ const { t } = useTranslation();
 
 const emit = defineEmits<{
   (e:'open-bet-modal'): void
+  (e:'open-win-modal', payload: any): void
   (e:'set-game-bet-actual', payload: number): void
 }>();
 
@@ -110,9 +111,6 @@ async function useCashout() {
   if (res.settled) {
     res.settled.forEach((s: any) => {
       cashoutLoading.value = false;
-      showSuccessToast(
-        t('crash.bet.successGetCashout', { price: cutNumberNano(s.payout) })
-      );
 
       const current = toBigInt(useCache.UserData.BalanceNano);
       const betNano = toBigInt(s.payout);
@@ -120,6 +118,10 @@ async function useCashout() {
       useCache.UserData.BalanceNano = current + betNano;
 
       emit('set-game-bet-actual', 0);
+      emit('open-win-modal', {
+        amount: s.multiplier,
+        payoutNano: s.payout 
+      });
     });
   }
 }

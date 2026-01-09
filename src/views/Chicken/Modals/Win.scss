@@ -416,7 +416,7 @@ img.showing {
 
     .title {
       position: absolute !important;
-      top: 35%;
+      top: 37%;
       left: 50%;
       transform: translate(-50%, -50%);
       gap: 8px;
@@ -435,6 +435,7 @@ img.showing {
         margin: auto;
         align-items: center;
         margin-top: 18px;
+        transform: translateX(-10px);
 
         h4 {
           font-weight: 700;

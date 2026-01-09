@@ -2,7 +2,7 @@
 import { cutNumber, cutNumberNano } from "../../../../utils/useTon";
 import { computed, ref, watch } from "vue";
 import { Icon } from "../../../../components/Icon";
-import { showErrorToast, showSuccessToast } from "../../../../utils/toastManager";
+import { showErrorToast } from "../../../../utils/toastManager";
 import { useCacheStore } from "../../../../stores/pinia-store";
 import { useTranslation } from "i18next-vue";
 
@@ -16,6 +16,7 @@ const { t } = useTranslation();
 
 const emit = defineEmits<{
   (e:'set-bet-modal-opened', payload: boolean): void
+  (e:'open-win-modal', payload: any): void
   (e:'set-fast-bet', payload: number): void
   (e:'set-game-bet-actual', payload: number): void
   (e:'open-auto-x-popup'): void
@@ -153,14 +154,16 @@ async function useCashout() {
   if (res?.status !== 'ok') return;
   if (res.settled) {
     res.settled.forEach((s: any) => {
-      showSuccessToast(t('crash.modals.bet.successGetCashout', { price: cutNumberNano(s.payout) }));
-
       const current = toBigInt(useCache.UserData.BalanceNano);
       const betNano = toBigInt(s.payout);
 
       useCache.UserData.BalanceNano = current + betNano;
       
       emit('set-game-bet-actual', 0);
+      emit('open-win-modal', {
+        amount: s.multiplier,
+        payoutNano: s.payout 
+      });
     });
   }
 }

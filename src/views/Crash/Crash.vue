@@ -18,6 +18,9 @@ import TelegramModule from "../../hooks/useTelegram";
 import AutoXPopup from "./Components/Popups/AutoX.vue";
 import Bet from "./Components/Bet/Bet.vue";
 import BetModal from "./Components/Modals/Bet.vue";
+import WinModal from "./Components/Modals/Win.vue";
+
+import { shootConfetti2 } from "../../utils/useConfetti";
 
 const { t } = useTranslation();
 const { open } = usePopup();
@@ -159,6 +162,7 @@ async function openBetModal() {
         onSetGameBetActual: (p: number) => setGameBetActual(p),
         onOpenAutoXPopup: () => openAutoXPopup(),
         onPlaceBit: (p: any) => placeBit(p),
+        onOpenWinModal: (p: any) => openWinModal(p),
 
         onSetGameAutoX: (p: number) => GameAutoX.value = p,
         onSetGameAutoXText: (p: string) => GameAutoXText.value = p,
@@ -189,6 +193,16 @@ async function openAutoXPopup() {
     GameAutoX: GameAutoX.value,
     OnSetGameAutoX: (x: number) => GameAutoX.value = x,
   });
+  const dest = await choose.done.catch(() => null);
+  if (!dest) return;
+}
+
+async function openWinModal(payload: any) {
+  const { open } = useModal();
+  const choose = open(WinModal, {
+    data: payload,
+  });
+  shootConfetti2();
   const dest = await choose.done.catch(() => null);
   if (!dest) return;
 }
@@ -229,6 +243,7 @@ onMounted(() => {
       <Bet
         @SetGameBetActual="setGameBetActual"
         @OpenBetModal="openBetModal"
+        @OpenWinModal="openWinModal"
 
         :GameX="GameX"
         :GameBetActual="GameBetActual"
