@@ -2,18 +2,23 @@
 import { onMounted, onBeforeUnmount, ref } from "vue";
 import { useRouter } from "vue-router";
 import { uuidv4 } from "../../utils/useApp";
-import { cutNumberNanoTrunc, tonToNano } from "../../utils/useTon";
-import { showErrorToast, showSuccessToast } from "../../utils/toastManager";
+import { tonToNano } from "../../utils/useTon";
+import { showErrorToast } from "../../utils/toastManager";
 import { useTranslation } from "i18next-vue";
 import { useCacheStore } from "../../stores/pinia-store";
+import { useModal } from "../../components/common/Modal";
 
 import * as chickenApi from "../../api/chicken";
 
 import Game from "./Game/Game.vue";
 import Tools from "./Tools/Tools.vue";
 import TelegramModule from "../../hooks/useTelegram";
+import Win from "./Modals/Win.vue";
+import { shootConfetti } from "../../utils/useConfetti";
 
 const { t } = useTranslation();
+const { open } = useModal();
+
 const useCache = useCacheStore() as any;
 
 const router = useRouter();
@@ -167,7 +172,13 @@ async function onCashout() {
 
     clearGame();
     gameRef.value?.cashout();
-    showSuccessToast(t('chicken.toasts.cashout', { price: cutNumberNanoTrunc(payoutNano) }));
+    // showSuccessToast(t('chicken.toasts.cashout', { price: cutNumberNanoTrunc(payoutNano) }));
+    openWin({ 
+      amount: res.cashout.ratio,
+      payoutNano
+    });
+    shootConfetti();
+    setTimeout(() => shootConfetti(), 400);
   });
 }
 
@@ -177,6 +188,14 @@ function onSetMode(mode: any) {
 
 function onSetGameBet(bet: number) {
   gameBet.value = bet;
+}
+
+async function openWin(payload: any) {
+  const choose = open(Win, {
+    data: payload,
+  });
+  const dest = await choose.done.catch(() => null);
+  if (!dest) return;
 }
 
 onMounted(() => {
