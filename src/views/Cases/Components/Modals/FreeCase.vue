@@ -547,6 +547,10 @@ function close() {
   emit("close");
 }
 
+function openDeposit() {
+  location.href = "/balance";
+}
+
 // ===== sheet overscroll protection =====
 const sheetOverscroll = useSheetOverscrollProtection(".sheet");
 
@@ -826,7 +830,7 @@ onBeforeUnmount(() => {
               <button @click="onCollect" class="ok">
                 <h4>{{ $t("cases.modals.case.buttons.ok") }}</h4>
               </button>
-              <button class="deposit">
+              <button class="deposit" @click="openDeposit">
                 <h4>{{ $t("cases.modals.case.buttons.makeDeposit") }}</h4>
               </button>
             </div>
