@@ -147,7 +147,9 @@ function openCase(payload: any) {
 }
 
 function openFreeCase(payload: any) {
-  emit("open-free-case", payload);
+  emit("open-free-case", {
+    ...payload,
+  });
 }
 
 async function getCases() {

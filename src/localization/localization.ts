@@ -46,6 +46,7 @@ export const localization = {
                 case: {
                     congrats: "Congratulations!",
                     congratsDesc: "You got:",
+                    depositTon: "Top up your TON account with any amount and increase your chances in the game",
                     buttons: {
                         skip: "Skip",
                         sellFor: "Sell for {{price}}",
@@ -53,6 +54,7 @@ export const localization = {
                         ok: "Ok",
                         demoOpen: "Demo open",
                         open: "Open {{price}}",
+                        makeDeposit: "Make a deposit",
                     }
                 },
                 notEnoght: {
@@ -377,7 +379,8 @@ export const localization = {
                 whatsInside: "Что внутри",
                 case: {
                     congrats: "Поздравляем!",
-                    congratsDesc: "Вы получили:",
+                    congratsDesc: "Ты получил:",
+                    depositTon: "Пополняй TON на любую сумму и увеличь свои шансы в игре",
                     buttons: {
                         skip: "Пропустить",
                         sellFor: "Продать за {{price}}",
@@ -385,6 +388,7 @@ export const localization = {
                         ok: "Отлично",
                         demoOpen: "Демо-спин",
                         open: "Открыть {{price}}",
+                        makeDeposit: "Пополнить баланс",
                     }
                 },
                 notEnoght: {
@@ -541,7 +545,7 @@ export const localization = {
             modals: {
                 deposit: {
                     title: "Пополнение баланса",
-                    descr: "*ВАЖНО! Вы не можете выводить TON с баланса, вывести можно только подарки, выигранные или купленные в маркете",
+                    descr: "*ВАЖНО! Ты не можешь выводить TON с баланса, вывести можно только подарки, выигранные или купленные в маркете",
                     max: "МАКС",
                     link: "Перейти",
                     scan: "Сканируй через “Камера”",
@@ -579,14 +583,14 @@ export const localization = {
                 waiting: "Ожидание",
                 pickUp: "Забрать {{price}}",
 
-                successGetCashout: "Вы получили {{price}} TON!",
+                successGetCashout: "Ты получил {{price}} TON!",
             },
             modals: {
                 bet: {
                     autobet: "Авто-ставка",
                     autocashout: "Авто-вывод",
 
-                    successGetCashout: "Вы получили {{price}} TON!",
+                    successGetCashout: "Ты получил {{price}} TON!",
                     toastPlaceBitErrorPrepare: "Сделать ставку невозможно в этом состоянии",
 
                     placeBit: "Сделать ставку",
@@ -607,7 +611,7 @@ export const localization = {
         },
         chicken: {
             toasts: {
-                cashout: "Вы забрали {{price}} TON!",
+                cashout: "Ты забрал {{price}} TON!",
             },
             modes: {
                 easy: "Легкий",

@@ -624,8 +624,12 @@ onBeforeUnmount(() => {
         <div v-if="isRolling" class="cover">
           <div class="title">
             <div v-if="isWin" class="win">
-              <h4>{{ $t("cases.modals.case.congrats") }}</h4>
-              <span>{{ $t("cases.modals.case.congratsDesc") }}</span>
+              <div class="text">
+                <h4>{{ $t("cases.modals.case.congrats") }}</h4>
+              </div>
+              <div class="descr">
+                <span>{{ $t("cases.modals.case.depositTon") }}</span>
+              </div>
             </div>
           </div>
 
@@ -658,9 +662,6 @@ onBeforeUnmount(() => {
                 <p>{{ itemWin?.price_ton }}</p>
                 <div class="kit-icon" v-html="TonWhiteRawIcon"></div>
               </div>
-            </div>
-            <div class="winner-gift-name">
-              <h4>{{ itemWin?.name }}</h4>
             </div>
           </div>
         </div>
@@ -821,9 +822,14 @@ onBeforeUnmount(() => {
             </button>
           </div>
           <div v-else class="topper">
-            <button @click="onCollect">
-              <h4>{{ $t("cases.modals.case.buttons.ok") }}</h4>
-            </button>
+            <div class="blocker">
+              <button @click="onCollect" class="ok">
+                <h4>{{ $t("cases.modals.case.buttons.ok") }}</h4>
+              </button>
+              <button class="deposit">
+                <h4>{{ $t("cases.modals.case.buttons.makeDeposit") }}</h4>
+              </button>
+            </div>
           </div>
         </div>
 

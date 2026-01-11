@@ -42,7 +42,7 @@ const checkDescription = (giftType: string, giftName: string, language: string) 
         if (giftType === 'notfound') return 'Подарок уже получен';
         if (giftType === 'received') return `${giftName.replace('_', ' ')} отправлен в ваш профиль`; // Пепе отправлен в ваш профиль
         if (giftType === 'purchased') return 'Скорее отправь его своему другу!';
-        if (giftType === 'sent') return `Вы успешно отправили подарок ${giftName.replace('_', ' ')}`;
+        if (giftType === 'sent') return `Ты успешно отправил подарок ${giftName.replace('_', ' ')}`;
     }
 }
 

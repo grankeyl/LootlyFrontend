@@ -117,7 +117,7 @@ img.showing {
   overscroll-behavior: auto;
   touch-action: pan-y;
 
-  @media screen and (max-height: 628px) {
+  @media screen and (max-height: 665px) {
     height: 80vh;
   }
 
@@ -150,6 +150,7 @@ img.showing {
     width: 100%;
     height: 100%;
     gap: 12px;
+    margin-top: -20px;
 
     .item {
       display: flex;
@@ -212,6 +213,23 @@ img.showing {
           width: 1em;
           height: 1em;
           transform: scale(1.1);
+        }
+
+        .kit-icon {
+          width: 1.2em;
+          height: 1.2em;
+          margin-top: 0px;
+          margin-left: -1px;
+          margin-right: -2px;
+
+          :deep(svg) {
+            width: 100%;
+            height: 100%;
+
+            & path {
+              fill: var(--color-white);
+            }
+          }
         }
       }
     }
@@ -339,10 +357,12 @@ img.showing {
     .backdrop-relay {
       width: 100%;
       height: 100%;
+      max-height: 200px;
       position: absolute;
       top: 0;
       left: 0;
       z-index: 0;
+      
     }
 
     .symbol {
@@ -486,10 +506,15 @@ img.showing {
         justify-content: center;
         width: 100%;
         margin-top: auto;
-        gap: 8px;
+        gap: 6px;
         padding: 16px;
         z-index: 1;
         animation: fadeIn 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        max-width: 284px;
 
         h4 {
           font-weight: 700;
@@ -498,10 +523,11 @@ img.showing {
         }
 
         span {
-          font-weight: 700;
-          font-size: 2.4rem;
-          mix-blend-mode: overlay;
           color: var(--bg-40);
+          text-align: center;
+          font-size: 16px;
+          font-weight: 600;
+          line-height: normal;
         }
       }
     }
@@ -1084,6 +1110,24 @@ img.showing {
             color: var(--color-white);
           }
         }
+
+        &.ok {
+          background: var(--bg-secondary);
+          box-shadow: none;
+          backdrop-filter: blur(25px);
+          h4 {
+            color: var(--color-white);
+          }
+        }
+
+        &.deposit {
+          background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);
+          box-shadow: 0 0 8px 0 rgba(239, 210, 255, 0.80) inset;
+
+          h4 {
+            color: var(--color-black);
+          }
+        }
       }
     }
 
@@ -1093,6 +1137,15 @@ img.showing {
       justify-content: space-between;
       align-items: center;
       gap: 0.6em;
+
+      .blocker {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
 
       button {
         display: flex;
