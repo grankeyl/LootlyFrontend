@@ -47,6 +47,7 @@ export const localization = {
                     congrats: "Congratulations!",
                     congratsDesc: "You got:",
                     depositTon: "Top up your TON account with any amount and increase your chances in the game",
+                    makeDeposit: "Top up your balance with {{amount}} TON",
                     buttons: {
                         skip: "Skip",
                         sellFor: "Sell for {{price}}",
@@ -55,6 +56,7 @@ export const localization = {
                         demoOpen: "Demo open",
                         open: "Open {{price}}",
                         makeDeposit: "Make a deposit",
+                        condition: "Fulfill the condition",
                     }
                 },
                 notEnoght: {
@@ -384,6 +386,7 @@ export const localization = {
                     congrats: "Поздравляем!",
                     congratsDesc: "Ты получил:",
                     depositTon: "Пополняй TON на любую сумму и увеличь свои шансы в игре",
+                    makeDeposit: "Пополнить баланс от {{amount}} TON",
                     buttons: {
                         skip: "Пропустить",
                         sellFor: "Продать за {{price}}",
@@ -392,6 +395,7 @@ export const localization = {
                         demoOpen: "Демо-спин",
                         open: "Открыть {{price}}",
                         makeDeposit: "Пополнить баланс",
+                        condition: "Выполнить условие",
                     }
                 },
                 notEnoght: {

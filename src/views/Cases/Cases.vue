@@ -9,6 +9,7 @@ import Tabs from "./Components/Tabs/Tabs.vue";
 import Cases from "./Components/Cases/Cases.vue";
 import Case from "./Components/Modals/Case.vue";
 import FreeCase from "./Components/Modals/FreeCase.vue";
+import FreeCaseDep from "./Components/Modals/FreeCaseDep.vue";
 import NotEnoght from "./Components/Modals/NotEnoght.vue";
 import TelegramModule from "../../hooks/useTelegram";
 
@@ -38,6 +39,14 @@ async function openFreeCase(payload: any) {
   if (!dest) return;
 }
 
+async function openFreeCaseDep(payload: any) {
+  const choose = open(FreeCaseDep, {
+    data: { ID: payload.ID },
+    onNotEnough: (p: any) => openNotEnough(p),
+  });
+  await choose.done.catch(() => null);
+}
+
 async function openNotEnough(payload: any) {
   const choose = open(NotEnoght, {
     data: payload,
@@ -62,6 +71,7 @@ onMounted(() => {
         <Cases 
             @open-case="openCase"
             @open-free-case="openFreeCase"
+            @open-free-case-dep="openFreeCaseDep"
             :ActiveTab="ActiveTab"
         />
     </div>

@@ -13,6 +13,7 @@ import Empty from "../../../../components/common/Empty/Empty.vue";
 const emit = defineEmits<{ 
   (e: "open-case", payload: any): void 
   (e: "open-free-case", payload: any): void
+  (e: "open-free-case-dep", payload: any): void
 }>();
 const props = defineProps<{ ActiveTab: string }>();
 
@@ -34,6 +35,18 @@ const cases = ref<any[]>(
 );
 
 const freeCases = computed(() => cases.value.filter((i) => i.price_nano === 0));
+
+const isTimerActive = (id: string) => {
+  if (!cases.value) return false;
+  return cases.value.some((i) => {
+    if (i.ID === id) {
+      if (i.Status === "dep") {
+        return i.OpenedToday >= i.DailyLimit;
+      };
+      return i.AlreadyOpened;
+    }
+  });
+};
 
 // ===== Timer (countdown to item.ResetTimestamp)
 const nowTs = ref(Date.now());
@@ -147,7 +160,18 @@ function openCase(payload: any) {
 }
 
 function openFreeCase(payload: any) {
+  if (payload.Status === "dep") {
+    openFreeCaseDep(payload);
+    return;
+  }
+
   emit("open-free-case", {
+    ...payload,
+  });
+}
+
+function openFreeCaseDep(payload: any) {
+  emit("open-free-case-dep", {
     ...payload,
   });
 }
@@ -195,10 +219,10 @@ async function getCases() {
                         <h4>{{ item.Name }}</h4>
                     </div>
                     <div class="button">
-                        <button v-if="!item.AlreadyOpened">
+                        <button v-if="!isTimerActive(item.ID)">
                             <p>{{ $t('cases.open') }}</p>
                         </button>
-                        <button v-if="item.AlreadyOpened" class="timer">
+                        <button v-if="isTimerActive(item.ID)" class="timer">
                             <p>{{ formatTimer(item.ResetTimestamp) }}</p>
                         </button>
                     </div>

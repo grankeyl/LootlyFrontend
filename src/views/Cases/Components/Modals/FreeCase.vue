@@ -17,7 +17,7 @@ import CloseIcon from "@/assets/icons/close.svg";
 import UsersRawIcon from "@/assets/icons/users.svg?raw";
 import TelegramRawIcon from "@/assets/icons/telegram.svg?raw";
 import ArrowRightRawIcon from "@/assets/icons/arrow-right.svg?raw";
-
+import FriendsRawIcon from "@/assets/icons/friends.svg?raw";
 import Roulette from "@/components/common/Roulette/Roulette.vue";
 
 // Images
@@ -48,6 +48,7 @@ const attrs = useAttrs();
 
 // local mirror (do not mutate props)
 const alreadyOpened = ref<boolean>(!!props.data?.AlreadyOpened);
+const resetTimestamp = ref<number>(props.data?.ResetTimestamp ?? 0);
 
 watch(
   () => props.data?.AlreadyOpened,
@@ -70,7 +71,7 @@ const itemWin = ref<any | null>(null);
 const skeletonTasks = ref(true);
 const skeletonRewards = ref(true);
 
-const itemTasks = ref<any[]>(Array.from({ length: 2 }, () => ({})));
+const itemTasks = ref<any[]>(Array.from({ length: 3 }, () => ({})));
 const itemRewards = ref<any[]>(
   Array.from({ length: 9 }, () => ({
     bg_start: "#000000",
@@ -288,7 +289,6 @@ function pad2(v: number) {
   return String(Math.max(0, v)).padStart(2, "0");
 }
 
-
 function formatTimer(resetTimestamp: any) {
   const targetMs = toMs(resetTimestamp);
   if (!targetMs) return "00:00:00";
@@ -346,7 +346,28 @@ const invTasks = computed(() =>
   })
 );
 
-const subTasks = computed(() => (itemTasks.value || []).filter((t: any) => taskType(t) === "subscribe"));
+const subTasks = computed(() =>
+  (itemTasks.value || [])
+    .map((t: any, idx: number) => {
+      const type = taskType(t);
+
+      return {
+        ...t,
+        _idx: idx,
+        _key: taskKey(t, idx),
+        _type: type,
+        _needFriends: type === "invite",
+        _done: type === "invite" ? inviteOpensLeft(t) > 0 : isDoneTask(t),
+        _progress: type === "invite" ? `${inviteAvailable(t)}/${inviteNeed(t)}` : "",
+        _percent:
+          type === "invite"
+            ? Math.min(100, Math.round((inviteAvailable(t) / inviteNeed(t)) * 100))
+            : 0,
+        _title: taskTitle(t),
+      };
+    })
+    .filter((t: any) => t._type === "subscribe" || t._type === "invite")
+);
 
 const visibleTasks = computed(() => {
   if (isSubCase.value) return subTasks.value || [];
@@ -471,7 +492,7 @@ const inviteLeftTotal = computed(() => {
 
 const canOpenNow = computed(() => {
   if (skeletonTasks.value) return false;
-  if (alreadyOpened.value && !isInvCase.value) return false; // обычные — ждут таймер
+  if (alreadyOpened.value && (!isInvCase.value || !isSubCase.value)) return false;
   if (isInvCase.value) return inviteLeftTotal.value > 0;     // invite — пока есть попытки
   return allTasksDone.value;
 });
@@ -507,6 +528,8 @@ async function rollTo() {
     return;
   }
 
+  console.log(props.data.Status);
+
   if (props.data.Status === "sub") {
     useCache.CasesData.forEach((i: any) => {
       if (i.ID === props.data.ID) {
@@ -514,6 +537,19 @@ async function rollTo() {
         i.ResetTimestamp = nextMoscowMidnightMs();
       }
     });
+    alreadyOpened.value = true;
+    resetTimestamp.value = nextMoscowMidnightMs();
+  }
+
+  if (props.data.Status === "inv") {
+    useCache.CasesData.forEach((i: any) => {
+      if (i.ID === props.data.ID) {
+        i.AlreadyOpened = true;
+        i.ResetTimestamp = nextMoscowMidnightMs();
+      }
+    });
+    alreadyOpened.value = true;
+    resetTimestamp.value = nextMoscowMidnightMs();
   }
 
   if (isInvCase.value) {
@@ -700,26 +736,62 @@ onBeforeUnmount(() => {
             <div
               v-for="(item, index) in subTasks"
               :key="taskKey(item, index)"
-              class="task"
-              :class="{ skeleton: skeletonTasks }"
-              @click="onTaskClick(item)"
+              class="inner"
             >
-              <div class="image">
-                <img :src="item.channel_avatar" alt="avatar" />
-              </div>
-              <div class="task-title">
-                <div class="sk-load" v-if="skeletonTasks"></div>
-                <h4>{{ t("cases.tasks.subscribeChannelName", { name: item.channel_name }) }}</h4>
-              </div>
-              <div class="button">
-                <div v-if="!item.subscribed && !item.loading" class="inner none">
-                  <div class="kit-icon" v-html="Icon.ChevroneRight"></div>
+              <div
+                v-if="item.type && item.type === 'sub'"
+                @click="onTaskClick(item)"
+                class="task"
+                :class="{ skeleton: skeletonTasks }"
+              >
+                <div class="image">
+                  <img :src="item.channel_avatar" alt="avatar" />
                 </div>
-                <div v-if="item.loading" class="inner loading">
-                  <div class="load-icon"></div>
+                <div class="task-title">
+                  <div class="sk-load" v-if="skeletonTasks"></div>
+                  <h4>{{ t("cases.tasks.subscribeChannelName", { name: item.channel_name }) }}</h4>
                 </div>
-                <div v-if="item.subscribed && !item.loading" class="inner done">
-                  <div class="kit-icon" v-html="DoneRawIcon"></div>
+                <div class="button">
+                  <div v-if="!item.subscribed && !item.loading" class="inner none">
+                    <div class="kit-icon" v-html="Icon.ChevroneRight"></div>
+                  </div>
+                  <div v-if="item.loading" class="inner loading">
+                    <div class="load-icon"></div>
+                  </div>
+                  <div v-if="item.subscribed && !item.loading" class="inner done">
+                    <div class="kit-icon" v-html="DoneRawIcon"></div>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-if="item.type && item.type === 'invite'"
+                @click="onTaskClick(item)"
+                class="task"
+                :class="{ skeleton: skeletonTasks }"
+              >
+                <div class="image">
+                  <div class="kit-icon" v-html="FriendsRawIcon"></div>
+                </div>
+                <div class="task-title">
+                  <div class="sk-load" v-if="skeletonTasks"></div>
+                  <h4>{{ item._title }}</h4>
+                </div>
+                <div class="inf">
+                  <div v-if="item._type === 'invite' && !item._done && !item.loading" class="progress">
+                    <div class="progress-line" :style="{ width: item._percent + '%' }"></div>
+                    <p>{{ item._progress }}</p>
+                  </div>
+                </div>
+                <div class="button">
+                  <div v-if="!item._done && !item.loading" class="inner none">
+                    <div class="kit-icon" v-html="Icon.ChevroneRight"></div>
+                  </div>
+                  <div v-if="item.loading" class="inner loading">
+                    <div class="load-icon"></div>
+                  </div>
+                  <div v-if="item._done" class="inner done">
+                    <div class="kit-icon" v-html="DoneRawIcon"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -839,8 +911,8 @@ onBeforeUnmount(() => {
 
         <div v-if="!isRolling" class="buttons">
           <div class="topper">
-            <button v-if="alreadyOpened && !isInvCase" class="timer">
-              <h4>{{ formatTimer(props.data.ResetTimestamp) }}</h4>
+            <button v-if="(props.data.AlreadyOpened || alreadyOpened) && (!isInvCase || !isSubCase)" class="timer disabled">
+              <h4>{{ formatTimer(props.data.ResetTimestamp ?? resetTimestamp ?? 0) }}</h4>
             </button>
 
             <button v-else-if="!allTasksDone && !alreadyOpened" class="progress">
