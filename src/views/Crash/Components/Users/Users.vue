@@ -80,9 +80,14 @@ const onImgError = (k: string) => (imageLoaded[k] = false);
           />
         </div>
 
-        <div class="name">
-          <h4 v-if="item.username">@{{ item.username }}</h4>
-          <h4 v-else>{{ item.user_first_name }}</h4>
+        <div class="blocker">
+          <div class="name">
+            <h4 v-if="item.username">@{{ item.username }}</h4>
+            <h4 v-else>{{ item.user_first_name }}</h4>
+          </div>
+          <!-- <div class="descr">
+            <p>205.3 TON</p>
+          </div> -->
         </div>
 
         <!-- active -->

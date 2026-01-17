@@ -31,6 +31,7 @@ const CheckActiveMenu = () => {
   if (route.path === '/leaderboard') return true;
   if (route.path === '/crash') return true;
   if (route.path === '/crash1') return true;
+  if (route.path === '/tech-works') return true;
   return false;
 }
 

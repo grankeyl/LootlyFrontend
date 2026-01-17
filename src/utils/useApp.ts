@@ -125,4 +125,45 @@ export function uuidv4(): string {
   });
 }
 
+export function maskUsername(value?: string | null): string {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+  const hasAt = trimmed.startsWith("@");
+  const pure = hasAt ? trimmed.slice(1) : trimmed;
+  if (pure.length < 3) return trimmed;
+  const start = pure.slice(0, 2);
+  const end = pure.slice(-1);
+  const stars = "*".repeat(pure.length - 3);
+  return (hasAt ? "@" : "") + start + stars + end;
+}
+const TG_COLORS = [
+  ["#4f46e5", "#4338ca"], // indigo
+  ["#2563eb", "#1d4ed8"], // blue
+  ["#0284c7", "#0369a1"], // sky
+  ["#0891b2", "#0e7490"], // cyan
+  ["#0d9488", "#0f766e"], // teal
+  ["#059669", "#047857"], // green
+  ["#65a30d", "#4d7c0f"], // lime
+  ["#ca8a04", "#a16207"], // yellow dark
+  ["#ea580c", "#c2410c"], // orange
+  ["#dc2626", "#b91c1c"], // red
+  ["#be185d", "#9d174d"], // pink
+  ["#9333ea", "#7e22ce"], // violet
+];
+
+function hashString(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+export function telegramAvatarBg(name: string): string {
+  const g = TG_COLORS[hashString(name) % TG_COLORS.length];
+  return `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
+}
+
 export { msToWholeSec, getUserLanguage, unixToDefault, unixToRelative, randomString, cleanString };

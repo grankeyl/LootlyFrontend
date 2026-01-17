@@ -77,6 +77,14 @@ function scrollTopSmooth() {
   }
 }
 
+const checkPageOpener = () => {
+  if (location.pathname.startsWith("/tech-works")) {
+    TelegramModule.readyMiniApp();
+    appReady.value = true;
+    loading.value = false;
+  }
+};
+
 function miniAppTransport(dtx: any) {
   if (!dtx || dtx === "debug") return;
 
@@ -129,29 +137,34 @@ onBeforeUnmount(() => {
 });
 
 onMounted(async () => {
-  // 1) init телеги/юзера
+  checkPageOpener();
+  
   const initDataRaw = TelegramModule.initDataRaw() as any;
   const initData = TelegramModule.initData() as any;
 
   const init = await APIUser.init(initDataRaw);
+  console.log(init);
   if (!init) return;
+  if (init.code === 503) {
+    appReady.value = true;
+    loading.value = false;
 
-  // 2) кэш + язык
+    await router.replace("/tech-works");
+    return;
+  }
+
   useCache.UserData = { ...init.user };
   useCache.UserDataMeta = { ...init.meta };
   i18next.changeLanguage(init.user.Language);
 
-  // 3) роутинг
   const target = !init.user.OnBoarding ? "/onboard" : null;
 
   if (target) await router.replace(target);
   else await initStartApp(initData.start_param);
 
-  // 4) показываем APP СРАЗУ (важно для LCP/FCP)
   appReady.value = true;
   loading.value = false;
 
-  // 5) всё тяжёлое — только в фоне
   runInIdle(async () => {
     try {
       await preloadImages(IMAGES_TO_PRELOAD);
@@ -161,7 +174,6 @@ onMounted(async () => {
         await preloadImages(IMAGES_TO_PRELOAD_SLIDES);
       }
     } catch (e) {
-      // тихо проглатываем, чтобы не ломать UX
       console.warn("idle preload failed", e);
     }
   }, 2000);

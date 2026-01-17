@@ -25,6 +25,7 @@ const menuItems = [
 const CheckDisabledMenu = () => {
   if (route.path === '/onboard') return true;
   if (route.path === '/balance/onboard') return true;
+  if (route.path === '/tech-works') return true;
   return false;
 }
 

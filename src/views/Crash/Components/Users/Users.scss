@@ -119,16 +119,31 @@
         }
       }
 
-      .name {
-        min-width: 0; /* для переполнения */
-        h4 {
-          font-weight: 600;
-          font-size: 1.6rem;
-          color: var(--color-white);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: clamp(120px, 30vw, 260px);
+      .blocker {
+        width: 100%;
+        .name {
+          min-width: 0; /* для переполнения */
+          h4 {
+            font-weight: 600;
+            font-size: 1.6rem;
+            color: var(--color-white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: clamp(120px, 30vw, 260px);
+          }
+        }
+        .descr {
+          min-width: 0; /* для переполнения */
+          p {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--color-descr);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: clamp(120px, 30vw, 260px);
+          }
         }
       }
 

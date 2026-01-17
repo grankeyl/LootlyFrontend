@@ -112,7 +112,6 @@ function toBigInt(v: unknown): bigint {
 }
 
 async function placeBit(payload: any) {
-
   if (!payload) return;
   const bet = Number(payload.bet);
 
@@ -136,7 +135,9 @@ async function placeBit(payload: any) {
   const autoCashout = GameAutoWithdraw.value ? GameAutoX.value : 0;
   const res = await APICrash.bet(bet, autoCashout);
   if (res?.status !== 'ok') {
-    showErrorToast(res.message);
+    showErrorToast(res.msg);
+    GameBetActual.value = 0;
+    GameBetLoading.value = false;
     return;
   };
   if (res.bet) {

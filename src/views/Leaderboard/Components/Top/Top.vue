@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { cutNumberNano } from "../../../../utils/useTon";
+import { maskUsername, telegramAvatarBg } from "../../../../utils/useApp";
 
 import * as APIUser from "../../../../api/user";
 
@@ -23,30 +24,6 @@ const skeleton = ref(true);
 
 
 const leaderboard = ref<any[]>([]);
-
-// Track images that failed to load, so we can hide <img> and show avatar_null
-const failedPhotoKeys = ref<Set<string>>(new Set());
-
-function leaderKey(item: any, index?: number) {
-  return String(
-    item?.user_id ??
-      item?.id ??
-      item?.username ??
-      item?.rank ??
-      index ??
-      "unknown"
-  );
-}
-
-function hasPhoto(item: any, index?: number) {
-  const key = leaderKey(item, index);
-  return Boolean(item?.photo) && !failedPhotoKeys.value.has(key);
-}
-
-function onPhotoError(item: any, index?: number) {
-  const key = leaderKey(item, index);
-  failedPhotoKeys.value.add(key);
-}
 
 function avatarLetter(item: any) {
   const s = (item?.username || item?.name || "?").toString();
@@ -289,13 +266,10 @@ onBeforeUnmount(() => {
       <div class="item" v-for="(item, index) in primaryLeaders" :key="index">
         <div class="user">
           <div class="image">
-            <img
-              v-if="hasPhoto(item, index)"
-              :src="item.photo"
-              alt="image"
-              @error="onPhotoError(item, index)"
-            />
-            <div class="avatar_null" v-else>
+            <div
+              class="avatar_null"
+              :style="{ background: telegramAvatarBg(item.username || item.name || 'user') }"
+            >
               <h4>{{ avatarLetter(item) }}</h4>
             </div>
             <div class="mark">
@@ -304,8 +278,8 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <div class="title">
-            <h4 v-if="item.username">@{{ item.username }}</h4>
-            <h4 v-else>{{ item.name }}</h4>
+            <h4 v-if="item.username">@{{ maskUsername(`@${item.username}`) }}</h4>
+            <h4 v-else>{{ maskUsername(`@${item.name}`) }}</h4>
           </div>
         </div>
         <div class="buck">
@@ -326,19 +300,16 @@ onBeforeUnmount(() => {
           <p>#{{ item.rank }}</p>
         </div>
         <div class="image">
-          <img
-            v-if="hasPhoto(item, index)"
-            :src="item.photo"
-            alt=""
-            @error="onPhotoError(item, index)"
-          />
-          <div class="avatar_null" v-else>
+          <div
+            class="avatar_null"
+            :style="{ background: telegramAvatarBg(item.username || item.name || 'user') }"
+          >
             <h4>{{ avatarLetter(item) }}</h4>
           </div>
         </div>
         <div class="name">
-          <h4 v-if="item.username">@{{ item.username }}</h4>
-          <h4 v-else>{{ item.name }}</h4>
+          <h4 v-if="item.username">{{ maskUsername(`@${item.username}`) }}</h4>
+          <h4 v-else>{{ maskUsername(`${item.name}`) }}</h4>
         </div>
         <div class="button">
           <button>

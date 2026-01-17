@@ -329,6 +329,9 @@ export const localization = {
             slide6: {
                 title: "Hurry up and open the free cases!",
             },
+        },
+        techWorks: {
+            title: "Technical work",
         }
     },
 
@@ -655,6 +658,9 @@ export const localization = {
             slide6: {
                 title: "Успей открыть бесплатные кейсы!",
             },
+        },
+        techWorks: {
+            title: "Технические работы",
         }
     },
 };

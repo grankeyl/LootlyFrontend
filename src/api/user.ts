@@ -13,9 +13,16 @@ export async function init(initData: string) {
       Cookies.set("init-data", initData);
       return response.data;
     }
-    return false;
-  } catch {
-    return false;
+    return response.data;
+  } catch (e: any) {
+    if (e?.response?.data) {
+      return e.response.data;
+    }
+    return {
+      "code": 503,
+      "message": "maintenance",
+      "ok": false
+    };
   }
 }
 
