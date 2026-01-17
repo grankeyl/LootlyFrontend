@@ -278,7 +278,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <div class="title">
-            <h4 v-if="item.username">@{{ maskUsername(`@${item.username}`) }}</h4>
+            <h4 v-if="item.username">{{ maskUsername(`@${item.username}`) }}</h4>
             <h4 v-else>{{ maskUsername(`@${item.name}`) }}</h4>
           </div>
         </div>
