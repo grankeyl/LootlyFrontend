@@ -5,7 +5,6 @@ import { useTranslation } from "i18next-vue";
 
 // Icons
 import CasesIcon from "@/assets/icons/case.svg";
-import MarketIcon from "@/assets/icons/market.svg";
 import TicketsIcon from "@/assets/icons/tickets.svg";
 import ProfileIcon from "@/assets/icons/profile.svg";
 
@@ -17,7 +16,6 @@ const { t } = useTranslation();
 
 const menuItems = [
   { id: 'cases', name: t('menu.cases'), icon: CasesIcon, path: '/' },
-  { id: 'market', name: t('menu.market'), icon: MarketIcon, path: '/market' },
   { id: 'earn', name: t('menu.earn'), icon: TicketsIcon, path: '/earn' },
   { id: 'profile', name: t('menu.profile'), icon: ProfileIcon, path: '/profile' },
 ];

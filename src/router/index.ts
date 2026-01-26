@@ -11,10 +11,12 @@ import LeaderboardView from "../views/Leaderboard/Leaderboard.vue";
 import CrashView from "../views/Crash/Crash.vue";
 import ChickenView from "../views/Chicken/Chicken.vue";
 import TechWorksView from "../views/TechWorks/TechWorks.vue";
+import FortuneTapView from "../views/FortuneTap/FortuneTap.vue";
 
 const routes = [
   { path: "/", component: CasesView },
   { path: "/onboard", component: OnboardView },
+  { path: "/fortune-tap", component: FortuneTapView },
   { path: "/market", component: MarketView },
   { path: "/market/item/:id", component: MarketView },
   { path: "/earn", component: EarnView },

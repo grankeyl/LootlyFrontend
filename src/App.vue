@@ -92,12 +92,13 @@ function miniAppTransport(dtx: any) {
   if (dtx.startsWith("p_")) router.push(`/profile/item/${dtx.split("p_")[1]}`);
   if (dtx === "onboard") router.push("/onboard");
   if (dtx === "cases") router.push("/cases");
-  if (dtx === "market") router.push("/market");
   if (dtx === "earn") router.push("/earn");
   if (dtx === "profile") router.push("/profile");
   if (dtx === "balance") router.push("/balance");
   if (dtx === "leaderboard") router.push("/leaderboard");
   if (dtx === "crash") router.push("/crash");
+  if (dtx === "fortunetap") router.push("/fortune-tap");
+  if (dtx === "chicken") router.push("/chicken");
 }
 
 async function initStartApp(startParam?: string) {

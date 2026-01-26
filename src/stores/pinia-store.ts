@@ -18,6 +18,12 @@ export const useCacheStore = defineStore('cache', {
         Count: 0,
         FullyLoaded: false,
       },
+    },
+
+    FortuneTap: {
+      Items: [],
+      Count: 0,
+      FullyLoaded: false,
     }
   }),
 });

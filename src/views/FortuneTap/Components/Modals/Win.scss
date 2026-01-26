@@ -1,0 +1,275 @@
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeInPhoto {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.sheet {
+  position: relative;
+  height: 70svh;
+  overflow: hidden;
+}
+
+/* CLOSE */
+.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* COVER */
+.cover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+
+    .relay {
+      width: 100%;
+      height: 290px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+
+      .background {
+        &.upg {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 0;
+          background: radial-gradient(99.63% 106.36% at 50% -6.36%,
+                      var(--start-color) 0%,
+                      var(--center-color) 50%,
+                      var(--end-color) 100%);
+        }
+
+        &.no-upg {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 0;
+        }
+      }
+    }
+}
+
+/* TITLE */
+.title {
+  position: relative;
+  z-index: 2;
+  margin-top: 45px;
+
+  .win {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    animation: fadeIn 0.2s ease-in-out;
+
+    h4 {
+      font-weight: 700;
+      font-size: 2.4rem;
+      color: var(--color-white);
+    }
+
+    span {
+      font-weight: 700;
+      font-size: 2.4rem;
+      color: var(--bg-40);
+      mix-blend-mode: overlay;
+    }
+  }
+}
+
+/* CONFETTI + ROTATING ICON */
+.cover-win {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  z-index: 1;
+
+  .lottie-win {
+    position: absolute;
+    inset: 0;
+
+    div {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
+
+  .image-win {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.3);
+
+    :deep(svg) {
+      animation: rotate 11s linear infinite;
+      opacity: 0.5;
+      mix-blend-mode: overlay;
+
+      path {
+        fill: var(--chamomile-color) !important;
+      }
+    }
+  }
+}
+
+/* WINNER CARD */
+.winner-gift {
+  z-index: 2;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  .flexed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &.multi {
+      gap: 12px;
+      .item {
+        width: 110px;
+        height: 120px;
+
+        @media screen and (max-width: 410px) {
+          width: 90px;
+          height: 100px;
+        }
+
+        .image {
+          width: 110px;
+
+          @media screen and (max-width: 410px) {
+            width: 90px;
+          }
+        }
+      }
+    }
+
+    .itm {
+      text-align: center;
+    }
+  }
+
+  .item {
+    width: 145px;
+    height: 145px;
+    border-radius: 16px;
+    position: relative;
+    background: radial-gradient(
+      99.63% 106.36% at 50% -6.36%,
+      var(--bg-start-color) 0%,
+      var(--bg-center-color) 50%,
+      var(--bg-end-color) 100%
+    );
+
+    .image {
+      width: 137px;
+      height: auto;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        animation: fadeInPhoto 0.3s ease-in-out;
+      }
+    }
+  }
+
+  .winner-gift-name {
+    h4 {
+      font-weight: 700;
+      font-size: 2.4rem;
+      color: var(--color-white);
+    }
+  }
+}
+
+/* BUTTONS */
+.buttons.win {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 16px 16px 45px;
+  z-index: 1;
+
+  .topper {
+    display: flex;
+    gap: 10px;
+
+    button {
+      flex: 1;
+      height: 51px;
+      border-radius: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      h4 {
+        font-weight: 600;
+        font-size: 1.6rem;
+      }
+
+      img {
+        width: 16px;
+        height: 16px;
+      }
+
+      &:first-child {
+        background: linear-gradient(
+          95deg,
+          #ff5fd6 -0.53%,
+          #ffa6e8 50.55%,
+          #e837bb 99.7%
+        );
+        color: var(--color-black);
+      }
+
+      &:last-child {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(25px);
+        color: var(--color-white);
+      }
+    }
+  }
+}

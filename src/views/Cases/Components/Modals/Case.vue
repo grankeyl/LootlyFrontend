@@ -332,7 +332,6 @@ onMounted(() => {
                 <h4>{{ itemWin?.name }}</h4>
               </div>
             </div>
-
           </div>
 
           <div 

@@ -8,6 +8,59 @@
   gap: 13px;
 }
 
+.block.fortunetap {
+  border-radius: 18px;
+  border: 2px solid rgba(137, 83, 217, 0.01);
+  background: radial-gradient(103.21% 50% at 50% 50%, #1A0E2C 0%, #1E0F36 100%);
+  box-shadow: 0 -1px 16px 0 #915ae3a0 inset;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.081) 40%,
+      rgba(255, 110, 219, 0.2) 50%,
+      transparent 60%
+    );
+    transform: translateX(-120%);
+    opacity: 0;
+    animation: shineChicken 4s ease-in-out infinite;
+    overflow: hidden;
+    border-radius: 18px;
+  }
+
+  .bg {
+    position: absolute;
+    left: 50% !important;
+    transform: translateX(-23%) !important;
+    right: 0 !important;
+    overflow: visible !important;
+
+    @media screen and (max-width: 365px) {
+      transform: translateX(-20%) !important;
+    }
+
+    @media screen and (max-width: 347px) {
+      transform: translateX(-19%) !important;
+    }
+
+    img {
+      animation: bgDriftFortuneTapAlt 12s linear infinite;
+      will-change: transform;
+    }
+  }
+
+  .title h4 {
+    background: radial-gradient(140.72% 125.64% at 42.78% -3.97%, #FFF 0%, #955EE7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
 .block.chicken {
   border-radius: 18px;
   border: 2px solid rgba(197, 143, 26, 0.01);
@@ -345,5 +398,35 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes bgDriftFortuneTapAlt {
+  0% {
+    transform: translateX(-21.5%) translateY(2px);
+  }
+  12.5% {
+    transform: translateX(-19.8%) translateY(4px);
+  }
+  25% {
+    transform: translateX(-18.6%) translateY(6px);
+  }
+  37.5% {
+    transform: translateX(-19.4%) translateY(4px);
+  }
+  50% {
+    transform: translateX(-21.2%) translateY(2px);
+  }
+  62.5% {
+    transform: translateX(-22.9%) translateY(0px);
+  }
+  75% {
+    transform: translateX(-24.1%) translateY(-2px);
+  }
+  87.5% {
+    transform: translateX(-23.1%) translateY(0px);
+  }
+  100% {
+    transform: translateX(-21.5%) translateY(2px);
   }
 }

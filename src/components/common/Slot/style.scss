@@ -1,0 +1,143 @@
+.slot {
+  width: fit-content;
+  user-select: none;
+  display: grid;
+  margin: auto;
+
+  &.disabled {
+    opacity: 0.85;
+    pointer-events: none;
+  }
+}
+
+.slot-window {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slot-reels {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.reel {
+  position: relative;
+  width: var(--reel-w);
+  height: calc(var(--item-h) * var(--rows)); // ✅ было: var(--item-h)
+  border-radius: 14px;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.shade {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+}
+
+.win-line {
+  top: 50%; // ✅ центр по окну (и остановка тоже по центру)
+}
+
+.tape {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.cell {
+  width: 100%;
+  height: var(--item-h);
+  display: grid;
+  place-items: center;
+
+  &.disabled {
+    opacity: 0.45;
+    filter: saturate(0.8);
+  }
+}
+
+.cell-inner {
+  width: calc(var(--reel-w) - 12px);
+  height: calc(var(--item-h) - 12px);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: 8px;
+
+  background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));
+
+  transition: transform 220ms ease, filter 220ms ease, opacity 220ms ease;
+}
+
+.reel.spinning .cell-inner {
+  transform: scale(0.985);
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+}
+
+.fallback {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+
+.label {
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.85;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.win-line {
+  pointer-events: none;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.shade {
+  pointer-events: none;
+  height: fit-content;
+  z-index: 3;
+}
+
+.frame {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.10),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.18);
+}
+
+.tape { will-change: transform; transform: translate3d(0, 0, 0); }
+.cell { height: var(--item-h); }
+.reel, .slot-window { overflow: hidden; }

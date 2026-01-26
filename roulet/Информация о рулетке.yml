@@ -1,0 +1,22 @@
+info:
+  name: Информация о рулетке
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: https://lootly.codes/api/v2/roulette/rewards/:id
+  headers:
+    - name: X-Init-Data
+      value: user=%7B%22id%22%3A1463782322%2C%22first_name%22%3A%22%D0%94%D0%B5%D0%BD%D0%B8%D1%81%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22KriozR%22%2C%22language_code%22%3A%22ru%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FvA3Y0EK_I8uhjNPQdU8eZm6A_SAIKKyr4vo5i2GevJs.svg%22%7D&chat_instance=7091055814940997046&chat_type=private&auth_date=1769178549&signature=avKESevez7TLwouY3ArKUenlmcxWUICbOR1Ahkh0CB5SCqr-xnmTAAarJ41EJHm6c111HwNXp0kyrXn04y9kCw&hash=1d34b8b3fecd808367bec7cef74c10f79d347288c453e70d369c2ab545388aea
+  params:
+    - name: id
+      value: 22d42276-3b43-48f4-a1f0-0cabb405486a
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

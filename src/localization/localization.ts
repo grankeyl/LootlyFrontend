@@ -334,7 +334,27 @@ export const localization = {
         },
         techWorks: {
             title: "Technical work",
-        }
+        },
+        fortuneTap: {
+            modals: {
+                gift: {
+                    demo: "Demo",
+                    spins_one: "{{count}} spin",
+                    spins_few: "{{count}} spins",
+                    spins_many: "{{count}} spins",
+                    loading: "Loading...",
+                    spinning: "Spinning...",
+                    spin: "Spin",
+                    demoSpin: "Demo spin",
+                    calc: "Calculating...",
+                    spinAt: "Spin at {{price}}",
+                    ratio: {
+                        win: "Win",
+                        lose: "Lose",
+                    }
+                }
+            }
+        },
     },
 
     ru: {
@@ -665,6 +685,23 @@ export const localization = {
         },
         techWorks: {
             title: "Технические работы",
+        },
+        fortuneTap: {
+            modals: {
+                gift: {
+                demo: "Демо",
+                spins_one: "{{count}} спин",
+                spins_few: "{{count}} спина",
+                spins_many: "{{count}} спинов",
+                loading: "Загрузка...",
+                spinning: "Крутим...",
+                spin: "Прокрутить",
+                demoSpin: "Демо прокрутка",
+                calc: "Расчет...",
+                spinAt: "Прокрутить за {{price}}",
+                ratio: { win: "Выигрыш", lose: "Луз" }
+                }
+            }
         }
     },
 };
