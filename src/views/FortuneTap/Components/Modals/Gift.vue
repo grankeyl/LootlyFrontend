@@ -267,11 +267,32 @@ async function spinDemoSlot() {
   }
 }
 
-// ===== API spins =====
+function toNanoBig(v: any): bigint {
+  if (typeof v === "bigint") return v;
+  if (typeof v === "number") return BigInt(Math.trunc(v));
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return BigInt(Math.trunc(n));
+  }
+  return 0n;
+}
+
+function subBalanceNano(costNano: any) {
+  const cost = toNanoBig(costNano);
+  if (cost <= 0n) return;
+
+  const cur = useCache.UserData.BalanceNano;
+  if (typeof cur === "bigint") {
+    useCache.UserData.BalanceNano = cur - cost;
+  } else {
+    // если у тебя вдруг number
+    useCache.UserData.BalanceNano = Number(cur ?? 0) - Number(cost);
+  }
+}
+
 function applyPlaySideEffects(res: any) {
   if (res?.success) {
-    const cost = Number(res.data?.cost_nano ?? 0);
-    if (Number.isFinite(cost) && cost > 0) useCache.UserData.BalanceNano -= cost;
+    subBalanceNano(res.data?.cost_nano ?? 0);
     if (wheelGift.value) wheelGift.value.inventory_item_id = res.data?.inventory_item_id;
   }
 }
@@ -316,27 +337,24 @@ async function spinSlot() {
     const results: Array<string | number> = [];
     for (let i = 0; i < n; i++) {
       const res = await APIFortuneTap.play(wheelGift.value.id, pct).catch(() => null);
+
       if (!res) {
         showErrorToast(t("extra.notEnoughTon"));
         while (results.length < n) results.push("bomb");
         break;
       }
 
-      if (res?.success) {
-        if (wheelGift.value) wheelGift.value.inventory_item_id = res.data?.inventory_item_id;
-      }
+      applyPlaySideEffects(res);
 
       results.push(res.data?.won ? "gift" : "bomb");
     }
-    
-    useCache.UserData.BalanceNano -= calcResult.value * spinsCount.value;
 
     while (results.length < n) results.push("bomb");
     slotsItemsResults.value = results.slice(0, n);
 
     await nextTick();
     await (slotRef.value as any)?.spin?.();
-    // spinning выключаем в onSlotEnd
+    // spinning выключим в onSlotEnd
   } catch {
     spinning.value = false;
   }
@@ -355,6 +373,12 @@ async function onSlotEnd(payload: any) {
   spinning.value = false;
 }
 
+function toBigNano(v: any): bigint {
+  if (typeof v === "bigint") return v;
+  const n = Number(v ?? 0);
+  return BigInt(Math.trunc(Number.isFinite(n) ? n : 0));
+}
+
 async function onSpinClick() {
   if (spinning.value) return;
 
@@ -363,10 +387,10 @@ async function onSpinClick() {
     return spinDemoSlot();
   }
 
-  const balance = useCache.UserData.BalanceNano;
-  const totalCost = calcResult.value * spinsCount.value;
+  const balanceNano = toBigNano(useCache.UserData.BalanceNano);
+  const totalCostNano = BigInt(calcResult.value) * BigInt(spinsCount.value);
 
-  if (balance < totalCost) {
+  if (balanceNano < totalCostNano) {
     showErrorToast(t("extra.notEnoughTon"));
     return;
   }
@@ -400,7 +424,7 @@ const calcResult = computed(() => {
   if (!wheelGift.value?.price_nano) return 0;
 
   const chancePercent = clamp(percent.value, minChance.value, maxChance.value);
-  const prize = Number(wheelGift.value.price_nano) / 2;
+  const prize = Number(wheelGift.value.price_nano);
   const p = chancePercent / 100;
   const margin = getMargin(chancePercent);
 

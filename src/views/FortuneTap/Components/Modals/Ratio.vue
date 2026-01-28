@@ -31,7 +31,7 @@
         :class="{ capOnly: rightBarPx <= 0.5 }"
         :style="{ width: rightBarPx + 'px' }"
       >
-        <div class="inLabel rightIn" :class="{ show: rightInside }">
+        <div v-if="!hideRight" class="inLabel rightIn" :class="{ show: rightInside }">
           <span class="pct rightPct">{{ rightText }}</span>
           <span class="name rightName">{{ rightLabel }}</span>
         </div>
@@ -48,6 +48,7 @@
       </div>
 
       <div
+        v-if="!hideRight"
         class="outLabel rightOut"
         :class="{ show: !rightInside }"
         :style="{ left: rightOutX + 'px', top: rightOutTop + 'px' }"
@@ -167,11 +168,6 @@ function clamp(n: number, a: number, b: number) {
   return Math.min(b, Math.max(a, n));
 }
 
-function roundToStep(v: number) {
-  const s = Math.max(1e-12, props.step);
-  return Math.round(v / s) * s;
-}
-
 function autoDecimals(v: number) {
   const av = Math.abs(v);
   if (av >= 10) return 1;
@@ -191,14 +187,36 @@ function formatVal(v: number) {
 const minValue = computed(() => Math.min(props.minValue, props.maxValue));
 const maxValue = computed(() => Math.max(props.minValue, props.maxValue));
 
+function roundToStepFromMin(v: number) {
+  const s = Math.max(1e-12, props.step);
+  const base = minValue.value;
+  return base + Math.round((v - base) / s) * s;
+}
+
+const hideRight = computed(() => {
+  const eps = Math.max(props.step * 50, 0.05);
+  return (maxValue.value - leftValue.value) <= eps;
+});
+
 function clampStrict(v: number) {
-  return clamp(roundToStep(v), minValue.value, maxValue.value);
+  const mn = minValue.value;
+  const mx = maxValue.value;
+
+  let x = clamp(roundToStepFromMin(v), mn, mx);
+
+  // липучка к краям (убирает 49.2/49.999999)
+  const eps = props.step * 0.5;
+  if (Math.abs(x - mn) <= eps) x = mn;
+  if (Math.abs(x - mx) <= eps) x = mx;
+
+  return x;
 }
 
 const leftValue = computed(() => clampStrict(props.modelValue));
-const rightValue = computed(() => clampStrict(maxValue.value + minValue.value - leftValue.value)); // symmetric
 
-// ✅ лейблы с i18n — уже в setup, можно спокойно дергать t()
+// ✅ Lose = остаток до max
+const rightValue = computed(() => clampStrict(maxValue.value - leftValue.value));
+
 const leftLabel = computed(() => props.leftLabel || t("fortuneTap.modals.gift.ratio.win"));
 const rightLabel = computed(() => props.rightLabel || t("fortuneTap.modals.gift.ratio.lose"));
 
