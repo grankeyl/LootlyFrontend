@@ -6,6 +6,7 @@ import { beginCell, toNano, Address } from '@ton/core';
 import { toUserFriendlyAddress } from 'ton-ui-vue';
 import { copyToClipboard } from '../../../../utils/copyToClipboard';
 import { useTranslation } from 'i18next-vue';
+import { cutNumber } from '../../../../utils/useTon';
 
 import * as APIWallet from '../../../../api/wallet';
 
@@ -26,7 +27,6 @@ import RubIcon from '@/assets/icons/rub.svg';
 import DoneRawIcon from '@/assets/icons/done.svg?raw';
 import TelegramModule from '../../../../hooks/useTelegram';
 import EqualIcon from '@/assets/icons/equal.svg';
-import { cutNumber } from '../../../../utils/useTon';
 
 const { t } = useTranslation();
 

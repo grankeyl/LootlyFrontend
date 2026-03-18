@@ -51,6 +51,7 @@ export const localization = {
                     buttons: {
                         skip: "Skip",
                         sellFor: "Sell for {{price}}",
+                        sellForMarket: "For sale at the market {{price}}",
                         collect: "Collect",
                         ok: "Ok",
                         demoOpen: "Demo open",
@@ -410,6 +411,7 @@ export const localization = {
                     buttons: {
                         skip: "Пропустить",
                         sellFor: "Продать за {{price}}",
+                        sellForMarket: "Продается на маркете {{price}}",
                         collect: "Забрать",
                         ok: "Отлично",
                         demoOpen: "Демо-спин",

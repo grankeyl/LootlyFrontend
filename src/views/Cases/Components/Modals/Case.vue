@@ -410,6 +410,12 @@ onMounted(() => {
           </div>
           
           <div v-if="isRolling && isWin" class="buttons win">
+            <div v-if="itemWin.rewardItem.quick_sale" class="topper px">
+              <button>
+                <h4>{{ $t('cases.modals.case.buttons.sellForMarket', { price: cutNumberNano((itemWin.rewardItem.reward_price ?? 0) - 1400000000) }) }}</h4>
+                <img :src="TonWhiteIcon" alt="ton-icon" />
+              </button>
+            </div>
             <div v-if="itemWin.rewardItem.quick_sale" class="topper">
               <button @click="quickSell(itemWin.rewardItem.reward)">
                 <h4>{{ $t('cases.modals.case.buttons.sellFor', { price: itemWin.price_ton }) }}</h4>

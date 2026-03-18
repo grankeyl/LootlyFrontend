@@ -140,7 +140,7 @@ img.showing {
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
+    height: 92%;
     gap: 12px;
 
     .item {
@@ -223,7 +223,7 @@ img.showing {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -55%);
     z-index: 0;
     opacity: .5;
 
@@ -670,6 +670,21 @@ img.showing {
     }
 
     &.win {
+      .topper.px {
+        margin-bottom: 8px;
+
+        button {
+          background: var(--bg-5) !important;
+          backdrop-filter: blur(15px);
+          box-shadow: none;
+          color: var(--color-white);
+
+          h4 {
+            color: var(--color-white);
+          }
+        }
+      }
+
       .topper button {
         &:first-child {
           background: linear-gradient(95deg, #FF5FD6 -0.53%, #FFA6E8 50.55%, #E837BB 99.7%);

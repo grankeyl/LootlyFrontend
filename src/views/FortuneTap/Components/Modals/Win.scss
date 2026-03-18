@@ -128,7 +128,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.3);
+    transform: translate(-50%, -52%) scale(1.3);
 
     :deep(svg) {
       animation: rotate 11s linear infinite;
@@ -151,7 +151,7 @@
   justify-content: center;
   align-items: center;
   position: absolute;
-  top: 50%;
+  top: 42%;
   left: 50%;
   transform: translate(-50%, -50%);
 
@@ -231,6 +231,20 @@
   .topper {
     display: flex;
     gap: 10px;
+
+    &.px {
+      margin-bottom: 8px;
+
+      button {
+        background: var(--bg-5) !important;
+        backdrop-filter: blur(15px);
+        color: var(--color-white);
+
+        h4 {
+          color: var(--color-white);
+        }
+      }
+    }
 
     button {
       flex: 1;

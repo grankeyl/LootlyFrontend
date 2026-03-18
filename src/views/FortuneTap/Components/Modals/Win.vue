@@ -10,6 +10,7 @@ import * as APICases from "../../../../api/cases";
 
 // Icons
 import TonBlackIcon from "@/assets/icons/ton-black.svg";
+import TonWhiteIcon from "@/assets/icons/ton-white.svg";
 import CloseIcon from "@/assets/icons/close.svg";
 
 const attrs = useAttrs()
@@ -137,6 +138,12 @@ onMounted(() => {
 
 
       <div v-if="!props.data.multi" class="buttons win">
+        <div v-if="props.data.type && props.data.type === 'win'" class="topper px">
+          <button>
+            <h4>{{ $t('cases.modals.case.buttons.sellForMarket', { price: cutNumberNano((props.data?.price_nano ?? 0) - 1400000000) }) }}</h4>
+            <img :src="TonWhiteIcon" alt="ton-icon" />
+          </button>
+        </div>
         <div v-if="props.data.type && props.data.type === 'win'" class="topper">
           <button @click="quickSell(props.data?.inventory_item_id ?? '')">
             <h4>{{ $t('cases.modals.case.buttons.sellFor', { price: cutNumberNano(props.data?.price_nano ?? 0n) }) }}</h4>
